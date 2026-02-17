@@ -20,7 +20,7 @@ Este repositorio contiene la evidencia del trabajo realizado por el equipo en el
 
 ---
 
-## Estructura del repositorio (GitHub)
+## Estructura del repositorio 
 
 ### 📁 Avances 1
 Contiene los documentos entregados correspondientes al primer avance (Design Studio inicial, ideas, sketches y primeras decisiones).
@@ -38,6 +38,7 @@ Documentos, enlaces, diagramas y evidencia general correspondiente al **Corte 2*
 Carpeta reservada para mas adelante al desarrollar el proyecto.
 
 ---
+
 
 
 
