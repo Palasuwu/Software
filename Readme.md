@@ -1,4 +1,4 @@
-# README — Software - Plataforma de Donaciones
+# Software - Plataforma de Donaciones
 
 Este repositorio contiene la evidencia del trabajo realizado por el equipo en el proceso de Design Thinking, incluyendo el seguimiento de pasos, las ideas generadas, sketches individuales, la selección de ideas más repetidas/votadas y el listado de historias de usuario identificadas para el producto.
 
@@ -38,5 +38,6 @@ Documentos, enlaces, diagramas y evidencia general correspondiente al **Corte 2*
 Carpeta reservada para mas adelante al desarrollar el proyecto.
 
 ---
+
 
 
