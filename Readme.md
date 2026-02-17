@@ -29,13 +29,14 @@ Contiene los documentos entregados correspondientes al primer avance (Design Stu
 Incluye los materiales del segundo avance (mejoras, ajustes, enlaces y evidencia adicional del proceso).
 
 ### 📁 Corte 1
-Documentos, enlaces, diagramas y evidencia general correspondiente al **Corte 1** (entregables consolidados y soporte).
+Documentos, enlaces, diagramas y evidencia general correspondiente al **Corte 1** .
 
 ### 📁 Corte 2
-Documentos, enlaces, diagramas y evidencia general correspondiente al **Corte 2** (entregables consolidados y soporte).
+Documentos, enlaces, diagramas y evidencia general correspondiente al **Corte 2** .
 
 ### 📁 Scrum
 Carpeta reservada para mas adelante al desarrollar el proyecto.
 
 ---
+
 
