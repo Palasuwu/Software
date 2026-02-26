@@ -6,10 +6,17 @@ Este repositorio contiene la evidencia del trabajo realizado por el equipo en el
 - Documento donde se trabajó el proceso y la evidencia:  
   https://uvggt-my.sharepoint.com/:w:/r/personal/mar24086_uvg_edu_gt/_layouts/15/Doc.aspx?sourcedoc=%7B48FDF99D-A5A3-48D3-AE78-1CC966232C19%7D&file=UNIVERSIDAD%20DEL%20VALLE%20DE%20GUATEMALA1.docx&action=default&mobileredirect=true&DefaultItemOpen=1&wdOrigin=APPHOME-WEB.DIRECT%2CAPPHOME-WEB.FILEBROWSER.RECENT&wdPreviousSession=ce43b6c1-f170-4e0c-9ea6-f27d1578dc4b&wdPreviousSessionSrc=AppHomeWeb&ct=1771305371608
 
-## Material Avance 2 (Lluvia de ideas)
-- Lluvia de ideas / tablero (Avance 2):  
+## Material Avance 2 
+- Lluvia de ideas:  
   https://www.canva.com/design/DAHAZz_pYXs/M8SDBURUhimJGWoZB9fxOQ/edit
 
+---
+
+## Diagrama de casos de Uso
+- https://miro.com/app/board/uXjVG613Dek=/?share_link_id=394678263609
+---
+## Mapa de Historias de Usuario
+- https://www.canva.com/design/DAHCMAf-nhk/_S2w6yT_yU-qFnKeG97j8Q/edit
 ---
 
 ## Contenido solicitado 
@@ -38,6 +45,7 @@ Documentos, enlaces, diagramas y evidencia general correspondiente al **Corte 2*
 Carpeta reservada para mas adelante al desarrollar el proyecto.
 
 ---
+
 
 
 
