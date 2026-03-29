@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 function SearchBar() {
   return (
@@ -56,6 +56,19 @@ function BottomNav() {
 }
 
 export default function App() {
+  const [backendMessage, setBackendMessage] = useState('Cargando backend...')
+  const [backendError, setBackendError] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/hello')
+      .then((res) => res.json())
+      .then((data) => setBackendMessage(data.message || 'Backend respondió'))
+      .catch(() => {
+        setBackendMessage('No se pudo conectar al backend')
+        setBackendError(true)
+      })
+  }, [])
+
   return (
     <div className="app-shell">
       {/* Header */}
