@@ -1,13 +1,28 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 import os
+import mysql.connector
 
 app = Flask(__name__)
 CORS(app)
 
+
+# DB CONNECTION
+
+def get_db_connection():
+    return mysql.connector.connect(
+        host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        database=os.getenv("DB_NAME")
+    )
+
+
+# ROUTES
+
 @app.route("/")
 def home():
-    return jsonify({"message": "Backend funcionando "})
+    return jsonify({"message": "Backend funcionando"})
 
 @app.route("/hello")
 def hello():
@@ -18,25 +33,29 @@ def hello():
 
 @app.route("/data")
 def data():
-    db_host = os.getenv("DB_HOST")
-    if not db_host:
-        return jsonify({"message": "No hay configuración de base de datos, esta es una prueba de backend."})
-
     try:
-        import mysql.connector
-        conn = mysql.connector.connect(
-            host=db_host,
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD"),
-            database=os.getenv("DB_NAME")
-        )
+        conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT 1")
-        result = cursor.fetchall()
+
+        cursor.execute("SHOW TABLES;")
+        tables = cursor.fetchall()
+
+        cursor.close()
         conn.close()
-        return jsonify(result)
+
+        return jsonify({
+            "status": "success",
+            "tables": tables
+        })
+
     except Exception as exc:
-        return jsonify({"error": str(exc)}), 500
+        return jsonify({
+            "status": "error",
+            "message": str(exc)
+        }), 500
+
+
+# RUN
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
