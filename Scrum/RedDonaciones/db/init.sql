@@ -112,3 +112,54 @@ CREATE TABLE donacion (
     FOREIGN KEY (id_donante) REFERENCES donante(id_usuario),
     FOREIGN KEY (id_publicacion) REFERENCES publicacion(id_publicacion)
 ) ENGINE=InnoDB;
+
+-- ======================
+-- DATOS DUMMY INICIALES
+-- ======================
+
+INSERT IGNORE INTO usuario (id_usuario, nombre, correo, password, telefono, rol)
+VALUES
+    (1, 'Donante Demo', 'donante.demo@reddonaciones.local', 'demo123', '3000000001', 'donante'),
+    (2, 'Intermediario Demo', 'inter.demo@reddonaciones.local', 'demo123', '3000000002', 'intermediario');
+
+INSERT IGNORE INTO organizacion (id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion)
+VALUES
+    (1, 'Hogar de Ninos La Esperanza', 'Apoyo integral para ninos en situacion de vulnerabilidad.', 'Zona Centro, Ciudad', '3100000001', 'contacto@laesperanza.org', 'verificada');
+
+INSERT IGNORE INTO donante (id_usuario, departamento, municipio, zona, direccion_detalle)
+VALUES
+    (1, 'Antioquia', 'Medellin', 'Urbana', 'Calle 10 #20-30');
+
+INSERT IGNORE INTO intermediario (id_usuario, id_organizacion, cargo)
+VALUES
+    (2, 1, 'Coordinador de Donaciones');
+
+INSERT IGNORE INTO categoria_articulo (id_categoria, nombre, descripcion)
+VALUES
+    (1, 'Ropa', 'Prendas de vestir para ninos, jovenes y adultos.');
+
+INSERT IGNORE INTO articulo (id_articulo, nombre, descripcion, id_categoria)
+VALUES
+    (1, 'Ropa de vestir', 'Prendas en buen estado para jornadas de entrega comunitaria.', 1);
+
+INSERT IGNORE INTO publicacion (
+    id_publicacion,
+    id_intermediario,
+    id_organizacion,
+    id_articulo,
+    titulo,
+    descripcion,
+    cantidad_necesaria,
+    cantidad_recibida,
+    fecha_publicacion,
+    fecha_limite,
+    estado
+)
+VALUES
+    (1, 2, 1, 1, 'Ropa de invierno para abril', 'Recoleccion de chaquetas, buzos y pantalones para temporada de lluvia.', 120, 70, '2026-04-01', '2026-04-20', 'activa'),
+    (2, 2, 1, 1, 'Jornada de ropa infantil', 'Donaciones de camisetas, pantalonetas y sudaderas para ninos.', 90, 90, '2026-03-15', '2026-03-30', 'finalizada');
+
+INSERT IGNORE INTO donacion (id_donacion, id_donante, id_publicacion, descripcion, fecha_donacion)
+VALUES
+    (1, 1, 1, 'Entregue 18 chaquetas, 12 buzos y 20 pares de medias.', '2026-04-05'),
+    (2, 1, 2, 'Aporte 25 camisetas, 15 pantalones y 10 sudaderas para ninos.', '2026-03-28');

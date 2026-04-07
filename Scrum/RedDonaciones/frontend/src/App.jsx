@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react'
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
+import React from 'react'
+import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom'
+import MisDonacionesPage from './pages/MisDonacionesPage'
 
 function SearchBar() {
   return (
@@ -30,28 +31,28 @@ function DonationCard({ title, description, urgent }) {
 function BottomNav() {
   return (
     <nav className="bottom-nav">
-      <Link to="/" className="nav-item">
+      <NavLink to="/" end className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
         <span>Inicio</span>
-      </Link>
-      <Link to="/donaciones" className="nav-item">
+      </NavLink>
+      <NavLink to="/donaciones" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
           <line x1="9" y1="7" x2="15" y2="7" /><line x1="9" y1="11" x2="15" y2="11" />
           <line x1="9" y1="15" x2="13" y2="15" />
         </svg>
         <span>Mis Donaciones</span>
-      </Link>
-      <Link to="/perfil" className="nav-item">
+      </NavLink>
+      <NavLink to="/perfil" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
           <circle cx="12" cy="7" r="4" />
         </svg>
         <span>Perfil</span>
-      </Link>
+      </NavLink>
     </nav>
   )
 }
@@ -89,19 +90,6 @@ function Placeholder({ title }) {
 }
 
 export default function App() {
-  const [backendMessage, setBackendMessage] = useState('Cargando backend...')
-  const [backendError, setBackendError] = useState(false)
-
-  useEffect(() => {
-    fetch('/api/hello')
-      .then((res) => res.json())
-      .then((data) => setBackendMessage(data.message || 'Backend respondió'))
-      .catch(() => {
-        setBackendMessage('No se pudo conectar al backend')
-        setBackendError(true)
-      })
-  }, [])
-
   return (
     <Router>
       <div className="app-shell">
@@ -118,7 +106,7 @@ export default function App() {
             <Route path="/index" element={<Placeholder title="Index" />} />
             <Route path="/login" element={<Placeholder title="Inicio de Sesión" />} />
             <Route path="/perfil" element={<Placeholder title="Perfil" />} />
-            <Route path="/donaciones" element={<Placeholder title="Mis Donaciones" />} />
+            <Route path="/donaciones" element={<MisDonacionesPage />} />
           </Routes>
         </main>
 

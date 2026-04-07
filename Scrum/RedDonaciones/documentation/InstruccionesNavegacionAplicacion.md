@@ -7,22 +7,10 @@ Este archivo explica cómo usar y probar la navegación implementada.
 - `/index` → Placeholder para `index`
 - `/login` → Placeholder para `Inicio de Sesión`
 - `/perfil` → Placeholder para `Perfil`
-- `/donaciones` → Placeholder para `Mis Donaciones`
+- `/donaciones` → Vista real de `Mis Donaciones` (consume API con donante simulado)
 
 ## Requisitos
-- Node.js y npm (solo para modo desarrollo)
 - Docker / Docker Compose
-
-## Usando Vite (opcional)
-Desde la carpeta del frontend:
-
-```bash
-cd Scrum/RedDonaciones/frontend
-npm install
-npm run dev
-```
-
-Luego abrir en el navegador la URL que indique Vite (por defecto `http://localhost:5173`). Navega a las rutas listadas arriba.
 
 ## Usando Docker
 En la raíz del proyecto:
@@ -32,6 +20,20 @@ cd Scrum/RedDonaciones
 docker compose up --build
 ```
 El frontend quedará disponible en `http://localhost:3000`.
+El backend quedará disponible en `http://localhost:5000`.
+
+Para detener los servicios:
+
+```bash
+docker compose down
+```
+
+Para reiniciar también la base de datos desde cero (incluye recarga de `db/init.sql`):
+
+```bash
+docker compose down -v
+docker compose up --build
+```
 
 ## Añadir/Probar vistas
 - Para implementar las vistas reales, se crean componentes en `frontend/src/pages/` y se reemplazan los `Placeholder` en las rutas por los componentes reales.
