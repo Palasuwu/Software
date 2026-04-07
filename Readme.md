@@ -2,6 +2,9 @@
 
 Este repositorio contiene la evidencia del trabajo realizado por el equipo en el proceso de Design Thinking, incluyendo el seguimiento de pasos, las ideas generadas, sketches individuales, la selección de ideas más repetidas/votadas y el listado de historias de usuario identificadas para el producto.
 
+## Guías de uso
+En la carpeta Scrum\RedDonaciones\documentation se encuentran varios archivos Markdown con instrucciones para utilizar y probar la aplicación.
+
 ## Documento principal de trabajo
 - Documento donde se trabajó el proceso y la evidencia:  
   https://uvggt-my.sharepoint.com/:w:/r/personal/mar24086_uvg_edu_gt/_layouts/15/Doc.aspx?sourcedoc=%7B48FDF99D-A5A3-48D3-AE78-1CC966232C19%7D&file=UNIVERSIDAD%20DEL%20VALLE%20DE%20GUATEMALA1.docx&action=default&mobileredirect=true&DefaultItemOpen=1&wdOrigin=APPHOME-WEB.DIRECT%2CAPPHOME-WEB.FILEBROWSER.RECENT&wdPreviousSession=ce43b6c1-f170-4e0c-9ea6-f27d1578dc4b&wdPreviousSessionSrc=AppHomeWeb&ct=1771305371608
