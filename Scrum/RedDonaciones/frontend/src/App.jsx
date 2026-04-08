@@ -79,7 +79,7 @@ function HomePage() {
     </>
   )
 }
-
+// Lo que muestra por defalut para cada vista sin su propio .jsx, basicamente un placeholder
 function Placeholder({ title }) {
   return (
     <div style={{ padding: 20 }}>
@@ -88,7 +88,7 @@ function Placeholder({ title }) {
     </div>
   )
 }
-
+//Basicamente aca es donde se hacen los href de cada vista y se aplica a cada boton 
 export default function App() {
   return (
     <Router>
