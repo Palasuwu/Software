@@ -132,3 +132,48 @@ def listar_donaciones():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+# Ruta para obtener donaciones (filtro opcional por donante)
+@publicacion_bp.route("/donaciones", methods=["GET"])
+def listar_donaciones():
+    id_donante = request.args.get("id_donante")
+
+    if id_donante is not None:
+        try:
+            id_donante = int(id_donante)
+        except ValueError:
+            return jsonify({"error": "id_donante debe ser un entero"}), 400
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        sql = """
+        SELECT
+            d.id_donacion,
+            d.id_donante,
+            d.id_publicacion,
+            d.descripcion,
+            DATE_FORMAT(d.fecha_donacion, '%Y-%m-%d') AS fecha_donacion,
+            p.titulo AS publicacion_titulo,
+            p.estado AS publicacion_estado,
+            p.cantidad_necesaria,
+            p.cantidad_recibida,
+            DATE_FORMAT(p.fecha_limite, '%Y-%m-%d') AS fecha_limite
+        FROM donacion d
+        JOIN publicacion p ON p.id_publicacion = d.id_publicacion
+        WHERE (%s IS NULL OR d.id_donante = %s)
+        ORDER BY d.fecha_donacion DESC, d.id_donacion DESC
+        LIMIT 50
+        """
+
+        cursor.execute(sql, (id_donante, id_donante))
+        donaciones = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify(donaciones)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
