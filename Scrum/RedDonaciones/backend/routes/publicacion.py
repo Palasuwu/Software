@@ -54,20 +54,42 @@ def crear_publicacion():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Ruta para obtener una publicación por su ID
+
+# Ruta para obtener una publicación por su ID (detalle)
 @publicacion_bp.route("/publicaciones/<int:id>", methods=["GET"])
 def obtener_publicacion(id):
     try:
         conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM publicacion WHERE id_publicacion = %s", (id,))
+        cursor = conn.cursor(dictionary=True)
+
+        sql = """
+        SELECT
+            p.id_publicacion,
+            p.id_intermediario,
+            p.id_organizacion,
+            p.id_articulo,
+            p.titulo,
+            p.descripcion,
+            p.cantidad_necesaria,
+            p.cantidad_recibida,
+            DATE_FORMAT(p.fecha_publicacion, '%Y-%m-%d') AS fecha_publicacion,
+            DATE_FORMAT(p.fecha_limite, '%Y-%m-%d') AS fecha_limite,
+            p.estado
+        FROM publicacion p
+        WHERE p.id_publicacion = %s
+        """
+
+        cursor.execute(sql, (id,))
         publicacion = cursor.fetchone()
+
         cursor.close()
         conn.close()
+
         if publicacion:
-            return jsonify(publicacion)
+            return jsonify(publicacion), 200
         else:
             return jsonify({"message": "Publicación no encontrada"}), 404
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -113,24 +135,60 @@ def listar_donaciones():
 @publicacion_bp.route("/donaciones", methods=["POST"])
 def crear_donacion():
     data = request.json
+
+    id_donante = data.get("id_donante")
+    id_publicacion = data.get("id_publicacion")
+    descripcion = data.get("descripcion")
+    fecha_donacion = data.get("fecha_donacion")
+    cantidad_donada = data.get("cantidad_donada")
+
+    # Validaciones básicas
+    if not id_donante or not id_publicacion or not descripcion or not fecha_donacion or not cantidad_donada:
+        return jsonify({"error": "Faltan datos obligatorios"}), 400
+
+    if cantidad_donada <= 0:
+        return jsonify({"error": "La cantidad donada debe ser mayor a 0"}), 400
+
     try:
         conn = get_db_connection()
-        cursor = conn.cursor()
-        sql = """
+        cursor = conn.cursor(dictionary=True)
+
+        # Verificar que exista la publicación
+        cursor.execute("SELECT * FROM publicacion WHERE id_publicacion = %s", (id_publicacion,))
+        publicacion = cursor.fetchone()
+
+        if not publicacion:
+            cursor.close()
+            conn.close()
+            return jsonify({"error": "La publicación no existe"}), 404
+
+        # Insertar donación
+        insert_sql = """
         INSERT INTO donacion (
             id_donante, id_publicacion, descripcion, fecha_donacion
         )
         VALUES (%s, %s, %s, %s)
         """
-        cursor.execute(sql, (
-            data.get("id_donante"),
-            data.get("id_publicacion"),
-            data.get("descripcion"),
-            data.get("fecha_donacion")
+        cursor.execute(insert_sql, (
+            id_donante,
+            id_publicacion,
+            descripcion,
+            fecha_donacion
         ))
+
+        # Actualizar cantidad recibida de la publicación
+        update_sql = """
+        UPDATE publicacion
+        SET cantidad_recibida = cantidad_recibida + %s
+        WHERE id_publicacion = %s
+        """
+        cursor.execute(update_sql, (cantidad_donada, id_publicacion))
+
         conn.commit()
         cursor.close()
         conn.close()
-        return jsonify({"message": "Donación registrada"}), 201
+
+        return jsonify({"message": "Donación registrada y publicación actualizada"}), 201
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
