@@ -210,3 +210,25 @@ def crear_donacion():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+
+# Ruta para obtener una publicación por su ID
+@publicacion_bp.route("/publicaciones/<int:id>", methods=["GET"])
+def obtener_publicacion(id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM publicacion WHERE id_publicacion = %s", (id,))
+        publicacion = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if publicacion:
+            return jsonify(publicacion)
+        else:
+            return jsonify({"message": "Publicación no encontrada"}), 404
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
