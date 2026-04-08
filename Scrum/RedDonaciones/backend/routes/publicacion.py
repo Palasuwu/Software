@@ -177,3 +177,36 @@ def listar_donaciones():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+# Ruta para registrar una donación
+@publicacion_bp.route("/donaciones", methods=["POST"])
+def crear_donacion():
+    data = request.json
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        sql = """
+        INSERT INTO donacion (
+            id_donante, id_publicacion, descripcion, fecha_donacion
+        )
+        VALUES (%s, %s, %s, %s)
+        """
+
+        cursor.execute(sql, (
+            data.get("id_donante"),
+            data.get("id_publicacion"),
+            data.get("descripcion"),
+            data.get("fecha_donacion")
+        ))
+
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({"message": "Donación registrada"}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
