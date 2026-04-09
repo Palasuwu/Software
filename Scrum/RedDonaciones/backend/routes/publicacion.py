@@ -91,7 +91,7 @@ def obtener_publicacion(id):
             return jsonify({"message": "Publicación no encontrada"}), 404
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)}), 500,
 
 # Ruta para obtener donaciones (filtro opcional por donante)
 @publicacion_bp.route("/donaciones", methods=["GET"])
