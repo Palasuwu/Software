@@ -47,6 +47,20 @@ Actualmente, el proyecto contempla funcionalidades como:
 
 ---
 
+# 📂 Estructura del repositorio
 
+```bash
+Software/
+│
+├── Avances/
+├── Cortes/
+├── Scrum/
+│   └── RedDonaciones/
+│       ├── backend/
+│       ├── frontend/
+│       ├── db/
+│       ├── documentation/
+│       ├── docker-compose.yml
+│       └── README.md
 
 
