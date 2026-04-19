@@ -11,11 +11,8 @@ services:
     build: ./backend
     ports:
       - "5001:5000"
-    environment:
-      DB_HOST: db
-      DB_USER: root
-      DB_PASSWORD: root
-      DB_NAME: donaciones
+    env_file:
+      - .env
     depends_on:
       db:
         condition: service_healthy
