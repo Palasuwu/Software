@@ -249,3 +249,35 @@ def crear_donacion():
             "error": "Error al registrar la donación",
             "detalle": str(e)
         }), 500
+    
+
+
+    # Ruta para obtener el estado de una donación por su ID
+@publicacion_bp.route("/donaciones/<int:id_donacion>/estado", methods=["GET"])
+def obtener_estado_donacion(id_donacion):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        sql = """
+        SELECT d.id_donacion, d.id_publicacion, p.estado
+        FROM donacion d
+        JOIN publicacion p ON p.id_publicacion = d.id_publicacion
+        WHERE d.id_donacion = %s
+        """
+        cursor.execute(sql, (id_donacion,))
+        donacion = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if donacion:
+            return jsonify(donacion), 200
+        else:
+            return jsonify({"error": "Donación no encontrada"}), 404
+
+    except Exception as e:
+        return jsonify({
+            "error": "Error al obtener el estado de la donación",
+            "detalle": str(e)
+        }), 500
