@@ -8,14 +8,15 @@ publicacion_bp = Blueprint("publicacion", __name__)
 def listar_publicaciones():
     try:
         conn = get_db_connection()
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
+
         cursor.execute("SELECT * FROM publicacion")
         publicaciones = cursor.fetchall()
+
         cursor.close()
         conn.close()
 
-        return jsonify(publicaciones), 200
-
+        return jsonify(publicaciones)
     except Exception as e:
         return jsonify({
             "error": "Error al listar publicaciones",

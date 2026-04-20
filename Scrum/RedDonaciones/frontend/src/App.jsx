@@ -5,45 +5,6 @@ import DetailPage from './pages/DetailPage'
 
 // Íconos definidos como SVG inline dentro del componente
 
-const ORGANIZATIONS = [
-  {
-    id: 'esperanza',
-    title: 'Hogar de Niños "La Esperanza"',
-    description: 'Ropa de invierno para niños en situación de vulnerabilidad. Tallas 6–12 años prioritariamente.',
-    category: 'Ropa',
-    urgent: 'Cierra hoy a las 18:00',
-    address: '5a Calle 10-20, Zona 2, Guatemala',
-    isAsilo: false,
-    location: 'Ciudad de Guatemala',
-    progress: 68,
-    supporters: 1240,
-  },
-  {
-    id: 'dorados',
-    title: 'Asilo "Años Dorados"',
-    description: 'Sábanas y frazadas en buen estado para adultos mayores. Cualquier tamaño es bienvenido.',
-    category: 'Hogar',
-    urgent: null,
-    address: '12a Av. 8-15, Zona 5, Guatemala',
-    isAsilo: true,
-    location: 'Ciudad de Guatemala',
-    progress: 96,
-    supporters: 856,
-  },
-  {
-    id: 'animales',
-    title: 'Refugio Animal Esperanza',
-    description: 'Rescate y cuidado de animales abandonados.',
-    category: 'Animales',
-    urgent: null,
-    address: '4a Calle 2-18, Zona 4, Guatemala',
-    isAsilo: false,
-    location: 'Ciudad de Guatemala',
-    progress: 65,
-    supporters: 543,
-  },
-]
-
 function IconBrand() {
   return (
     <svg viewBox="0 0 24 24" className="brand-icon" fill="currentColor" aria-hidden="true">
@@ -198,11 +159,42 @@ function BottomNav() {
   )
 }
 
+
+// Página de inicio con búsqueda y listado de campañas
 function HomePage() {
   const [query, setQuery] = React.useState('')
   const [category, setCategory] = React.useState('Todas')
+  const [publicaciones, setPublicaciones] = React.useState([])
+  const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState(null)
 
-  const filtered = ORGANIZATIONS.filter(org => {
+  React.useEffect(() => {
+    fetch('/api/publicaciones')
+      .then(res => res.json())
+      .then(data => {
+        const adaptadas = data.map(p => ({
+          id: p.id_publicacion,
+          title: p.titulo,
+          description: p.descripcion,
+          category: 'General',
+          location: 'Guatemala',
+          progress: p.cantidad_necesaria > 0
+            ? Math.round((p.cantidad_recibida / p.cantidad_necesaria) * 100)
+            : 0,
+          supporters: p.cantidad_recibida || 0,
+          raw: p
+        }))
+        setPublicaciones(adaptadas)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Error cargando publicaciones:', err)
+        setError('No se pudieron cargar las publicaciones')
+        setLoading(false)
+      })
+  }, [])
+
+  const filtered = publicaciones.filter(org => {
     const matchesQuery =
       org.title.toLowerCase().includes(query.toLowerCase()) ||
       org.description.toLowerCase().includes(query.toLowerCase()) ||
@@ -240,18 +232,19 @@ function HomePage() {
         <div className="filter-box">
           <select value={category} onChange={(e) => setCategory(e.target.value)}>
             <option value="Todas">Todas</option>
-            <option value="Ropa">Ropa</option>
-            <option value="Hogar">Hogar</option>
-            <option value="Animales">Animales</option>
+            <option value="General">General</option>
           </select>
         </div>
       </section>
 
       <section className="campaign-grid">
-        {filtered.length > 0
-          ? filtered.map(org => <DonationCard key={org.id} org={org} />)
-          : <div className="empty-box">No se encontraron resultados para "{query}"</div>
-        }
+        {loading && <div className="empty-box">Cargando publicaciones...</div>}
+        {error && <div className="empty-box">Error: {error}</div>}
+        {!loading && !error && (
+          filtered.length > 0
+            ? filtered.map(org => <DonationCard key={org.id} org={org} />)
+            : <div className="empty-box">No se encontraron resultados para "{query}"</div>
+        )}
       </section>
     </div>
   )
