@@ -1,6 +1,3 @@
-# Rutas para la gestión de publicaciones
-# Permiten obtener la lista de publicaciones y crear nuevas publicaciones en la base de datos
-
 from flask import Blueprint, request, jsonify
 from db.connection import get_db_connection
 
@@ -16,17 +13,44 @@ def listar_publicaciones():
         publicaciones = cursor.fetchall()
         cursor.close()
         conn.close()
-        return jsonify(publicaciones)
+
+        return jsonify(publicaciones), 200
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({
+            "error": "Error al listar publicaciones",
+            "detalle": str(e)
+        }), 500
+
 
 # Ruta para crear una nueva publicación
 @publicacion_bp.route("/publicaciones", methods=["POST"])
 def crear_publicacion():
-    data = request.json
     try:
+        data = request.get_json()
+
+        if not data:
+            return jsonify({"error": "No se enviaron datos"}), 400
+
+        campos_requeridos = [
+            "id_intermediario",
+            "id_organizacion",
+            "id_articulo",
+            "titulo",
+            "descripcion",
+            "cantidad_necesaria",
+            "fecha_publicacion",
+            "fecha_limite",
+            "estado"
+        ]
+
+        for campo in campos_requeridos:
+            if data.get(campo) in [None, ""]:
+                return jsonify({"error": f"Falta el campo obligatorio: {campo}"}), 400
+
         conn = get_db_connection()
         cursor = conn.cursor()
+
         sql = """
         INSERT INTO publicacion (
             id_intermediario, id_organizacion, id_articulo,
@@ -36,6 +60,7 @@ def crear_publicacion():
         )
         VALUES (%s, %s, %s, %s, %s, %s, 0, %s, %s, %s)
         """
+
         cursor.execute(sql, (
             data.get("id_intermediario"),
             data.get("id_organizacion"),
@@ -47,12 +72,18 @@ def crear_publicacion():
             data.get("fecha_limite"),
             data.get("estado")
         ))
+
         conn.commit()
         cursor.close()
         conn.close()
+
         return jsonify({"message": "Publicación creada"}), 201
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({
+            "error": "Error al crear publicación",
+            "detalle": str(e)
+        }), 500
 
 
 # Ruta para obtener una publicación por su ID (detalle)
@@ -88,23 +119,30 @@ def obtener_publicacion(id):
         if publicacion:
             return jsonify(publicacion), 200
         else:
-            return jsonify({"message": "Publicación no encontrada"}), 404
+            return jsonify({"error": "Publicación no encontrada"}), 404
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500,
+        return jsonify({
+            "error": "Error al obtener la publicación",
+            "detalle": str(e)
+        }), 500
+
 
 # Ruta para obtener donaciones (filtro opcional por donante)
 @publicacion_bp.route("/donaciones", methods=["GET"])
 def listar_donaciones():
     id_donante = request.args.get("id_donante")
+
     if id_donante is not None:
         try:
             id_donante = int(id_donante)
         except ValueError:
             return jsonify({"error": "id_donante debe ser un entero"}), 400
+
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
+
         sql = """
         SELECT
             d.id_donacion,
@@ -123,33 +161,48 @@ def listar_donaciones():
         ORDER BY d.fecha_donacion DESC, d.id_donacion DESC
         LIMIT 50
         """
+
         cursor.execute(sql, (id_donante, id_donante))
         donaciones = cursor.fetchall()
+
         cursor.close()
         conn.close()
-        return jsonify(donaciones)
+
+        return jsonify(donaciones), 200
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({
+            "error": "Error al listar donaciones",
+            "detalle": str(e)
+        }), 500
+
 
 # Ruta para registrar una donación
 @publicacion_bp.route("/donaciones", methods=["POST"])
 def crear_donacion():
-    data = request.json
-
-    id_donante = data.get("id_donante")
-    id_publicacion = data.get("id_publicacion")
-    descripcion = data.get("descripcion")
-    fecha_donacion = data.get("fecha_donacion")
-    cantidad_donada = data.get("cantidad_donada")
-
-    # Validaciones básicas
-    if not id_donante or not id_publicacion or not descripcion or not fecha_donacion or not cantidad_donada:
-        return jsonify({"error": "Faltan datos obligatorios"}), 400
-
-    if cantidad_donada <= 0:
-        return jsonify({"error": "La cantidad donada debe ser mayor a 0"}), 400
-
     try:
+        data = request.get_json()
+
+        if not data:
+            return jsonify({"error": "No se enviaron datos"}), 400
+
+        id_donante = data.get("id_donante")
+        id_publicacion = data.get("id_publicacion")
+        descripcion = data.get("descripcion")
+        fecha_donacion = data.get("fecha_donacion")
+        cantidad_donada = data.get("cantidad_donada")
+
+        if not id_donante or not id_publicacion or not descripcion or not fecha_donacion or not cantidad_donada:
+            return jsonify({"error": "Faltan datos obligatorios"}), 400
+
+        try:
+            cantidad_donada = int(cantidad_donada)
+        except (ValueError, TypeError):
+            return jsonify({"error": "cantidad_donada debe ser un número entero"}), 400
+
+        if cantidad_donada <= 0:
+            return jsonify({"error": "La cantidad donada debe ser mayor a 0"}), 400
+
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
@@ -191,4 +244,7 @@ def crear_donacion():
         return jsonify({"message": "Donación registrada y publicación actualizada"}), 201
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({
+            "error": "Error al registrar la donación",
+            "detalle": str(e)
+        }), 500
