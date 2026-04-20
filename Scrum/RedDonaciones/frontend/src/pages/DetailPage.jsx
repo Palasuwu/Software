@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 
+const STORAGE_KEY = 'mis_donaciones_local'
+
 const ITEMS_POR_ORGANIZACION = {
   default: [
     { name: 'Ropa de invierno', qty: 'Tallas 6–12' },
@@ -14,13 +16,29 @@ const ITEMS_POR_ORGANIZACION = {
   ],
 }
 
+function obtenerDonacionesGuardadas() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
 export default function DetailPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { org } = location.state || {}
 
-  const [form, setForm] = useState({ nombre: '', telefono: '', fecha: '', hora: '', nota: '' })
-  const [enviado, setEnviado] = useState(false)
+  const [form, setForm] = useState({
+    nombre: '',
+    telefono: '',
+    fecha: '',
+    hora: '',
+    nota: ''
+  })
 
   const items = org?.isAsilo ? ITEMS_POR_ORGANIZACION.asilo : ITEMS_POR_ORGANIZACION.default
 
@@ -28,35 +46,36 @@ export default function DetailPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    setEnviado(true)
-  }
 
-  if (enviado) {
-    return (
-      <div className="detail-page fade-in" style={{ textAlign: 'center', paddingTop: 40 }}>
-        <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--primary-soft)', border: '2px solid var(--primary-muted)', margin: '0 auto 16px' }} />
-        <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: '1.8rem', marginBottom: 10 }}>
-          ¡Entrega agendada!
-        </h2>
-        <p style={{ color: 'var(--text-soft)', lineHeight: 1.65, marginBottom: 28, fontWeight: 300 }}>
-          Gracias, <strong>{form.nombre || 'donante'}</strong>. Tu aporte a{' '}
-          <em>{org?.title || 'la organización'}</em> está confirmado para el {form.fecha} a las {form.hora}.
-        </p>
-        <button
-          className="btn-confirmar"
-          style={{ maxWidth: 320, margin: '0 auto' }}
-          onClick={() => navigate('/')}
-        >
-          Volver al inicio
-        </button>
-      </div>
-    )
+    const donacionesActuales = obtenerDonacionesGuardadas()
+
+    const nuevaDonacion = {
+      id_donacion: Date.now(),
+      publicacion_titulo: org?.title || 'Publicacion sin titulo',
+      publicacion_estado: 'activa',
+      fecha_donacion: form.fecha || new Date().toISOString(),
+      fecha_limite: form.fecha || '',
+      categoria: org?.category || 'Donación',
+      descripcion: org?.description || '',
+      cantidad_recibida: Number(org?.progress || 0),
+      cantidad_necesaria: 100,
+      nombre_donante: form.nombre,
+      telefono: form.telefono,
+      hora_preferida: form.hora,
+      nota: form.nota || '',
+      address: org?.address || '',
+      organizacion_id: org?.id || null
+    }
+
+    const actualizadas = [nuevaDonacion, ...donacionesActuales]
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(actualizadas))
+
+    navigate('/donaciones')
   }
 
   return (
-    <div className="detail-page fade-in">
-      {/* Back */}
-      <button className="detail-back" onClick={() => navigate(-1)}>
+    <div className="detail-page detail-page-figma fade-in">
+      <button className="detail-back detail-back-figma" onClick={() => navigate(-1)}>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="15 18 9 12 15 6" />
@@ -64,13 +83,13 @@ export default function DetailPage() {
         Volver
       </button>
 
-      {/* Hero */}
-      <div className="detail-hero">
+      <div className="detail-hero detail-hero-figma">
         <div className="detail-chip-row">
           <span className="card-chip">
             <span className="card-chip-dot" />
             {org?.category || 'Donación'}
           </span>
+
           {org?.urgent && (
             <span className="card-urgent">
               <span className="urgent-dot" />
@@ -78,52 +97,58 @@ export default function DetailPage() {
             </span>
           )}
         </div>
-        <h1 className="detail-title">{org?.title || 'Organización'}</h1>
-        <p className="detail-subtitle">
-          {org?.description || 'Esta organización necesita tu apoyo. Cada donación hace una diferencia real en la vida de personas vulnerables.'}
+
+        <h1 className="detail-title detail-title-figma">
+          {org?.title || 'Organización'}
+        </h1>
+
+        <p className="detail-subtitle detail-subtitle-figma">
+          {org?.description || 'Esta organización necesita tu apoyo.'}
         </p>
       </div>
 
-      {/* Info grid */}
-      <div className="detail-grid">
-        <div className="detail-card">
+      <div className="detail-grid detail-grid-figma">
+        <div className="detail-card detail-card-figma">
           <div className="detail-card-label">Horario de recepción</div>
           <div className="detail-card-value">Lun – Vie<br />8:00 – 17:00</div>
         </div>
-        <div className="detail-card">
+
+        <div className="detail-card detail-card-figma">
           <div className="detail-card-label">Contacto</div>
           <div className="detail-card-value">+502 2234-5678</div>
         </div>
-        <div className="detail-card">
+
+        <div className="detail-card detail-card-figma">
           <div className="detail-card-label">Estado</div>
           <div className="detail-card-value" style={{ color: 'var(--success)' }}>Activa ✓</div>
         </div>
-        <div className="detail-card">
+
+        <div className="detail-card detail-card-figma">
           <div className="detail-card-label">Donantes este mes</div>
           <div className="detail-card-value">34 personas</div>
         </div>
       </div>
 
-      {/* Artículos necesitados */}
-      <div className="detail-section">
+      <div className="detail-section detail-section-figma">
         <div className="detail-section-title">Artículos necesitados</div>
+
         <div className="items-list">
           {items.map((item, i) => (
-            <div className="item-row" key={i}>
-              <div className="item-icon">
+            <div className="item-row item-row-figma" key={i}>
+              <div className="item-icon item-icon-figma">
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--primary)', display: 'inline-block' }} />
               </div>
               <span className="item-name">{item.name}</span>
-              <span className="item-qty">{item.qty}</span>
+              <span className="item-qty item-qty-figma">{item.qty}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Mapa */}
-      <div className="detail-section">
+      <div className="detail-section detail-section-figma">
         <div className="detail-section-title">Ubicación</div>
-        <div className="map-placeholder">
+
+        <div className="map-placeholder map-placeholder-figma">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" strokeWidth="1.5">
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
@@ -131,6 +156,7 @@ export default function DetailPage() {
           </svg>
           <span>Ver en mapa</span>
         </div>
+
         <div className="map-address">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" strokeWidth="2" style={{ width: 12, height: 12 }}>
@@ -141,10 +167,10 @@ export default function DetailPage() {
         </div>
       </div>
 
-      {/* Formulario */}
-      <div className="detail-section">
+      <div className="detail-section detail-section-figma">
         <div className="detail-section-title">Agendar entrega</div>
-        <form className="form-grid" onSubmit={handleSubmit}>
+
+        <form className="form-grid form-grid-figma" onSubmit={handleSubmit}>
           <div className="form-row">
             <div className="form-field">
               <label className="form-label">Nombre completo</label>
@@ -157,6 +183,7 @@ export default function DetailPage() {
                 required
               />
             </div>
+
             <div className="form-field">
               <label className="form-label">Teléfono</label>
               <input
@@ -169,6 +196,7 @@ export default function DetailPage() {
               />
             </div>
           </div>
+
           <div className="form-row">
             <div className="form-field">
               <label className="form-label">Fecha de entrega</label>
@@ -181,6 +209,7 @@ export default function DetailPage() {
                 required
               />
             </div>
+
             <div className="form-field">
               <label className="form-label">Hora preferida</label>
               <select
@@ -202,6 +231,7 @@ export default function DetailPage() {
               </select>
             </div>
           </div>
+
           <div className="form-field">
             <label className="form-label">Nota adicional (opcional)</label>
             <textarea
@@ -212,7 +242,8 @@ export default function DetailPage() {
               onChange={handleChange}
             />
           </div>
-          <button type="submit" className="btn-confirmar">
+
+          <button type="submit" className="btn-confirmar btn-confirmar-figma">
             Confirmar entrega
           </button>
         </form>
