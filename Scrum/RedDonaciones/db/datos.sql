@@ -8,8 +8,8 @@
 -- USUARIOS
 INSERT IGNORE INTO usuario (id_usuario, nombre, correo, password, telefono, rol)
 VALUES
-    (1, 'Donante Demo', 'donante.demo@reddonaciones.local', 'demo123', '3000000001', 'donante'),
-    (2, 'Intermediario Demo', 'inter.demo@reddonaciones.local', 'demo123', '3000000002', 'intermediario');
+    (1, 'Donante Demo', 'donante.demo@reddonaciones.local', '$2b$12$6sOX9qSrscwr5JS0lxrji.8nfhaUjhHJSGxlEFxaD5Jsi4.uhch2q', '3000000001', 'donante'),
+    (2, 'Intermediario Demo', 'inter.demo@reddonaciones.local', '$2b$12$OLdylhqBPU4iMScJAXUGg.tMOCXMKd.cY4aqVmZnAW0c0EoTwzATK', '3000000002', 'intermediario');
 
 -- ORGANIZACIONES
 INSERT IGNORE INTO organizacion (id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion)

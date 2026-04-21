@@ -194,3 +194,48 @@ Para agregar un nuevo endpoint:
 4. Registrar en `app.py`
 
 ---
+
+## 9. Login de usuarios
+
+El backend expone `POST /login` para validar credenciales.
+
+Payload esperado:
+
+```json
+{
+    "correo": "usuario@correo.com",
+    "password": "mi_password"
+}
+```
+
+Respuesta exitosa (200):
+
+```json
+{
+    "message": "Login exitoso",
+    "usuario": {
+        "id_usuario": 1,
+        "nombre": "Nombre",
+        "correo": "usuario@correo.com",
+        "rol": "donante"
+    }
+}
+```
+
+Errores comunes:
+
+- `400` si faltan `correo` o `password`
+- `401` si las credenciales son inválidas
+
+---
+
+## 10. Regla de seguridad de contraseñas
+
+Las contraseñas se guardan con **bcrypt** y no en texto plano.
+
+- `POST /usuarios` ahora hace hash automático antes de insertar.
+- `POST /login` solo valida usuarios con password en formato bcrypt.
+
+Si se cargan datos manuales en SQL, guarda siempre el hash bcrypt en la columna `password`.
+
+---

@@ -1,4 +1,4 @@
-# 🎁 RedDonaciones - Plataforma de Donaciones
+# RedDonaciones - Plataforma de Donaciones
 
 **RedDonaciones** es una plataforma desarrollada como proyecto académico para facilitar la conexión entre **donantes**, **organizaciones** e **intermediarios**, permitiendo publicar necesidades, visualizar detalles de solicitudes y registrar donaciones de manera organizada.
 
@@ -43,7 +43,16 @@ Actualmente, el proyecto contempla funcionalidades como:
 - **Jira**
 - **Docker**
 - **Canva**
-- **Miro**
+
+---
+
+# 📖 Documentación técnica
+
+Para facilitar la ejecución y el entendimiento del proyecto, dejamos estas guías:
+
+- [Guía Docker](Scrum/RedDonaciones/documentation/InstruccionesDocker.md): instalación, contenedores y comandos de ejecución.
+- [Guía Flask](Scrum/RedDonaciones/documentation/InstruccionesFlask.md): estructura del backend, Blueprints y endpoints.
+- [Guía de navegación](Scrum/RedDonaciones/documentation/InstruccionesNavegacionAplicacion.md): rutas de la app y flujo general de uso.
 
 ---
 
