@@ -44,6 +44,11 @@ function IconCalendar() {
   )
 }
 
+function formatearCantidad(valor) {
+  const numero = Number(valor) || 0
+  return numero.toLocaleString('es-CO')
+}
+
 export default function MisDonacionesPage() {
   const navigate = useNavigate()
   const [donaciones, setDonaciones] = useState([])
@@ -209,23 +214,38 @@ export default function MisDonacionesPage() {
                         )}
                       </div>
 
-                      <div className="donation-row-progress-figma">
-                        <div className="progress-track">
-                          <div className="progress-fill" style={{ width: `${progreso}%` }} />
+                      <div className="donation-row-progress-card-figma">
+                        <div className="donation-row-progress-head-figma">
+                          <div>
+                            <p className="donation-row-progress-label-figma">Progreso de la campaña</p>
+                            <p className="donation-row-progress-amounts-figma">
+                              {formatearCantidad(donacion.cantidad_recibida)} recibidos de{' '}
+                              {formatearCantidad(donacion.cantidad_necesaria)}
+                            </p>
+                          </div>
+
+                          <span className="donation-row-progress-text-figma">{progreso}%</span>
+                        </div>
+
+                        <div className="donation-row-progress-figma">
+                          <div
+                            className="progress-track donation-progress-track-figma"
+                            aria-label={`Progreso de la campaña: ${progreso}%`}
+                          >
+                            <div className="progress-fill" style={{ width: `${progreso}%` }} />
+                          </div>
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        className="campaign-button"
-                        onClick={() => navigate(`/donaciones/${donacion.id_donacion}`)}
-                      >
-                        Ver detalle
-                      </button>
-                    </div>
-
-                    <div className="donation-row-right-figma">
-                      <span className="donation-row-progress-text-figma">{progreso}%</span>
+                      <div className="donation-row-actions-figma">
+                        <button
+                          type="button"
+                          className="campaign-button donation-row-button-figma"
+                          onClick={() => navigate(`/donaciones/${donacion.id_donacion}`)}
+                        >
+                          Ver detalle
+                        </button>
+                      </div>
                     </div>
                   </article>
                 )

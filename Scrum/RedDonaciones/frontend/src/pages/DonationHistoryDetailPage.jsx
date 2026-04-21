@@ -30,6 +30,11 @@ function calcularProgreso(cantidadRecibida, cantidadNecesaria) {
     return Math.min(100, Math.round((recibida / necesaria) * 100))
 }
 
+function formatearCantidad(valor) {
+    const numero = Number(valor) || 0
+    return numero.toLocaleString('es-CO')
+}
+
 export default function DonationHistoryDetailPage() {
     const navigate = useNavigate()
     const { idDonacion } = useParams()
@@ -68,7 +73,7 @@ export default function DonationHistoryDetailPage() {
             .finally(() => {
                 setLoading(false)
             })
-    }, [idDonacion])
+    }, [idDonacion, navigate])
 
     const progreso = useMemo(() => {
         if (!detalle) return 0
@@ -116,56 +121,114 @@ export default function DonationHistoryDetailPage() {
 
                 <article className="stat-card stat-card-figma">
                     <p className="stat-label stat-label-figma">Cantidad donada</p>
-                    <p className="stat-value stat-value-figma">{detalle.cantidad_donada}</p>
+                    <p className="stat-value stat-value-figma">{formatearCantidad(detalle.cantidad_donada)}</p>
                 </article>
             </div>
 
-            <section className="donations-panel-figma">
-                <article className="donation-row-figma" style={{ marginBottom: 16 }}>
-                    <div className="donation-row-left-figma">
-                        <h3 className="donation-row-title-figma">Organizacion</h3>
-                        <p>{detalle.organizacion_nombre}</p>
-                        <p>{detalle.organizacion_direccion}</p>
-                        <p>Categoria: {detalle.categoria || 'Sin categoria'}</p>
-                    </div>
-                </article>
+            <section className="donations-panel-figma donation-detail-panel-figma">
+                <div className="donation-detail-section-figma">
+                    <article className="donation-detail-card-figma donation-detail-summary-figma">
+                        <div className="donation-detail-card-head-figma">
+                            <div>
+                                <p className="donation-detail-eyebrow-figma">Campana</p>
+                                <h3 className="donation-row-title-figma">Seguimiento del progreso</h3>
+                            </div>
+                            <span className={`status-badge donation-row-status-figma estado-${detalle.publicacion_estado || 'activa'}`}>
+                                {detalle.publicacion_estado}
+                            </span>
+                        </div>
 
-                <article className="donation-row-figma" style={{ marginBottom: 16 }}>
-                    <div className="donation-row-left-figma">
-                        <h3 className="donation-row-title-figma">Tu registro de entrega</h3>
-                        <p>{detalle.descripcion || 'Sin descripcion'}</p>
-                        <p>
-                            Contacto: {detalle.nombre_contacto} | {detalle.telefono_contacto}
-                        </p>
-                        <p>
-                            Hora preferida: {detalle.hora_preferida || 'No especificada'}
-                        </p>
-                        {detalle.nota && <p>Nota: {detalle.nota}</p>}
-                        <p>
-                            Meta: {detalle.cantidad_necesaria} | Recibido: {detalle.cantidad_recibida}
-                        </p>
-                    </div>
-                </article>
+                        <div className="donation-row-progress-card-figma donation-row-progress-card-detail-figma">
+                            <div className="donation-row-progress-head-figma">
+                                <div>
+                                    <p className="donation-row-progress-label-figma">Avance de la meta</p>
+                                    <p className="donation-row-progress-amounts-figma">
+                                        {formatearCantidad(detalle.cantidad_recibida)} recibidos de{' '}
+                                        {formatearCantidad(detalle.cantidad_necesaria)}
+                                    </p>
+                                </div>
+                                <span className="donation-row-progress-text-figma">{progreso}%</span>
+                            </div>
 
-                <article className="donation-row-figma">
-                    <div className="donation-row-left-figma">
+                            <div className="donation-row-progress-figma">
+                                <div
+                                    className="progress-track donation-progress-track-figma"
+                                    aria-label={`Progreso actual de la campana: ${progreso}%`}
+                                >
+                                    <div className="progress-fill" style={{ width: `${progreso}%` }} />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="donation-detail-metrics-figma">
+                            <div className="donation-detail-metric-figma">
+                                <span className="donation-detail-metric-label-figma">Tu aporte</span>
+                                <strong>{formatearCantidad(detalle.cantidad_donada)}</strong>
+                            </div>
+                            <div className="donation-detail-metric-figma">
+                                <span className="donation-detail-metric-label-figma">Categoria</span>
+                                <strong>{detalle.categoria || 'Sin categoria'}</strong>
+                            </div>
+                            <div className="donation-detail-metric-figma">
+                                <span className="donation-detail-metric-label-figma">Hora preferida</span>
+                                <strong>{detalle.hora_preferida || 'No especificada'}</strong>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+                <div className="donation-detail-section-figma donation-detail-grid-figma">
+                    <article className="donation-detail-card-figma">
+                        <p className="donation-detail-eyebrow-figma">Organizacion</p>
+                        <h3 className="donation-row-title-figma">{detalle.organizacion_nombre}</h3>
+                        <div className="donation-detail-stack-figma">
+                            <p>{detalle.organizacion_direccion || 'Direccion no disponible'}</p>
+                        </div>
+                    </article>
+
+                    <article className="donation-detail-card-figma">
+                        <p className="donation-detail-eyebrow-figma">Tu registro</p>
+                        <h3 className="donation-row-title-figma">Datos de entrega</h3>
+                        <div className="donation-detail-stack-figma">
+                            <p>{detalle.descripcion || 'Sin descripcion'}</p>
+                            <p>
+                                Contacto: {detalle.nombre_contacto || 'No disponible'} | {detalle.telefono_contacto || 'Sin telefono'}
+                            </p>
+                            {detalle.nota && <p>Nota: {detalle.nota}</p>}
+                        </div>
+                    </article>
+                </div>
+
+                <div className="donation-detail-section-figma">
+                    <article className="donation-detail-card-figma">
+                        <p className="donation-detail-eyebrow-figma">Articulos</p>
                         <h3 className="donation-row-title-figma">Articulos de la campana</h3>
                         {Array.isArray(detalle.articulos) && detalle.articulos.length > 0 ? (
-                            detalle.articulos.map((articulo) => (
-                                <p key={articulo.id_articulo}>
-                                    {articulo.articulo}: {articulo.descripcion_detalle || 'Sin detalle'} ({articulo.cantidad})
-                                </p>
-                            ))
+                            <div className="donation-items-list-figma">
+                                {detalle.articulos.map((articulo) => (
+                                    <div key={articulo.id_articulo} className="donation-item-figma">
+                                        <div className="donation-item-content-figma">
+                                            <p className="donation-item-title-figma">{articulo.articulo}</p>
+                                            <p className="donation-item-description-figma">
+                                                {articulo.descripcion_detalle || 'Sin detalle adicional'}
+                                            </p>
+                                        </div>
+                                        <span className="donation-row-category-figma donation-item-badge-figma">
+                                            Cantidad: {formatearCantidad(articulo.cantidad)}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
                         ) : (
-                            <p>No hay articulos asociados en esta campana.</p>
+                            <p className="donation-detail-empty-figma">No hay articulos asociados en esta campana.</p>
                         )}
-                    </div>
-                </article>
+                    </article>
+                </div>
 
-                <div style={{ marginTop: 16 }}>
+                <div className="donation-detail-section-figma donation-detail-actions-figma">
                     <button
                         type="button"
-                        className="campaign-button"
+                        className="campaign-button donation-detail-button-figma"
                         onClick={() => navigate(`/detalle/${detalle.id_publicacion}`)}
                     >
                         Ver detalle de la campana

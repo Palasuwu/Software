@@ -1580,15 +1580,17 @@ a {
 .donations-list-figma {
   display: flex;
   flex-direction: column;
+  gap: 16px;
+  padding: 18px;
 }
 
 .donation-row-figma {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 16px;
-  align-items: center;
-  padding: 24px 28px;
-  border-bottom: 1px solid var(--outline);
+  display: block;
+  padding: 24px 26px;
+  border: 1px solid var(--outline);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(246, 250, 247, 0.98) 100%);
+  box-shadow: var(--shadow-sm);
 }
 
 .donation-row-figma:last-child {
@@ -1597,6 +1599,9 @@ a {
 
 .donation-row-left-figma {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .donation-row-top-figma {
@@ -1658,29 +1663,222 @@ a {
 }
 
 .donation-row-progress-figma {
-  max-width: 720px;
+  width: 100%;
 }
 
-.donation-row-right-figma {
-  min-width: 72px;
-  text-align: right;
+.donation-row-progress-card-figma {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid rgba(90, 138, 110, 0.18);
+}
+
+.donation-row-progress-head-figma {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.donation-row-progress-label-figma {
+  margin: 0 0 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.donation-row-progress-amounts-figma {
+  margin: 0;
+  font-size: 0.96rem;
+  color: var(--text);
+}
+
+.donation-progress-track-figma {
+  height: 12px;
+  background: #dfe9e3;
 }
 
 .donation-row-progress-text-figma {
-  font-size: 1rem;
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  font-size: 0.95rem;
+  font-weight: 700;
   color: var(--primary-strong);
+}
+
+.donation-row-actions-figma {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.donation-row-button-figma {
+  width: auto;
+  min-width: 180px;
+  padding: 0 24px;
+}
+
+.donation-detail-panel-figma {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 18px;
+}
+
+.donation-detail-section-figma {
+  min-width: 0;
+}
+
+.donation-detail-grid-figma {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.donation-detail-card-figma {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  height: auto;
+  padding: 24px 26px;
+  border: 1px solid var(--outline);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(244, 248, 245, 1) 100%);
+  box-shadow: var(--shadow-sm);
+}
+
+.donation-detail-summary-figma {
+  gap: 0;
+}
+
+.donation-detail-card-head-figma {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.donation-detail-eyebrow-figma {
+  margin: 0 0 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.donation-row-progress-card-detail-figma {
+  margin-bottom: 18px;
+}
+
+.donation-detail-metrics-figma {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.donation-detail-metric-figma {
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--outline);
+}
+
+.donation-detail-metric-figma strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.donation-detail-metric-label-figma {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+
+.donation-detail-stack-figma {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+
+.donation-detail-stack-figma .donation-row-title-figma {
+  margin-bottom: 2px;
+}
+
+.donation-detail-stack-figma p,
+.donation-detail-empty-figma {
+  margin: 0;
+}
+
+.donation-items-list-figma {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.donation-item-figma {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--outline);
+}
+
+.donation-item-content-figma {
+  min-width: 0;
+  flex: 1;
+}
+
+.donation-item-title-figma {
+  margin: 0 0 4px;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.donation-item-description-figma {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.donation-detail-actions-figma {
+  padding-top: 2px;
+}
+
+.donation-detail-button-figma {
+  width: 100%;
+}
+
+.donation-item-badge-figma {
+  align-self: center;
+  white-space: nowrap;
 }
 
 /* responsive */
 @media (max-width: 860px) {
   .donation-row-figma {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
-  .donation-row-right-figma {
-    text-align: left;
+    padding: 20px;
   }
 
   .donations-tabs-figma {
@@ -1690,6 +1888,48 @@ a {
 
   .donations-tab-figma {
     padding: 12px 14px;
+  }
+
+  .donation-row-progress-head-figma,
+  .donation-detail-card-head-figma {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .donation-row-progress-text-figma {
+    align-self: flex-start;
+  }
+
+  .donation-detail-grid-figma,
+  .donation-detail-metrics-figma {
+    grid-template-columns: 1fr;
+  }
+
+  .donation-item-figma {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .donation-item-badge-figma {
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .donations-list-figma,
+  .donation-detail-panel-figma {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .donation-row-figma,
+  .donation-detail-card-figma {
+    padding: 18px;
+  }
+
+  .donation-row-button-figma,
+  .donation-detail-actions-figma .campaign-button {
+    width: 100%;
   }
 }
 
