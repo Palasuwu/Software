@@ -1,18 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-
-const USER_STORAGE_KEY = 'usuario_actual'
-
-function obtenerUsuarioSesion() {
-    try {
-        const raw = localStorage.getItem(USER_STORAGE_KEY)
-        if (!raw) return null
-        const parsed = JSON.parse(raw)
-        return parsed && typeof parsed === 'object' ? parsed : null
-    } catch {
-        return null
-    }
-}
+import { obtenerUsuarioSesion } from '../utils/session'
 
 function formatearFecha(fecha) {
     if (!fecha) {
@@ -53,8 +41,7 @@ export default function DonationHistoryDetailPage() {
     useEffect(() => {
         const usuario = obtenerUsuarioSesion()
         if (!usuario?.id_usuario) {
-            setError('Inicia sesion para ver el detalle de tu donacion')
-            setLoading(false)
+            navigate('/login', { state: { from: `/donaciones/${idDonacion}` } })
             return
         }
 
@@ -126,6 +113,11 @@ export default function DonationHistoryDetailPage() {
                     <p className="stat-label stat-label-figma">Progreso actual</p>
                     <p className="stat-value stat-value-figma">{progreso}%</p>
                 </article>
+
+                <article className="stat-card stat-card-figma">
+                    <p className="stat-label stat-label-figma">Cantidad donada</p>
+                    <p className="stat-value stat-value-figma">{detalle.cantidad_donada}</p>
+                </article>
             </div>
 
             <section className="donations-panel-figma">
@@ -142,6 +134,13 @@ export default function DonationHistoryDetailPage() {
                     <div className="donation-row-left-figma">
                         <h3 className="donation-row-title-figma">Tu registro de entrega</h3>
                         <p>{detalle.descripcion || 'Sin descripcion'}</p>
+                        <p>
+                            Contacto: {detalle.nombre_contacto} | {detalle.telefono_contacto}
+                        </p>
+                        <p>
+                            Hora preferida: {detalle.hora_preferida || 'No especificada'}
+                        </p>
+                        {detalle.nota && <p>Nota: {detalle.nota}</p>}
                         <p>
                             Meta: {detalle.cantidad_necesaria} | Recibido: {detalle.cantidad_recibida}
                         </p>

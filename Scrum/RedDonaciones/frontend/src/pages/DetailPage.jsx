@@ -1,18 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-
-const USER_STORAGE_KEY = 'usuario_actual'
-
-function obtenerUsuarioSesion() {
-  try {
-    const raw = localStorage.getItem(USER_STORAGE_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw)
-    return parsed && typeof parsed === 'object' ? parsed : null
-  } catch {
-    return null
-  }
-}
+import { obtenerUsuarioSesion } from '../utils/session'
 
 export default function DetailPage() {
   const navigate = useNavigate()
@@ -35,7 +23,16 @@ export default function DetailPage() {
 
   useEffect(() => {
     fetch(`/api/publicaciones/${id}`)
-      .then(res => res.json())
+      .then(async (res) => {
+        const body = await res.json().catch(() => null)
+        if (!res.ok) {
+          throw new Error(body?.error || 'Error cargando detalle')
+        }
+        if (!Array.isArray(body)) {
+          throw new Error('Respuesta invalida del servidor')
+        }
+        return body
+      })
       .then(res => {
         setData(res)
         setLoading(false)
@@ -46,6 +43,17 @@ export default function DetailPage() {
         setLoading(false)
       })
   }, [id])
+
+  useEffect(() => {
+    const usuario = obtenerUsuarioSesion()
+    if (!usuario) return
+
+    setForm((previous) => ({
+      ...previous,
+      nombre: usuario.nombre || previous.nombre,
+      telefono: usuario.telefono || previous.telefono
+    }))
+  }, [])
 
   const info = data[0]
 
@@ -64,7 +72,7 @@ export default function DetailPage() {
 
     const usuario = obtenerUsuarioSesion()
     if (!usuario?.id_usuario) {
-      setSubmitError('Debes iniciar sesion para registrar una donacion')
+      navigate('/login', { state: { from: `/detalle/${id}` } })
       return
     }
 
@@ -92,6 +100,10 @@ export default function DetailPage() {
       id_donante: usuario.id_usuario,
       id_publicacion: info.id_publicacion,
       descripcion: descripcionDonacion,
+      nombre_contacto: form.nombre.trim(),
+      telefono_contacto: form.telefono.trim(),
+      hora_preferida: form.hora,
+      nota: form.nota,
       fecha_donacion: form.fecha,
       cantidad_donada: cantidadDonada
     }
@@ -153,12 +165,12 @@ export default function DetailPage() {
       <div className="detail-grid detail-grid-figma">
         <div className="detail-card detail-card-figma">
           <div className="detail-card-label">Horario de recepción</div>
-          <div className="detail-card-value">Lun – Vie<br />8:00 – 17:00</div>
+          <div className="detail-card-value">Coordinar con la organización</div>
         </div>
 
         <div className="detail-card detail-card-figma">
           <div className="detail-card-label">Contacto</div>
-          <div className="detail-card-value">+502 2234-5678</div>
+          <div className="detail-card-value">{info.organizacion}</div>
         </div>
 
         <div className="detail-card detail-card-figma">
@@ -219,7 +231,7 @@ export default function DetailPage() {
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
             <circle cx="12" cy="10" r="3" />
           </svg>
-          {info?.direccion || '6a Av. 12-31, Zona 1, Ciudad de Guatemala'}
+          {info?.direccion || 'Direccion no disponible'}
         </div>
       </div>
 

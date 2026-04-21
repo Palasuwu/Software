@@ -1,9 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { obtenerUsuarioSesion } from '../utils/session'
 
 // Íconos definidos como SVG inline dentro del componente
-
-const USER_STORAGE_KEY = 'usuario_actual'
 
 function calcularProgreso(cantidadRecibida, cantidadNecesaria) {
   const necesaria = Number(cantidadNecesaria) || 0
@@ -31,17 +30,6 @@ function formatearFecha(fecha) {
     month: 'long',
     day: 'numeric'
   })
-}
-
-function obtenerUsuarioSesion() {
-  try {
-    const raw = localStorage.getItem(USER_STORAGE_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw)
-    return parsed && typeof parsed === 'object' ? parsed : null
-  } catch {
-    return null
-  }
 }
 
 function IconCalendar() {
@@ -208,6 +196,10 @@ export default function MisDonacionesPage() {
                         <span className="donation-row-date-figma">
                           <IconCalendar />
                           {formatearFecha(donacion.fecha_donacion)}
+                        </span>
+
+                        <span className="donation-row-category-figma">
+                          Tu aporte: {Number(donacion.cantidad_donada) || 0}
                         </span>
 
                         {donacion.categoria && (

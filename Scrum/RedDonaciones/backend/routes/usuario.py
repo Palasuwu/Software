@@ -27,6 +27,63 @@ def obtener_usuarios():
         }), 500
 
 
+@usuario_bp.route("/usuarios/<int:id_usuario>", methods=["GET"])
+def obtener_usuario_por_id(id_usuario):
+    conn = None
+    cursor = None
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute(
+            """
+            SELECT id_usuario, nombre, correo, telefono, rol, fecha_registro
+            FROM usuario
+            WHERE id_usuario = %s
+            """,
+            (id_usuario,)
+        )
+        usuario = cursor.fetchone()
+
+        if not usuario:
+            return jsonify({"error": "Usuario no encontrado"}), 404
+
+        if usuario["rol"] == "donante":
+            cursor.execute(
+                """
+                SELECT departamento, municipio, zona, direccion_detalle
+                FROM donante
+                WHERE id_usuario = %s
+                """,
+                (id_usuario,)
+            )
+            usuario["perfil"] = cursor.fetchone() or {}
+        elif usuario["rol"] == "intermediario":
+            cursor.execute(
+                """
+                SELECT i.id_organizacion, i.cargo, o.nombre AS organizacion_nombre
+                FROM intermediario i
+                INNER JOIN organizacion o ON o.id_organizacion = i.id_organizacion
+                WHERE i.id_usuario = %s
+                """,
+                (id_usuario,)
+            )
+            usuario["perfil"] = cursor.fetchone() or {}
+        else:
+            usuario["perfil"] = {}
+
+        return jsonify(usuario), 200
+
+    except Exception:
+        return jsonify({"error": "Error al obtener perfil de usuario"}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
 # Ruta para crear un nuevo usuario
 @usuario_bp.route("/usuarios", methods=["POST"])
 def crear_usuario():
@@ -171,7 +228,7 @@ def login_usuario():
         cursor = conn.cursor(dictionary=True)
 
         sql = """
-        SELECT id_usuario, nombre, correo, password, rol
+        SELECT id_usuario, nombre, correo, telefono, password, rol
         FROM usuario
         WHERE correo = %s
         """
@@ -201,6 +258,7 @@ def login_usuario():
                 "id_usuario": usuario["id_usuario"],
                 "nombre": usuario["nombre"],
                 "correo": usuario["correo"],
+                "telefono": usuario["telefono"],
                 "rol": usuario["rol"]
             }
         }), 200

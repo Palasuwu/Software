@@ -145,6 +145,12 @@ a {
   transition: background 0.2s ease, color 0.2s ease;
 }
 
+.top-nav-button {
+  border: 1px solid var(--outline);
+  background: var(--surface);
+  cursor: pointer;
+}
+
 .top-nav-link.active {
   background: var(--primary);
   color: white;
@@ -233,6 +239,10 @@ a {
   margin-bottom: 36px;
 }
 
+.search-panel-extended {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .search-box,
 .filter-box select {
   height: 74px;
@@ -299,6 +309,54 @@ a {
   outline: none;
   color: var(--text);
   cursor: pointer;
+}
+
+.btn-filter-reset {
+  height: 74px;
+  border: none;
+  border-radius: 20px;
+  background: var(--text);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.2s ease;
+}
+
+.btn-filter-reset:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+.active-filters-text {
+  margin: -16px 0 22px;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+}
+
+.auth-cta-panel {
+  margin: 0 0 22px;
+  padding: 18px 20px;
+  border-radius: 20px;
+  border: 1px solid var(--outline);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.auth-cta-panel p {
+  margin: 0 0 12px;
+  color: var(--text-soft);
+}
+
+.auth-cta-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.auth-cta-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* SECTIONS */
@@ -1238,6 +1296,12 @@ a {
   position: relative;
 }
 
+.nav-item-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
 .nav-item svg {
   width: 22px;
   height: 22px;
@@ -1288,6 +1352,18 @@ a {
   animation: fadeInUp 0.35s ease;
 }
 
+.login-help-text {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.login-help-text a {
+  color: var(--primary-strong);
+  font-weight: 600;
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -1334,6 +1410,10 @@ a {
     grid-template-columns: 1fr;
     padding: 18px;
     border-radius: 22px;
+  }
+
+  .search-panel-extended {
+    grid-template-columns: 1fr;
   }
 
   .search-box,
@@ -1387,6 +1467,10 @@ a {
   .bottom-nav {
     display: flex;
     gap: 32px;
+  }
+
+  .auth-cta-actions {
+    grid-template-columns: 1fr;
   }
 
   .fab-help {

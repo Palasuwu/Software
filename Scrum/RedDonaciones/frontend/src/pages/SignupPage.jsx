@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { guardarUsuarioSesion } from '../utils/session'
 
 const INITIAL_FORM = {
     nombre: '',
@@ -15,8 +16,6 @@ const INITIAL_FORM = {
     id_organizacion: '',
     cargo: ''
 }
-
-const USER_STORAGE_KEY = 'usuario_actual'
 
 function validateForm(form) {
     const errors = {}
@@ -111,12 +110,13 @@ function buildPayload(form) {
     }
 }
 
-export default function SignupPage() {
+export default function SignupPage({ onAuthSuccess }) {
     const navigate = useNavigate()
 
     const [form, setForm] = useState(INITIAL_FORM)
     const [errors, setErrors] = useState({})
     const [apiError, setApiError] = useState('')
+    const [successMessage, setSuccessMessage] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     const [organizaciones, setOrganizaciones] = useState([])
@@ -177,6 +177,7 @@ export default function SignupPage() {
         })
 
         setApiError('')
+        setSuccessMessage('')
         setErrors((previous) => {
             if (!previous[name]) {
                 return previous
@@ -200,6 +201,7 @@ export default function SignupPage() {
         const nextErrors = validateForm(form)
         setErrors(nextErrors)
         setApiError('')
+        setSuccessMessage('')
 
         if (Object.keys(nextErrors).length > 0) {
             return
@@ -239,8 +241,15 @@ export default function SignupPage() {
                 throw new Error(loginBody?.error || 'Cuenta creada, pero no se pudo iniciar sesion automaticamente')
             }
 
-            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(loginBody.usuario))
-            navigate('/perfil')
+            guardarUsuarioSesion(loginBody.usuario)
+            if (typeof onAuthSuccess === 'function') {
+                onAuthSuccess(loginBody.usuario)
+            }
+
+            setSuccessMessage('Usuario creado con exito. Redirigiendo a tu perfil...')
+            setTimeout(() => {
+                navigate('/perfil', { state: { flash: 'Usuario creado con exito' } })
+            }, 800)
         } catch (error) {
             setApiError(error.message || 'No se pudo completar el registro')
         } finally {
@@ -463,6 +472,7 @@ export default function SignupPage() {
                     )}
 
                     {apiError && <div className="error-box">{apiError}</div>}
+                    {successMessage && <div className="loading-box">{successMessage}</div>}
 
                     <button type="submit" className="btn-confirmar" disabled={isSubmitting}>
                         {isSubmitting ? 'Creando cuenta...' : 'Crear cuenta'}
