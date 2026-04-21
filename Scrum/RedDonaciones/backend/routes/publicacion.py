@@ -1,4 +1,5 @@
-# Rutas relacionadas con publicaciones y donaciones
+# Aquí se definen las rutas relacionadas con las publicaciones
+
 from flask import Blueprint, request, jsonify
 from db.connection import get_db_connection
 
@@ -122,30 +123,50 @@ def obtener_publicacion(id):
         cursor = conn.cursor(dictionary=True)
 
         sql = """
-        SELECT
+        SELECT 
             p.id_publicacion,
-            p.id_intermediario,
-            p.id_organizacion,
-            p.id_articulo,
             p.titulo,
             p.descripcion,
             p.cantidad_necesaria,
             p.cantidad_recibida,
+            p.estado,
             DATE_FORMAT(p.fecha_publicacion, '%Y-%m-%d') AS fecha_publicacion,
             DATE_FORMAT(p.fecha_limite, '%Y-%m-%d') AS fecha_limite,
-            p.estado
+
+            o.nombre AS organizacion,
+            o.direccion,
+
+            c.nombre AS categoria,
+
+            a.nombre AS articulo,
+            pa.descripcion_detalle,
+            pa.cantidad
+
         FROM publicacion p
+
+        INNER JOIN organizacion o 
+            ON p.id_organizacion = o.id_organizacion
+
+        INNER JOIN publicacion_articulo pa 
+            ON p.id_publicacion = pa.id_publicacion
+
+        INNER JOIN articulo a 
+            ON pa.id_articulo = a.id_articulo
+
+        INNER JOIN categoria_articulo c 
+            ON a.id_categoria = c.id_categoria
+
         WHERE p.id_publicacion = %s
         """
 
         cursor.execute(sql, (id,))
-        publicacion = cursor.fetchone()
+        resultados = cursor.fetchall()
 
         cursor.close()
         conn.close()
 
-        if publicacion:
-            return jsonify(publicacion), 200
+        if resultados:
+            return jsonify(resultados), 200
         else:
             return jsonify({"error": "Publicación no encontrada"}), 404
 
