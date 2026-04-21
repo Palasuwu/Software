@@ -90,6 +90,7 @@ function DonationCard({ org }) {
 
       <div className="campaign-body">
         <h3 className="campaign-title">{org.title}</h3>
+        <p className="campaign-org">{org.organizacion}</p>
 
         <div className="campaign-location">
           <IconLocation />
@@ -109,7 +110,7 @@ function DonationCard({ org }) {
 
         <div className="campaign-supporters">
           <IconUsers />
-          <span>{formatAmount(org.supporters)} donantes</span>
+          <span>{formatAmount(org.supporters)} DONANTES</span>
         </div>
 
         <button
@@ -176,8 +177,9 @@ function HomePage() {
           id: p.id_publicacion,
           title: p.titulo,
           description: p.descripcion,
-          category: 'General',
-          location: 'Guatemala',
+          category: p.categoria,
+          location: p.direccion,
+          organizacion: p.organizacion,
           progress: p.cantidad_necesaria > 0
             ? Math.round((p.cantidad_recibida / p.cantidad_necesaria) * 100)
             : 0,

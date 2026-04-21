@@ -1,3 +1,4 @@
+# Rutas relacionadas con publicaciones y donaciones
 from flask import Blueprint, request, jsonify
 from db.connection import get_db_connection
 
@@ -10,18 +11,44 @@ def listar_publicaciones():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
-        cursor.execute("SELECT * FROM publicacion")
+        sql = """
+        SELECT 
+            p.id_publicacion,
+            p.titulo,
+            p.descripcion,
+            p.cantidad_necesaria,
+            p.cantidad_recibida,
+            p.estado,
+            p.fecha_publicacion,
+            p.fecha_limite,
+
+            o.nombre AS organizacion,
+            o.direccion AS direccion,
+
+            c.nombre AS categoria
+
+        FROM publicacion p
+        INNER JOIN organizacion o 
+            ON p.id_organizacion = o.id_organizacion
+
+        INNER JOIN articulo a 
+            ON p.id_articulo = a.id_articulo
+
+        INNER JOIN categoria_articulo c 
+            ON a.id_categoria = c.id_categoria
+        """
+
+        cursor.execute(sql)
         publicaciones = cursor.fetchall()
 
         cursor.close()
         conn.close()
 
         return jsonify(publicaciones)
+
     except Exception as e:
-        return jsonify({
-            "error": "Error al listar publicaciones",
-            "detalle": str(e)
-        }), 500
+        print("ERROR EN JOIN:", e)  
+        return jsonify({"error": str(e)}), 500
 
 
 # Ruta para crear una nueva publicación

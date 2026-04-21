@@ -179,7 +179,7 @@ export default function DetailPage() {
                 name="nombre"
                 placeholder="Tu nombre"
                 value={form.nombre}
-                onChange={handleChange}
+                onChange={handleChange} 
                 required
               />
             </div>
@@ -251,3 +251,4 @@ export default function DetailPage() {
     </div>
   )
 }
+
