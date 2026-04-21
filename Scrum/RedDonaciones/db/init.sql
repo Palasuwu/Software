@@ -116,6 +116,23 @@ CREATE TABLE donacion (
 ) ENGINE=InnoDB;
 
 
+
+-- PUBLICACION_ARTICULO (NUEVA TABLA)
+-- Para solucionar la relacion muchos a muchos entre publicaciones y articulos
+-- a que una publicacion puede requerir varios articulos y un articulo puede ser requerido por varias publicaciones
+CREATE TABLE publicacion_articulo (
+    id_publicacion INT NOT NULL,
+    id_articulo INT NOT NULL,
+    descripcion_detalle VARCHAR(300),
+    cantidad INT NOT NULL,
+    PRIMARY KEY (id_publicacion, id_articulo),
+    FOREIGN KEY (id_publicacion) REFERENCES publicacion(id_publicacion) ON DELETE CASCADE,
+    FOREIGN KEY (id_articulo) REFERENCES articulo(id_articulo) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+
+-- DATOS DE EJEMPLO
+
 -- USUARIOS
 INSERT IGNORE INTO usuario (id_usuario, nombre, correo, password, telefono, rol)
 VALUES
@@ -125,7 +142,8 @@ VALUES
 -- ORGANIZACIONES
 INSERT IGNORE INTO organizacion (id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion)
 VALUES
-    (1, 'Hogar de Ninos La Esperanza', 'Apoyo integral para ninos en situacion de vulnerabilidad.', 'Zona Centro, Ciudad', '3100000001', 'contacto@laesperanza.org', 'verificada');
+    (1, 'Hogar de Ninos La Esperanza', 'Apoyo integral para ninos en situacion de vulnerabilidad.', 'Zona Centro, Ciudad', '3100000001', 'contacto@laesperanza.org', 'verificada'),
+    (2, 'Asilo de Ancianos El Refugio', 'Cuidado y apoyo para adultos mayores en situacion de vulnerabilidad.', 'Barrio San Juan, Ciudad', '3100000002', 'contacto@elrefugio.org', 'verificada');
 
 -- DONANTE
 INSERT IGNORE INTO donante (id_usuario, departamento, municipio, zona, direccion_detalle)
@@ -147,6 +165,12 @@ INSERT IGNORE INTO articulo (id_articulo, nombre, descripcion, id_categoria)
 VALUES
     (1, 'Ropa de vestir', 'Prendas en buen estado para jornadas de entrega comunitaria.', 1);
 
+
+INSERT IGNORE INTO articulo (id_articulo, nombre, descripcion, id_categoria)
+VALUES
+    (2, 'Abrigos', 'Abrigos para clima frío.', 1),
+    (3, 'Bufandas', 'Bufandas y gorros.', 1);
+
 -- PUBLICACIONES
 INSERT IGNORE INTO publicacion (
     id_publicacion,
@@ -162,7 +186,7 @@ INSERT IGNORE INTO publicacion (
     estado
 )
 VALUES
-    (1, 2, 1, 1, 'Ropa de invierno para abril', 'Recoleccion de chaquetas, buzos y pantalones.', 120, 70, '2026-04-01', '2026-04-20', 'activa'),
+    (1, 2, 2, 1, 'Ropa de invierno para abril', 'Recoleccion de chaquetas, buzos y pantalones.', 120, 70, '2026-04-01', '2026-04-20', 'activa'),
     (2, 2, 1, 1, 'Jornada de ropa infantil', 'Donaciones de ropa para ninos.', 90, 90, '2026-03-15', '2026-03-30', 'finalizada');
 
 -- DONACIONES
@@ -170,3 +194,19 @@ INSERT IGNORE INTO donacion (id_donacion, id_donante, id_publicacion, descripcio
 VALUES
     (1, 1, 1, 'Entregue varias prendas.', '2026-04-05'),
     (2, 1, 2, 'Aporte ropa infantil.', '2026-03-28');
+
+
+
+-- Relacionar publicaciones con articulos a traves de la tabla publicacion_articulo
+INSERT IGNORE INTO publicacion_articulo (
+    id_publicacion,
+    id_articulo,
+    descripcion_detalle,
+    cantidad
+)
+VALUES
+    (1, 1, 'Ropa de invierno (tallas 6–12)', 50),
+    (1, 2, 'Abrigos en buen estado', 40),
+    (1, 3, 'Bufandas y gorros para niños', 30),
+    
+    (2, 1, 'Ropa infantil variada', 90);

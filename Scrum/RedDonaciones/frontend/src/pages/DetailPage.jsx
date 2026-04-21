@@ -1,20 +1,7 @@
-import React, { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 
 const STORAGE_KEY = 'mis_donaciones_local'
-
-const ITEMS_POR_ORGANIZACION = {
-  default: [
-    { name: 'Ropa de invierno', qty: 'Tallas 6–12' },
-    { name: 'Abrigos', qty: 'Cualquier talla' },
-    { name: 'Bufandas y gorros', qty: 'Todos los tamaños' },
-  ],
-  asilo: [
-    { name: 'Sábanas', qty: '2 o más juegos' },
-    { name: 'Frazadas', qty: 'Buen estado' },
-    { name: 'Artículos de higiene', qty: 'Cualquier cantidad' },
-  ],
-}
 
 function obtenerDonacionesGuardadas() {
   try {
@@ -29,8 +16,11 @@ function obtenerDonacionesGuardadas() {
 
 export default function DetailPage() {
   const navigate = useNavigate()
-  const location = useLocation()
-  const { org } = location.state || {}
+  const { id } = useParams()
+
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   const [form, setForm] = useState({
     nombre: '',
@@ -40,9 +30,30 @@ export default function DetailPage() {
     nota: ''
   })
 
-  const items = org?.isAsilo ? ITEMS_POR_ORGANIZACION.asilo : ITEMS_POR_ORGANIZACION.default
+  useEffect(() => {
+    fetch(`/api/publicaciones/${id}`)
+      .then(res => res.json())
+      .then(res => {
+        setData(res)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error(err)
+        setError('Error cargando detalle')
+        setLoading(false)
+      })
+  }, [id])
 
-  const handleChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
+  const info = data[0]
+
+  const items = data.map(item => ({
+    name: item.articulo,
+    qty: item.descripcion_detalle,
+    cantidad: item.cantidad
+  }))
+
+  const handleChange = (e) =>
+    setForm(f => ({ ...f, [e.target.name]: e.target.value }))
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -51,20 +62,20 @@ export default function DetailPage() {
 
     const nuevaDonacion = {
       id_donacion: Date.now(),
-      publicacion_titulo: org?.title || 'Publicacion sin titulo',
-      publicacion_estado: 'activa',
+      publicacion_titulo: info?.titulo || 'Publicacion sin titulo',
+      publicacion_estado: info?.estado || 'activa',
       fecha_donacion: form.fecha || new Date().toISOString(),
-      fecha_limite: form.fecha || '',
-      categoria: org?.category || 'Donación',
-      descripcion: org?.description || '',
-      cantidad_recibida: Number(org?.progress || 0),
-      cantidad_necesaria: 100,
+      fecha_limite: info?.fecha_limite || '',
+      categoria: info?.categoria || 'Donación',
+      descripcion: info?.descripcion || '',
+      cantidad_recibida: Number(info?.cantidad_recibida || 0),
+      cantidad_necesaria: Number(info?.cantidad_necesaria || 0),
       nombre_donante: form.nombre,
       telefono: form.telefono,
       hora_preferida: form.hora,
       nota: form.nota || '',
-      address: org?.address || '',
-      organizacion_id: org?.id || null
+      address: info?.direccion || '',
+      organizacion_id: info?.id_publicacion || null
     }
 
     const actualizadas = [nuevaDonacion, ...donacionesActuales]
@@ -73,11 +84,16 @@ export default function DetailPage() {
     navigate('/donaciones')
   }
 
+  // Estados de carga
+  if (loading) return <div className="empty-box">Cargando detalle...</div>
+  if (error) return <div className="empty-box">{error}</div>
+  if (!info) return <div className="empty-box">No encontrado</div>
+
   return (
     <div className="detail-page detail-page-figma fade-in">
       <button className="detail-back detail-back-figma" onClick={() => navigate(-1)}>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          stroke="currentColor" strokeWidth="2">
           <polyline points="15 18 9 12 15 6" />
         </svg>
         Volver
@@ -87,23 +103,16 @@ export default function DetailPage() {
         <div className="detail-chip-row">
           <span className="card-chip">
             <span className="card-chip-dot" />
-            {org?.category || 'Donación'}
+            {info.categoria}
           </span>
-
-          {org?.urgent && (
-            <span className="card-urgent">
-              <span className="urgent-dot" />
-              {org.urgent}
-            </span>
-          )}
         </div>
 
         <h1 className="detail-title detail-title-figma">
-          {org?.title || 'Organización'}
+          {info.titulo}
         </h1>
 
         <p className="detail-subtitle detail-subtitle-figma">
-          {org?.description || 'Esta organización necesita tu apoyo.'}
+          {info.descripcion}
         </p>
       </div>
 
@@ -120,12 +129,18 @@ export default function DetailPage() {
 
         <div className="detail-card detail-card-figma">
           <div className="detail-card-label">Estado</div>
-          <div className="detail-card-value" style={{ color: 'var(--success)' }}>Activa ✓</div>
+          <div className="detail-card-value" style={{ color: 'var(--success)' }}>
+            {info.estado} ✓
+          </div>
         </div>
 
         <div className="detail-card detail-card-figma">
-          <div className="detail-card-label">Donantes este mes</div>
-          <div className="detail-card-value">34 personas</div>
+          <div className="detail-card-label">Progreso</div>
+          <div className="detail-card-value">
+            {info.cantidad_necesaria > 0
+              ? Math.round((info.cantidad_recibida / info.cantidad_necesaria) * 100)
+              : 0}%
+          </div>
         </div>
       </div>
 
@@ -136,7 +151,13 @@ export default function DetailPage() {
           {items.map((item, i) => (
             <div className="item-row item-row-figma" key={i}>
               <div className="item-icon item-icon-figma">
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--primary)', display: 'inline-block' }} />
+                <span style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  background: 'var(--primary)',
+                  display: 'inline-block'
+                }} />
               </div>
               <span className="item-name">{item.name}</span>
               <span className="item-qty item-qty-figma">{item.qty}</span>
@@ -144,6 +165,7 @@ export default function DetailPage() {
           ))}
         </div>
       </div>
+
 
       <div className="detail-section detail-section-figma">
         <div className="detail-section-title">Ubicación</div>
@@ -163,7 +185,7 @@ export default function DetailPage() {
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
             <circle cx="12" cy="10" r="3"/>
           </svg>
-          {org?.address || '6a Av. 12-31, Zona 1, Ciudad de Guatemala'}
+          {info?.direccion || '6a Av. 12-31, Zona 1, Ciudad de Guatemala'}
         </div>
       </div>
 
@@ -251,4 +273,3 @@ export default function DetailPage() {
     </div>
   )
 }
-

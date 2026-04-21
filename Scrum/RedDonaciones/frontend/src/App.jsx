@@ -82,7 +82,7 @@ function DonationCard({ org }) {
   const navigate = useNavigate()
 
   return (
-    <article className="campaign-card" onClick={() => navigate('/detalle', { state: { org } })}>
+    <article className="campaign-card" onClick={() => navigate(`/detalle/${org.id}`)}>
       <div className="campaign-image-wrap">
         <div className="campaign-image-placeholder" />
         <span className="campaign-tag">{org.category}</span>
@@ -110,14 +110,14 @@ function DonationCard({ org }) {
 
         <div className="campaign-supporters">
           <IconUsers />
-          <span>{formatAmount(org.supporters)} DONANTES</span>
+          <span>{formatAmount(org.supporters)} donantes</span>
         </div>
 
         <button
           className="campaign-button"
           onClick={(e) => {
             e.stopPropagation()
-            navigate('/detalle', { state: { org } })
+            navigate(`/detalle/${org.id}`)
           }}
         >
           Donar
@@ -418,7 +418,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/donaciones" element={<MisDonacionesPage />} />
-            <Route path="/detalle" element={<DetailPage />} />
+            <Route path="/detalle/:id" element={<DetailPage />} />
             <Route path="/perfil" element={<PerfilPage />} />
           </Routes>
         </main>
