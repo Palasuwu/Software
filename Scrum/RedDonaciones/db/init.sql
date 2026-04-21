@@ -18,7 +18,7 @@ CREATE TABLE usuario (
     nombre VARCHAR(200) NOT NULL,
     correo VARCHAR(200) NOT NULL UNIQUE,
     password VARCHAR(200) NOT NULL,
-    telefono VARCHAR(100) NOT NULL UNIQUE,
+    telefono VARCHAR(100) NOT NULL,
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     rol ENUM('donante', 'intermediario', 'administrador') NOT NULL
 ) ENGINE=InnoDB;
@@ -137,7 +137,8 @@ CREATE TABLE publicacion_articulo (
 INSERT IGNORE INTO usuario (id_usuario, nombre, correo, password, telefono, rol)
 VALUES
     (1, 'Donante Demo', 'donante.demo@reddonaciones.local', 'demo123', '3000000001', 'donante'),
-    (2, 'Intermediario Demo', 'inter.demo@reddonaciones.local', 'demo123', '3000000002', 'intermediario');
+    (2, 'Intermediario Demo', 'inter.demo@reddonaciones.local', 'demo123', '3000000002', 'intermediario'),
+    (3, 'Admin Demo', 'admin.demo@reddonaciones.local', 'demo123', '3000000001', 'administrador');
 
 -- ORGANIZACIONES
 INSERT IGNORE INTO organizacion (id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion)

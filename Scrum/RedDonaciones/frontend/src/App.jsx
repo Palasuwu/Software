@@ -2,6 +2,7 @@ import React from 'react'
 import { BrowserRouter as Router, Routes, Route, NavLink, useNavigate } from 'react-router-dom'
 import MisDonacionesPage from './pages/MisDonacionesPage'
 import DetailPage from './pages/DetailPage'
+import SignupPage from './pages/SignupPage'
 
 // Íconos definidos como SVG inline dentro del componente
 
@@ -38,6 +39,17 @@ function IconUser() {
     <svg viewBox="0 0 24 24" className="nav-icon" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
       <circle cx="12" cy="7" r="4" />
+    </svg>
+  )
+}
+
+function IconRegister() {
+  return (
+    <svg viewBox="0 0 24 24" className="nav-icon" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M19 8v6" />
+      <path d="M16 11h6" />
     </svg>
   )
 }
@@ -155,6 +167,10 @@ function BottomNav() {
           <circle cx="12" cy="7" r="4" />
         </svg>
         <span>Perfil</span>
+      </NavLink>
+      <NavLink to="/signup" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+        <IconRegister />
+        <span>Registro</span>
       </NavLink>
     </nav>
   )
@@ -393,6 +409,11 @@ function HeaderNav() {
         <IconUser />
         <span>Perfil</span>
       </NavLink>
+
+      <NavLink to="/signup" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
+        <IconRegister />
+        <span>Registro</span>
+      </NavLink>
     </nav>
   )
 }
@@ -420,6 +441,7 @@ export default function App() {
             <Route path="/donaciones" element={<MisDonacionesPage />} />
             <Route path="/detalle/:id" element={<DetailPage />} />
             <Route path="/perfil" element={<PerfilPage />} />
+            <Route path="/signup" element={<SignupPage />} />
           </Routes>
         </main>
 

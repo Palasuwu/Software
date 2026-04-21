@@ -168,6 +168,26 @@ docker-compose down -v
 
 ---
 
+### 5. Permitir telefonos repetidos en usuarios
+
+Si ya tienes la base creada y quieres permitir que varios usuarios usen el mismo telefono,
+no necesitas borrar volumen. Puedes eliminar el indice UNIQUE actual:
+
+```sql
+USE donaciones;
+ALTER TABLE usuario DROP INDEX telefono;
+```
+
+Si el nombre del indice no es `telefono`, primero consulta el nombre:
+
+```sql
+SHOW INDEX FROM usuario;
+```
+
+y luego elimina el indice UNIQUE que corresponda a la columna `telefono`.
+
+---
+
 ## Consideraciones importantes
 
 ### 1. Base de datos local por desarrollador

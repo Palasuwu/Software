@@ -2,6 +2,7 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 
 from routes.usuario import usuario_bp
+from routes.organizacion import organizacion_bp
 from routes.publicacion import publicacion_bp
 
 app = Flask(__name__)
@@ -9,6 +10,7 @@ CORS(app)
 
 # Registrar rutas
 app.register_blueprint(usuario_bp)
+app.register_blueprint(organizacion_bp)
 app.register_blueprint(publicacion_bp)
 
 @app.route("/")

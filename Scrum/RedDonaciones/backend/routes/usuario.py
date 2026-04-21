@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 import bcrypt
+import mysql.connector
 from db.connection import get_db_connection
 
 usuario_bp = Blueprint("usuario", __name__)
@@ -29,6 +30,9 @@ def obtener_usuarios():
 # Ruta para crear un nuevo usuario
 @usuario_bp.route("/usuarios", methods=["POST"])
 def crear_usuario():
+    conn = None
+    cursor = None
+
     try:
         data = request.get_json()
 
@@ -44,6 +48,34 @@ def crear_usuario():
         if not nombre or not correo or not password or not telefono or not rol:
             return jsonify({"error": "Faltan campos obligatorios"}), 400
 
+        rol = rol.strip().lower()
+        if rol not in ("donante", "intermediario"):
+            return jsonify({"error": "Rol invalido para registro"}), 400
+
+        if len(password) < 8:
+            return jsonify({"error": "El password debe tener al menos 8 caracteres"}), 400
+
+        departamento = data.get("departamento")
+        municipio = data.get("municipio")
+        zona = data.get("zona")
+        direccion_detalle = data.get("direccion_detalle")
+
+        id_organizacion = data.get("id_organizacion")
+        cargo = data.get("cargo")
+
+        if rol == "donante":
+            if not departamento or not municipio or not zona or not direccion_detalle:
+                return jsonify({"error": "Faltan datos obligatorios para donante"}), 400
+
+        if rol == "intermediario":
+            if not id_organizacion or not cargo:
+                return jsonify({"error": "Faltan datos obligatorios para intermediario"}), 400
+
+            try:
+                id_organizacion = int(id_organizacion)
+            except (TypeError, ValueError):
+                return jsonify({"error": "id_organizacion debe ser un entero valido"}), 400
+
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -55,18 +87,69 @@ def crear_usuario():
         """
 
         cursor.execute(sql, (nombre, correo, hashed_password, telefono, rol))
+        id_usuario = cursor.lastrowid
+
+        if rol == "donante":
+            sql_donante = """
+            INSERT INTO donante (id_usuario, departamento, municipio, zona, direccion_detalle)
+            VALUES (%s, %s, %s, %s, %s)
+            """
+            cursor.execute(sql_donante, (
+                id_usuario,
+                departamento,
+                municipio,
+                zona,
+                direccion_detalle
+            ))
+
+        if rol == "intermediario":
+            cursor.execute(
+                "SELECT id_organizacion FROM organizacion WHERE id_organizacion = %s",
+                (id_organizacion,)
+            )
+            organizacion = cursor.fetchone()
+            if not organizacion:
+                conn.rollback()
+                return jsonify({"error": "La organizacion seleccionada no existe"}), 400
+
+            sql_intermediario = """
+            INSERT INTO intermediario (id_usuario, id_organizacion, cargo)
+            VALUES (%s, %s, %s)
+            """
+            cursor.execute(sql_intermediario, (id_usuario, id_organizacion, cargo))
+
         conn.commit()
 
-        cursor.close()
-        conn.close()
+        return jsonify({
+            "message": "Usuario creado",
+            "usuario": {
+                "id_usuario": id_usuario,
+                "nombre": nombre,
+                "correo": correo,
+                "rol": rol
+            }
+        }), 201
 
-        return jsonify({"message": "Usuario creado"}), 201
+    except mysql.connector.IntegrityError as e:
+        if conn:
+            conn.rollback()
+
+        error_message = str(e).lower()
+        if "correo" in error_message:
+            return jsonify({"error": "El correo ya esta registrado"}), 409
+
+        return jsonify({"error": "No se pudo completar el registro"}), 400
 
     except Exception as e:
-        return jsonify({
-            "error": "Error al crear usuario",
-            "detalle": str(e)
-        }), 500
+        if conn:
+            conn.rollback()
+
+        return jsonify({"error": "No se pudo crear el usuario"}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 # Ruta para iniciar sesión
