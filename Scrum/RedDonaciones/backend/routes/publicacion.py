@@ -2,6 +2,7 @@
 
 from flask import Blueprint, request, jsonify
 from db.connection import get_db_connection
+from auth import token_required
 
 publicacion_bp = Blueprint("publicacion", __name__)
 
@@ -52,8 +53,9 @@ def listar_publicaciones():
         return jsonify({"error": str(e)}), 500
 
 
-# Ruta para crear una nueva publicación
+# Ruta para crear una nueva publicación (requiere autenticacion)
 @publicacion_bp.route("/publicaciones", methods=["POST"])
+@token_required
 def crear_publicacion():
     try:
         data = request.get_json()
@@ -226,8 +228,9 @@ def listar_donaciones():
         }), 500
 
 
-# Ruta para registrar una donación
+# Ruta para registrar una donación (requiere autenticacion)
 @publicacion_bp.route("/donaciones", methods=["POST"])
+@token_required
 def crear_donacion():
     try:
         data = request.get_json()
