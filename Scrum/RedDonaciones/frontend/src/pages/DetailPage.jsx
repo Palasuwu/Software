@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
-const STORAGE_KEY = 'mis_donaciones_local'
+const USER_STORAGE_KEY = 'usuario_actual'
 
-function obtenerDonacionesGuardadas() {
+function obtenerUsuarioSesion() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
+    const raw = localStorage.getItem(USER_STORAGE_KEY)
+    if (!raw) return null
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
+    return parsed && typeof parsed === 'object' ? parsed : null
   } catch {
-    return []
+    return null
   }
 }
 
@@ -21,13 +21,16 @@ export default function DetailPage() {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [submitError, setSubmitError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   const [form, setForm] = useState({
     nombre: '',
     telefono: '',
     fecha: '',
     hora: '',
-    nota: ''
+    nota: '',
+    cantidad: '1'
   })
 
   useEffect(() => {
@@ -55,33 +58,64 @@ export default function DetailPage() {
   const handleChange = (e) =>
     setForm(f => ({ ...f, [e.target.name]: e.target.value }))
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setSubmitError('')
 
-    const donacionesActuales = obtenerDonacionesGuardadas()
-
-    const nuevaDonacion = {
-      id_donacion: Date.now(),
-      publicacion_titulo: info?.titulo || 'Publicacion sin titulo',
-      publicacion_estado: info?.estado || 'activa',
-      fecha_donacion: form.fecha || new Date().toISOString(),
-      fecha_limite: info?.fecha_limite || '',
-      categoria: info?.categoria || 'Donación',
-      descripcion: info?.descripcion || '',
-      cantidad_recibida: Number(info?.cantidad_recibida || 0),
-      cantidad_necesaria: Number(info?.cantidad_necesaria || 0),
-      nombre_donante: form.nombre,
-      telefono: form.telefono,
-      hora_preferida: form.hora,
-      nota: form.nota || '',
-      address: info?.direccion || '',
-      organizacion_id: info?.id_publicacion || null
+    const usuario = obtenerUsuarioSesion()
+    if (!usuario?.id_usuario) {
+      setSubmitError('Debes iniciar sesion para registrar una donacion')
+      return
     }
 
-    const actualizadas = [nuevaDonacion, ...donacionesActuales]
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(actualizadas))
+    if (usuario.rol !== 'donante') {
+      setSubmitError('Solo los usuarios con rol donante pueden registrar donaciones')
+      return
+    }
 
-    navigate('/donaciones')
+    const cantidadDonada = Number(form.cantidad)
+    if (!Number.isInteger(cantidadDonada) || cantidadDonada <= 0) {
+      setSubmitError('La cantidad a donar debe ser un entero mayor a 0')
+      return
+    }
+
+    setSubmitting(true)
+
+    const descripcionDonacion = [
+      `Entrega agendada por ${form.nombre}`,
+      `Telefono: ${form.telefono}`,
+      `Hora preferida: ${form.hora}`,
+      form.nota ? `Nota: ${form.nota}` : null
+    ].filter(Boolean).join(' | ')
+
+    const payload = {
+      id_donante: usuario.id_usuario,
+      id_publicacion: info.id_publicacion,
+      descripcion: descripcionDonacion,
+      fecha_donacion: form.fecha,
+      cantidad_donada: cantidadDonada
+    }
+
+    try {
+      const response = await fetch('/api/donaciones', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+
+      const body = await response.json().catch(() => null)
+      if (!response.ok) {
+        throw new Error(body?.error || 'No se pudo registrar la donacion')
+      }
+
+      navigate('/donaciones')
+    } catch (submitErr) {
+      setSubmitError(submitErr.message || 'No se pudo registrar la donacion')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   // Estados de carga
@@ -173,8 +207,8 @@ export default function DetailPage() {
         <div className="map-placeholder map-placeholder-figma">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" strokeWidth="1.5">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-            <circle cx="12" cy="10" r="3"/>
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+            <circle cx="12" cy="10" r="3" />
           </svg>
           <span>Ver en mapa</span>
         </div>
@@ -182,8 +216,8 @@ export default function DetailPage() {
         <div className="map-address">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" strokeWidth="2" style={{ width: 12, height: 12 }}>
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-            <circle cx="12" cy="10" r="3"/>
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+            <circle cx="12" cy="10" r="3" />
           </svg>
           {info?.direccion || '6a Av. 12-31, Zona 1, Ciudad de Guatemala'}
         </div>
@@ -201,7 +235,7 @@ export default function DetailPage() {
                 name="nombre"
                 placeholder="Tu nombre"
                 value={form.nombre}
-                onChange={handleChange} 
+                onChange={handleChange}
                 required
               />
             </div>
@@ -220,6 +254,19 @@ export default function DetailPage() {
           </div>
 
           <div className="form-row">
+            <div className="form-field">
+              <label className="form-label">Cantidad a donar</label>
+              <input
+                className="form-input"
+                type="number"
+                name="cantidad"
+                min="1"
+                value={form.cantidad}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
             <div className="form-field">
               <label className="form-label">Fecha de entrega</label>
               <input
@@ -254,6 +301,8 @@ export default function DetailPage() {
             </div>
           </div>
 
+          {submitError && <div className="error-box">{submitError}</div>}
+
           <div className="form-field">
             <label className="form-label">Nota adicional (opcional)</label>
             <textarea
@@ -265,8 +314,8 @@ export default function DetailPage() {
             />
           </div>
 
-          <button type="submit" className="btn-confirmar btn-confirmar-figma">
-            Confirmar entrega
+          <button type="submit" className="btn-confirmar btn-confirmar-figma" disabled={submitting}>
+            {submitting ? 'Registrando...' : 'Confirmar entrega'}
           </button>
         </form>
       </div>

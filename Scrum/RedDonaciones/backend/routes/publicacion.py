@@ -200,12 +200,19 @@ def listar_donaciones():
             d.descripcion,
             DATE_FORMAT(d.fecha_donacion, '%Y-%m-%d') AS fecha_donacion,
             p.titulo AS publicacion_titulo,
+            p.descripcion AS publicacion_descripcion,
             p.estado AS publicacion_estado,
             p.cantidad_necesaria,
             p.cantidad_recibida,
-            DATE_FORMAT(p.fecha_limite, '%Y-%m-%d') AS fecha_limite
+            DATE_FORMAT(p.fecha_limite, '%Y-%m-%d') AS fecha_limite,
+            o.nombre AS organizacion_nombre,
+            o.direccion AS organizacion_direccion,
+            c.nombre AS categoria
         FROM donacion d
         JOIN publicacion p ON p.id_publicacion = d.id_publicacion
+        JOIN organizacion o ON o.id_organizacion = p.id_organizacion
+        LEFT JOIN articulo a ON a.id_articulo = p.id_articulo
+        LEFT JOIN categoria_articulo c ON c.id_categoria = a.id_categoria
         WHERE (%s IS NULL OR d.id_donante = %s)
         ORDER BY d.fecha_donacion DESC, d.id_donacion DESC
         LIMIT 50
@@ -222,6 +229,77 @@ def listar_donaciones():
     except Exception as e:
         return jsonify({
             "error": "Error al listar donaciones",
+            "detalle": str(e)
+        }), 500
+
+
+# Ruta para obtener el detalle de una donación por su ID
+@publicacion_bp.route("/donaciones/<int:id_donacion>", methods=["GET"])
+def obtener_detalle_donacion(id_donacion):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        sql = """
+        SELECT
+            d.id_donacion,
+            d.id_donante,
+            d.id_publicacion,
+            d.descripcion,
+            DATE_FORMAT(d.fecha_donacion, '%Y-%m-%d') AS fecha_donacion,
+            p.titulo AS publicacion_titulo,
+            p.descripcion AS publicacion_descripcion,
+            p.estado AS publicacion_estado,
+            p.cantidad_necesaria,
+            p.cantidad_recibida,
+            DATE_FORMAT(p.fecha_publicacion, '%Y-%m-%d') AS fecha_publicacion,
+            DATE_FORMAT(p.fecha_limite, '%Y-%m-%d') AS fecha_limite,
+            o.nombre AS organizacion_nombre,
+            o.direccion AS organizacion_direccion,
+            c.nombre AS categoria,
+            u.nombre AS donante_nombre,
+            u.correo AS donante_correo,
+            u.telefono AS donante_telefono
+        FROM donacion d
+        JOIN publicacion p ON p.id_publicacion = d.id_publicacion
+        JOIN organizacion o ON o.id_organizacion = p.id_organizacion
+        JOIN usuario u ON u.id_usuario = d.id_donante
+        LEFT JOIN articulo a ON a.id_articulo = p.id_articulo
+        LEFT JOIN categoria_articulo c ON c.id_categoria = a.id_categoria
+        WHERE d.id_donacion = %s
+        """
+
+        cursor.execute(sql, (id_donacion,))
+        donacion = cursor.fetchone()
+
+        if not donacion:
+            cursor.close()
+            conn.close()
+            return jsonify({"error": "Donación no encontrada"}), 404
+
+        articulos_sql = """
+        SELECT
+            a.id_articulo,
+            a.nombre AS articulo,
+            pa.descripcion_detalle,
+            pa.cantidad
+        FROM publicacion_articulo pa
+        JOIN articulo a ON a.id_articulo = pa.id_articulo
+        WHERE pa.id_publicacion = %s
+        ORDER BY a.nombre
+        """
+
+        cursor.execute(articulos_sql, (donacion["id_publicacion"],))
+        donacion["articulos"] = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify(donacion), 200
+
+    except Exception as e:
+        return jsonify({
+            "error": "Error al obtener el detalle de la donación",
             "detalle": str(e)
         }), 500
 

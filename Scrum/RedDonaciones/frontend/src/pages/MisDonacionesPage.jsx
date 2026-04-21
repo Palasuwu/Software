@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 // Íconos definidos como SVG inline dentro del componente
 
-const STORAGE_KEY = 'mis_donaciones_local'
+const USER_STORAGE_KEY = 'usuario_actual'
 
 function calcularProgreso(cantidadRecibida, cantidadNecesaria) {
   const necesaria = Number(cantidadNecesaria) || 0
@@ -32,14 +33,14 @@ function formatearFecha(fecha) {
   })
 }
 
-function obtenerDonacionesGuardadas() {
+function obtenerUsuarioSesion() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
+    const raw = localStorage.getItem(USER_STORAGE_KEY)
+    if (!raw) return null
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
+    return parsed && typeof parsed === 'object' ? parsed : null
   } catch {
-    return []
+    return null
   }
 }
 
@@ -56,6 +57,7 @@ function IconCalendar() {
 }
 
 export default function MisDonacionesPage() {
+  const navigate = useNavigate()
   const [donaciones, setDonaciones] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -65,14 +67,36 @@ export default function MisDonacionesPage() {
     setLoading(true)
     setError('')
 
-    try {
-      const data = obtenerDonacionesGuardadas()
-      setDonaciones(data)
-    } catch {
-      setError('No fue posible obtener tus donaciones')
-    } finally {
+    const usuario = obtenerUsuarioSesion()
+    if (!usuario?.id_usuario) {
+      setError('Inicia sesion para ver tu historial de donaciones')
       setLoading(false)
+      return
     }
+
+    if (usuario.rol !== 'donante') {
+      setError('Solo los usuarios con rol donante pueden ver este historial')
+      setLoading(false)
+      return
+    }
+
+    fetch(`/api/donaciones?id_donante=${usuario.id_usuario}`)
+      .then(async (res) => {
+        const body = await res.json().catch(() => null)
+        if (!res.ok) {
+          throw new Error(body?.error || 'No fue posible obtener tus donaciones')
+        }
+        if (!Array.isArray(body)) {
+          throw new Error('Respuesta invalida del servidor')
+        }
+        setDonaciones(body)
+      })
+      .catch((err) => {
+        setError(err.message || 'No fue posible obtener tus donaciones')
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }, [])
 
   const resumen = useMemo(() => {
@@ -198,6 +222,14 @@ export default function MisDonacionesPage() {
                           <div className="progress-fill" style={{ width: `${progreso}%` }} />
                         </div>
                       </div>
+
+                      <button
+                        type="button"
+                        className="campaign-button"
+                        onClick={() => navigate(`/donaciones/${donacion.id_donacion}`)}
+                      >
+                        Ver detalle
+                      </button>
                     </div>
 
                     <div className="donation-row-right-figma">

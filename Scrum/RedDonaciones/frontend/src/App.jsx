@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, NavLink, useNavigate } from 're
 import MisDonacionesPage from './pages/MisDonacionesPage'
 import DetailPage from './pages/DetailPage'
 import SignupPage from './pages/SignupPage'
+import DonationHistoryDetailPage from './pages/DonationHistoryDetailPage'
 
 // Íconos definidos como SVG inline dentro del componente
 
@@ -439,6 +440,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/donaciones" element={<MisDonacionesPage />} />
+            <Route path="/donaciones/:idDonacion" element={<DonationHistoryDetailPage />} />
             <Route path="/detalle/:id" element={<DetailPage />} />
             <Route path="/perfil" element={<PerfilPage />} />
             <Route path="/signup" element={<SignupPage />} />
