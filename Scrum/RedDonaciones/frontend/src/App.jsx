@@ -2,6 +2,12 @@ import React from 'react'
 import { BrowserRouter as Router, Routes, Route, NavLink, useNavigate } from 'react-router-dom'
 import MisDonacionesPage from './pages/MisDonacionesPage'
 import DetailPage from './pages/DetailPage'
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
+import ProtectedRoute from './components/ProtectedRoute'
+import Toaster from './components/Toaster'
+import { AuthProvider, useAuth } from './context/AuthContext'
+import { NotificationProvider, useNotifications } from './context/NotificationContext'
 
 // Íconos definidos como SVG inline dentro del componente
 
@@ -253,6 +259,16 @@ function HomePage() {
 }
 
 function PerfilPage() {
+  const { user, logout } = useAuth()
+  const notify = useNotifications()
+  const navigate = useNavigate()
+
+  const handleLogout = async () => {
+    await logout()
+    notify.info('Sesion cerrada')
+    navigate('/login', { replace: true })
+  }
+
   return (
     <div className="fade-in profile-page-figma">
       <header className="profile-header-figma">
@@ -274,8 +290,8 @@ function PerfilPage() {
             </div>
 
             <div className="profile-user-copy">
-              <h3 className="profile-user-name">Adriana Martinez</h3>
-              <p className="profile-user-role">Donante</p>
+              <h3 className="profile-user-name">{user?.nombre || 'Invitado'}</h3>
+              <p className="profile-user-role">{user?.rol || 'Donante'}</p>
             </div>
           </div>
 
@@ -290,7 +306,7 @@ function PerfilPage() {
               </div>
               <div>
                 <p className="profile-info-label">Email</p>
-                <p className="profile-info-value">adriana@uvg.edu.gt</p>
+                <p className="profile-info-value">{user?.correo || '—'}</p>
               </div>
             </div>
 
@@ -337,6 +353,10 @@ function PerfilPage() {
               </div>
             </div>
           </div>
+
+          <button type="button" className="auth-submit profile-logout-btn" onClick={handleLogout}>
+            Cerrar sesion
+          </button>
         </section>
 
         <section className="profile-card-figma profile-achievements-card-figma">
@@ -377,6 +397,16 @@ function PerfilPage() {
 }
 
 function HeaderNav() {
+  const { isAuthenticated, user, logout } = useAuth()
+  const notify = useNotifications()
+  const navigate = useNavigate()
+
+  const handleLogout = async () => {
+    await logout()
+    notify.info('Sesion cerrada')
+    navigate('/login', { replace: true })
+  }
+
   return (
     <nav className="top-nav">
       <NavLink to="/" end className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
@@ -393,39 +423,69 @@ function HeaderNav() {
         <IconUser />
         <span>Perfil</span>
       </NavLink>
+
+      {isAuthenticated ? (
+        <button type="button" className="top-nav-link auth-nav-btn" onClick={handleLogout}>
+          <span>Salir ({user?.nombre?.split(' ')[0]})</span>
+        </button>
+      ) : (
+        <NavLink to="/login" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
+          <span>Ingresar</span>
+        </NavLink>
+      )}
     </nav>
+  )
+}
+
+function AppShell() {
+  return (
+    <div className="app-shell">
+      <header className="app-header">
+        <div className="header-inner">
+          <div className="brand-block">
+            <div className="brand-mark">
+              <IconBrand />
+            </div>
+            <h1 className="header-title">Red de Donaciones</h1>
+          </div>
+
+          <HeaderNav />
+        </div>
+      </header>
+
+      <main className="main-content">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/registro" element={<RegisterPage />} />
+          <Route path="/donaciones" element={<MisDonacionesPage />} />
+          <Route path="/detalle/:id" element={<DetailPage />} />
+          <Route
+            path="/perfil"
+            element={
+              <ProtectedRoute>
+                <PerfilPage />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </main>
+
+      <BottomNav />
+      <button className="fab-help">?</button>
+      <Toaster />
+    </div>
   )
 }
 
 export default function App() {
   return (
-    <Router>
-      <div className="app-shell">
-        <header className="app-header">
-          <div className="header-inner">
-            <div className="brand-block">
-              <div className="brand-mark">
-                <IconBrand />
-              </div>
-              <h1 className="header-title">Red de Donaciones</h1>
-            </div>
-
-            <HeaderNav />
-          </div>
-        </header>
-
-        <main className="main-content">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/donaciones" element={<MisDonacionesPage />} />
-            <Route path="/detalle/:id" element={<DetailPage />} />
-            <Route path="/perfil" element={<PerfilPage />} />
-          </Routes>
-        </main>
-
-        <BottomNav />
-        <button className="fab-help">?</button>
-      </div>
-    </Router>
+    <NotificationProvider>
+      <AuthProvider>
+        <Router>
+          <AppShell />
+        </Router>
+      </AuthProvider>
+    </NotificationProvider>
   )
 }
