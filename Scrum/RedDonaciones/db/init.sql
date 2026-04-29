@@ -18,7 +18,7 @@ CREATE TABLE usuario (
     nombre VARCHAR(200) NOT NULL,
     correo VARCHAR(200) NOT NULL UNIQUE,
     password VARCHAR(200) NOT NULL,
-    telefono VARCHAR(100) NOT NULL UNIQUE,
+    telefono VARCHAR(100) NOT NULL,
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     rol ENUM('donante', 'intermediario', 'administrador') NOT NULL
 ) ENGINE=InnoDB;
@@ -109,6 +109,11 @@ CREATE TABLE donacion (
     id_donante INT NOT NULL,
     id_publicacion INT NOT NULL,
     descripcion VARCHAR(300) NOT NULL,
+    nombre_contacto VARCHAR(200) NOT NULL,
+    telefono_contacto VARCHAR(100) NOT NULL,
+    hora_preferida TIME NOT NULL,
+    nota VARCHAR(500),
+    cantidad_donada INT NOT NULL CHECK (cantidad_donada > 0),
     foto LONGBLOB,
     fecha_donacion DATE NOT NULL,
     FOREIGN KEY (id_donante) REFERENCES donante(id_usuario),
@@ -136,8 +141,10 @@ CREATE TABLE publicacion_articulo (
 -- USUARIOS
 INSERT IGNORE INTO usuario (id_usuario, nombre, correo, password, telefono, rol)
 VALUES
-    (1, 'Donante Demo', 'donante.demo@reddonaciones.local', 'demo123', '3000000001', 'donante'),
-    (2, 'Intermediario Demo', 'inter.demo@reddonaciones.local', 'demo123', '3000000002', 'intermediario');
+    (1, 'Donante Demo', 'donante.demo@reddonaciones.local', '$2b$12$6sOX9qSrscwr5JS0lxrji.8nfhaUjhHJSGxlEFxaD5Jsi4.uhch2q', '3000000001', 'donante'),
+    (2, 'Intermediario Demo', 'inter.demo@reddonaciones.local', '$2b$12$OLdylhqBPU4iMScJAXUGg.tMOCXMKd.cY4aqVmZnAW0c0EoTwzATK', '3000000002', 'intermediario'),
+    (3, 'Admin Demo', 'admin.demo@reddonaciones.local', '$2b$12$6sOX9qSrscwr5JS0lxrji.8nfhaUjhHJSGxlEFxaD5Jsi4.uhch2q', '3000000003', 'administrador'),
+    (4, 'Donante Video', 'donante.video@reddonaciones.local', '$2b$12$6sOX9qSrscwr5JS0lxrji.8nfhaUjhHJSGxlEFxaD5Jsi4.uhch2q', '3000000004', 'donante');
 
 -- ORGANIZACIONES
 INSERT IGNORE INTO organizacion (id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion)
@@ -148,7 +155,8 @@ VALUES
 -- DONANTE
 INSERT IGNORE INTO donante (id_usuario, departamento, municipio, zona, direccion_detalle)
 VALUES
-    (1, 'Antioquia', 'Medellin', 'Urbana', 'Calle 10 #20-30');
+    (1, 'Antioquia', 'Medellin', 'Urbana', 'Calle 10 #20-30'),
+    (4, 'Guatemala', 'Ciudad de Guatemala', 'Zona 10', '12 calle 11-40, zona 10');
 
 -- INTERMEDIARIO
 INSERT IGNORE INTO intermediario (id_usuario, id_organizacion, cargo)
@@ -190,10 +198,23 @@ VALUES
     (2, 2, 1, 1, 'Jornada de ropa infantil', 'Donaciones de ropa para ninos.', 90, 90, '2026-03-15', '2026-03-30', 'finalizada');
 
 -- DONACIONES
-INSERT IGNORE INTO donacion (id_donacion, id_donante, id_publicacion, descripcion, fecha_donacion)
+INSERT IGNORE INTO donacion (
+    id_donacion,
+    id_donante,
+    id_publicacion,
+    descripcion,
+    nombre_contacto,
+    telefono_contacto,
+    hora_preferida,
+    nota,
+    cantidad_donada,
+    fecha_donacion
+)
 VALUES
-    (1, 1, 1, 'Entregue varias prendas.', '2026-04-05'),
-    (2, 1, 2, 'Aporte ropa infantil.', '2026-03-28');
+    (1, 1, 1, 'Entregue varias prendas.', 'Donante Demo', '3000000001', '09:00:00', 'Llevo bolsas clasificadas.', 20, '2026-04-05'),
+    (2, 1, 2, 'Aporte ropa infantil.', 'Donante Demo', '3000000001', '10:30:00', 'Entrego en recepcion.', 20, '2026-03-28'),
+    (3, 4, 1, 'Entregue chaquetas y bufandas.', 'Donante Video', '3000000004', '08:30:00', 'Material en 2 cajas.', 25, '2026-04-10'),
+    (4, 4, 2, 'Entregue ropa para ninos.', 'Donante Video', '3000000004', '11:00:00', 'Solicito apoyo para descarga.', 15, '2026-03-25');
 
 
 

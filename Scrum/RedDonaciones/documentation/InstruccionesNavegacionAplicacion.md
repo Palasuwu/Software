@@ -3,11 +3,18 @@
 Este archivo explica cómo usar y probar la navegación implementada.
 
 ## Rutas disponibles
-- `/` → Homepage (vista prototipo existente)
-- `/index` → Placeholder para `index`
-- `/login` → Placeholder para `Inicio de Sesión`
-- `/perfil` → Placeholder para `Perfil`
-- `/donaciones` → Vista real de `Mis Donaciones` (consume API con donante simulado)
+- `/` → Inicio con publicaciones y filtros
+- `/detalle/:id` → Detalle de campaña y formulario para registrar donación
+- `/login` → Inicio de sesión funcional
+- `/signup` → Registro funcional (donante o intermediario)
+- `/perfil` → Perfil real del usuario autenticado
+- `/donaciones` → Historial de donaciones del usuario donante autenticado
+- `/donaciones/:idDonacion` → Detalle de una donación del historial
+
+## Acceso por autenticación
+- Visitantes sin sesión: pueden explorar publicaciones en `/`, iniciar sesión en `/login` o registrarse en `/signup`.
+- Rutas protegidas: `/perfil`, `/donaciones` y `/donaciones/:idDonacion`.
+- Al cerrar sesión, la aplicación redirige a `/login`.
 
 ## Requisitos
 - Docker / Docker Compose

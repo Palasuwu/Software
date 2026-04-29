@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { obtenerUsuarioSesion } from '../utils/session'
 
 // Íconos definidos como SVG inline dentro del componente
-
-const STORAGE_KEY = 'mis_donaciones_local'
 
 function calcularProgreso(cantidadRecibida, cantidadNecesaria) {
   const necesaria = Number(cantidadNecesaria) || 0
@@ -32,17 +32,6 @@ function formatearFecha(fecha) {
   })
 }
 
-function obtenerDonacionesGuardadas() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
-}
-
 function IconCalendar() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
@@ -55,7 +44,13 @@ function IconCalendar() {
   )
 }
 
+function formatearCantidad(valor) {
+  const numero = Number(valor) || 0
+  return numero.toLocaleString('es-CO')
+}
+
 export default function MisDonacionesPage() {
+  const navigate = useNavigate()
   const [donaciones, setDonaciones] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -65,14 +60,36 @@ export default function MisDonacionesPage() {
     setLoading(true)
     setError('')
 
-    try {
-      const data = obtenerDonacionesGuardadas()
-      setDonaciones(data)
-    } catch {
-      setError('No fue posible obtener tus donaciones')
-    } finally {
+    const usuario = obtenerUsuarioSesion()
+    if (!usuario?.id_usuario) {
+      setError('Inicia sesion para ver tu historial de donaciones')
       setLoading(false)
+      return
     }
+
+    if (usuario.rol !== 'donante') {
+      setError('Solo los usuarios con rol donante pueden ver este historial')
+      setLoading(false)
+      return
+    }
+
+    fetch(`/api/donaciones?id_donante=${usuario.id_usuario}`)
+      .then(async (res) => {
+        const body = await res.json().catch(() => null)
+        if (!res.ok) {
+          throw new Error(body?.error || 'No fue posible obtener tus donaciones')
+        }
+        if (!Array.isArray(body)) {
+          throw new Error('Respuesta invalida del servidor')
+        }
+        setDonaciones(body)
+      })
+      .catch((err) => {
+        setError(err.message || 'No fue posible obtener tus donaciones')
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }, [])
 
   const resumen = useMemo(() => {
@@ -186,6 +203,10 @@ export default function MisDonacionesPage() {
                           {formatearFecha(donacion.fecha_donacion)}
                         </span>
 
+                        <span className="donation-row-category-figma">
+                          Tu aporte: {Number(donacion.cantidad_donada) || 0}
+                        </span>
+
                         {donacion.categoria && (
                           <span className="donation-row-category-figma">
                             {donacion.categoria}
@@ -193,15 +214,38 @@ export default function MisDonacionesPage() {
                         )}
                       </div>
 
-                      <div className="donation-row-progress-figma">
-                        <div className="progress-track">
-                          <div className="progress-fill" style={{ width: `${progreso}%` }} />
+                      <div className="donation-row-progress-card-figma">
+                        <div className="donation-row-progress-head-figma">
+                          <div>
+                            <p className="donation-row-progress-label-figma">Progreso de la campaña</p>
+                            <p className="donation-row-progress-amounts-figma">
+                              {formatearCantidad(donacion.cantidad_recibida)} recibidos de{' '}
+                              {formatearCantidad(donacion.cantidad_necesaria)}
+                            </p>
+                          </div>
+
+                          <span className="donation-row-progress-text-figma">{progreso}%</span>
+                        </div>
+
+                        <div className="donation-row-progress-figma">
+                          <div
+                            className="progress-track donation-progress-track-figma"
+                            aria-label={`Progreso de la campaña: ${progreso}%`}
+                          >
+                            <div className="progress-fill" style={{ width: `${progreso}%` }} />
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="donation-row-right-figma">
-                      <span className="donation-row-progress-text-figma">{progreso}%</span>
+                      <div className="donation-row-actions-figma">
+                        <button
+                          type="button"
+                          className="campaign-button donation-row-button-figma"
+                          onClick={() => navigate(`/donaciones/${donacion.id_donacion}`)}
+                        >
+                          Ver detalle
+                        </button>
+                      </div>
                     </div>
                   </article>
                 )

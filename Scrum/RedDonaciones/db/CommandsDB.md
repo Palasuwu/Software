@@ -166,6 +166,35 @@ ERROR 1064 (42000): syntax error
 docker-compose down -v
 ```
 
+## Usuario de prueba para historial
+
+Despues de reiniciar con `docker-compose down -v` y `docker-compose up --build`, se crea un usuario de prueba con historial de donaciones:
+
+- Correo: `donante.video@reddonaciones.local`
+- Password: `demo123`
+
+Este usuario tiene dos donaciones registradas para demostrar el historial en la aplicacion.
+
+---
+
+### 5. Permitir telefonos repetidos en usuarios
+
+Si ya tienes la base creada y quieres permitir que varios usuarios usen el mismo telefono,
+no necesitas borrar volumen. Puedes eliminar el indice UNIQUE actual:
+
+```sql
+USE donaciones;
+ALTER TABLE usuario DROP INDEX telefono;
+```
+
+Si el nombre del indice no es `telefono`, primero consulta el nombre:
+
+```sql
+SHOW INDEX FROM usuario;
+```
+
+y luego elimina el indice UNIQUE que corresponda a la columna `telefono`.
+
 ---
 
 ## Consideraciones importantes
