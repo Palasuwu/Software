@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import heroVideo    from '../assets/hero.mp4'
 import cajaPng      from '../assets/Caja.png'
@@ -102,30 +102,27 @@ function SectionDivider({ left = [], label, right = [] }) {
   )
 }
 
-// ─── Horizontal Carousel (Wheel-locked snap) ───────────────────────────────────
+// ─── Horizontal Carousel (Autoplay) ────────────────────────────────────────────
 
 function HorizontalCarousel() {
   const sectionRef = useRef(null)
   const trackRef   = useRef(null)
-  const state = useRef({ idx: 0, buffer: 0, cooldown: false })
+  const idxRef     = useRef(0)
+  const pausedRef  = useRef(false)
+  const [activeIdx, setActiveIdx] = useState(0)
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
     if (mq.matches) return
 
-    const section = sectionRef.current
-    const track   = trackRef.current
-    if (!section || !track) return
+    const track = trackRef.current
+    if (!track) return
 
-    const N    = CAROUSEL_IMAGES.length
-    const STEP = 60
+    const N = CAROUSEL_IMAGES.length
 
     const snapTo = (idx) => {
-      const s = state.current
-      s.idx = idx
-      Array.from(track.children).forEach((child, i) =>
-        child.classList.toggle('ld-carousel-item--active', i === idx)
-      )
+      idxRef.current = idx
+      setActiveIdx(idx)
       const item = track.children[idx]
       if (!item) return
       const pad = parseFloat(getComputedStyle(track).paddingLeft) || 0
@@ -134,88 +131,32 @@ function HorizontalCarousel() {
 
     snapTo(0)
 
-    const inZoneNow = () => {
-      const r = section.getBoundingClientRect()
-      return r.top <= 0 && r.bottom > window.innerHeight
-    }
+    const tick = setInterval(() => {
+      if (pausedRef.current) return
+      snapTo((idxRef.current + 1) % N)
+    }, 3800)
 
-    // ── Entry-direction detection ──────────────────────────────────────────
-    // When entering from below (scrolling up), start at last image.
-    // When entering from above (scrolling down), start at first image.
-    let wasInZone        = false
-    let lastScrollY      = window.scrollY
-    let programmaticJump = false   // suppresses re-entry detection on our own scrollTo calls
+    // Re-align translateX on resize (item width depends on viewport)
+    const onResize = () => snapTo(idxRef.current)
+    window.addEventListener('resize', onResize)
 
-    const onScroll = () => {
-      const currentY = window.scrollY
-      const inZone   = inZoneNow()
-
-      if (programmaticJump) {
-        // Keep wasInZone in sync even for our own scrollTo calls
-        wasInZone   = inZone
-        lastScrollY = currentY
-        return
-      }
-
-      const s        = state.current
-      const goingDown = currentY > lastScrollY
-
-      if (inZone && !wasInZone) {
-        // Just entered the sticky zone — orient carousel to entry direction
-        s.buffer   = 0
-        s.cooldown = false
-        snapTo(goingDown ? 0 : N - 1)
-      }
-
-      wasInZone   = inZone
-      lastScrollY = currentY
-    }
-
-    // ── Wheel handler ──────────────────────────────────────────────────────
-    const onWheel = (e) => {
-      const s = state.current
-
-      if (!inZoneNow()) { s.buffer = 0; return }
-
-      e.preventDefault()
-      if (s.cooldown) return
-
-      s.buffer += e.deltaY
-
-      if (s.buffer >= STEP) {
-        s.buffer = 0
-        if (s.idx < N - 1) {
-          s.cooldown = true
-          setTimeout(() => { s.cooldown = false }, 440)
-          snapTo(s.idx + 1)
-        } else {
-          // Finished — jump just past the section end
-          programmaticJump = true
-          window.scrollTo(0, Math.round(section.offsetTop + section.offsetHeight - window.innerHeight + 2))
-          setTimeout(() => { programmaticJump = false }, 80)
-        }
-      } else if (s.buffer <= -STEP) {
-        s.buffer = 0
-        if (s.idx > 0) {
-          s.cooldown = true
-          setTimeout(() => { s.cooldown = false }, 440)
-          snapTo(s.idx - 1)
-        } else {
-          // At first image, scrolling up — jump above the section
-          programmaticJump = true
-          window.scrollTo(0, Math.round(section.offsetTop - 2))
-          setTimeout(() => { programmaticJump = false }, 80)
-        }
-      }
-    }
-
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('wheel',  onWheel,  { passive: false })
     return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('wheel',  onWheel)
+      clearInterval(tick)
+      window.removeEventListener('resize', onResize)
     }
   }, [])
+
+  const N = CAROUSEL_IMAGES.length
+  const goTo = (idx) => {
+    const track = trackRef.current
+    if (!track) return
+    idxRef.current = idx
+    setActiveIdx(idx)
+    const item = track.children[idx]
+    if (!item) return
+    const pad = parseFloat(getComputedStyle(track).paddingLeft) || 0
+    track.style.transform = `translateX(${-(item.offsetLeft - pad)}px)`
+  }
 
   return (
     <section className="ld-scroll-section" ref={sectionRef} aria-label="Galería de impacto">
@@ -238,12 +179,17 @@ function HorizontalCarousel() {
           </Link>
         </aside>
 
-        {/* ── Right: snap carousel ── */}
-        <div className="ld-carousel-viewport" aria-label="Galería fotográfica">
+        {/* ── Right: autoplay carousel ── */}
+        <div
+          className="ld-carousel-viewport"
+          aria-label="Galería fotográfica"
+          onMouseEnter={() => { pausedRef.current = true }}
+          onMouseLeave={() => { pausedRef.current = false }}
+        >
           <div className="ld-carousel-track" ref={trackRef}>
             {CAROUSEL_IMAGES.map((img, i) => (
               <figure
-                className={`ld-carousel-item${i === 0 ? ' ld-carousel-item--active' : ''}`}
+                className={`ld-carousel-item${i === activeIdx ? ' ld-carousel-item--active' : ''}`}
                 key={i}
               >
                 <img
@@ -252,9 +198,24 @@ function HorizontalCarousel() {
                   loading={i < 2 ? 'eager' : 'lazy'}
                 />
                 <figcaption className="ld-carousel-num">
-                  {String(i + 1).padStart(2, '0')} / {String(CAROUSEL_IMAGES.length).padStart(2, '0')}
+                  {String(activeIdx + 1).padStart(2, '0')} / {String(N).padStart(2, '0')}
                 </figcaption>
               </figure>
+            ))}
+          </div>
+
+          {/* Dot navigation */}
+          <div className="ld-carousel-dots" role="tablist" aria-label="Navegación de imágenes">
+            {CAROUSEL_IMAGES.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                role="tab"
+                aria-selected={i === activeIdx}
+                aria-label={`Imagen ${i + 1} de ${N}`}
+                className={`ld-carousel-dot${i === activeIdx ? ' ld-carousel-dot--active' : ''}`}
+                onClick={() => goTo(i)}
+              />
             ))}
           </div>
         </div>

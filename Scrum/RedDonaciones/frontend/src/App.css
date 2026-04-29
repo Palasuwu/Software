@@ -2588,14 +2588,12 @@ a {
 
 .ld-scroll-section {
   position: relative;
-  height: 300vh; /* needs a real sticky zone for inZone check; wheel handler drives the carousel */
+  height: 100vh;
   background: var(--ld-white);
 }
 
 .ld-scroll-sticky {
-  position: sticky;
-  top: 0;
-  height: 100vh;
+  height: 100%;
   display: grid;
   grid-template-columns: 340px 1fr;
   overflow: hidden;
@@ -2712,6 +2710,35 @@ a {
 
 .ld-carousel-item--active .ld-carousel-num {
   color: var(--ld-green);
+}
+
+/* Dot navigation */
+.ld-carousel-dots {
+  position: absolute;
+  bottom: 24px;
+  right: 36px;
+  display: flex;
+  gap: 10px;
+  z-index: 2;
+}
+
+.ld-carousel-dot {
+  width: 28px;
+  height: 2px;
+  padding: 0;
+  border: none;
+  background: rgba(23, 52, 45, 0.25);
+  cursor: pointer;
+  transition: background 0.3s ease, width 0.3s ease;
+}
+
+.ld-carousel-dot:hover {
+  background: rgba(23, 52, 45, 0.5);
+}
+
+.ld-carousel-dot--active {
+  background: var(--ld-dark);
+  width: 44px;
 }
 
 /* ── Footer ─────────────────────────────────────────────────────────────── */
