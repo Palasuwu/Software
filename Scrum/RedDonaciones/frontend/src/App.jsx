@@ -15,6 +15,7 @@ import DetailPage from './pages/DetailPage'
 import SignupPage from './pages/SignupPage'
 import LoginPage from './pages/LoginPage'
 import DonationHistoryDetailPage from './pages/DonationHistoryDetailPage'
+import LandingPage from './pages/LandingPage'
 import { obtenerUsuarioSesion, limpiarUsuarioSesion, guardarUsuarioSesion } from './utils/session'
 
 function IconBrand() {
@@ -160,7 +161,7 @@ function DonationCard({ org }) {
 function HeaderNav({ isAuthenticated, onLogout }) {
   return (
     <nav className="top-nav">
-      <NavLink to="/" end className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
+      <NavLink to="/home" end className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
         <IconHome />
         <span>Inicio</span>
       </NavLink>
@@ -205,7 +206,7 @@ function HeaderNav({ isAuthenticated, onLogout }) {
 function BottomNav({ isAuthenticated, onLogout }) {
   return (
     <nav className="bottom-nav">
-      <NavLink to="/" end className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+      <NavLink to="/home" end className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
         <IconHome />
         <span>Inicio</span>
       </NavLink>
@@ -983,7 +984,7 @@ function AppShell() {
 
       <main className="main-content">
         <Routes>
-          <Route path="/" element={<HomePage isAuthenticated={isAuthenticated} />} />
+          <Route path="/home" element={<HomePage isAuthenticated={isAuthenticated} />} />
           <Route path="/detalle/:id" element={<DetailPage />} />
           <Route
             path="/login"
@@ -1020,7 +1021,8 @@ function AppShell() {
             )}
           />
 
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </main>
 
@@ -1033,7 +1035,10 @@ function AppShell() {
 export default function App() {
   return (
     <Router>
-      <AppShell />
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/*" element={<AppShell />} />
+      </Routes>
     </Router>
   )
 }
