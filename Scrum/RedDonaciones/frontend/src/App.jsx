@@ -16,6 +16,7 @@ import SignupPage from './pages/SignupPage'
 import LoginPage from './pages/LoginPage'
 import DonationHistoryDetailPage from './pages/DonationHistoryDetailPage'
 import LandingPage from './pages/LandingPage'
+import OrganizacionesPage from './pages/OrganizacionesPage'
 import { obtenerUsuarioSesion, limpiarUsuarioSesion, guardarUsuarioSesion } from './utils/session'
 
 function IconBrand() {
@@ -1019,6 +1020,11 @@ function AppShell() {
                 <DonationHistoryDetailPage />
               </ProtectedRoute>
             )}
+          />
+
+          <Route 
+            path="/organizaciones" 
+            element={<OrganizacionesPage />} 
           />
 
           <Route path="/" element={<Navigate to="/home" replace />} />
