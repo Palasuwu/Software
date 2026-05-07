@@ -159,7 +159,7 @@ function DonationCard({ org }) {
   )
 }
 
-function HeaderNav({ isAuthenticated, onLogout }) {
+function HeaderNav({ isAuthenticated, usuarioSesion, onLogout }) {
   return (
     <nav className="top-nav">
       <NavLink to="/home" end className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
@@ -178,6 +178,13 @@ function HeaderNav({ isAuthenticated, onLogout }) {
         <NavLink to="/perfil" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
           <IconUser />
           <span>Perfil</span>
+        </NavLink>
+      )}
+
+      {usuarioSesion?.rol === 'administrador' && (
+        <NavLink to="/organizaciones" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
+          <IconUsers />
+          <span>Organizaciones</span>
         </NavLink>
       )}
 
@@ -204,7 +211,7 @@ function HeaderNav({ isAuthenticated, onLogout }) {
   )
 }
 
-function BottomNav({ isAuthenticated, onLogout }) {
+function BottomNav({ isAuthenticated, usuarioSesion, onLogout }) {
   return (
     <nav className="bottom-nav">
       <NavLink to="/home" end className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
@@ -222,6 +229,12 @@ function BottomNav({ isAuthenticated, onLogout }) {
             <IconUser />
             <span>Perfil</span>
           </NavLink>
+          {usuarioSesion?.rol === 'administrador' && (
+            <NavLink to="/organizaciones" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+              <IconUsers />
+              <span>Orgs</span>
+            </NavLink>
+          )}
           <button type="button" className="nav-item nav-item-button" onClick={onLogout}>
             <IconRegister />
             <span>Salir</span>
@@ -979,7 +992,7 @@ function AppShell() {
             <h1 className="header-title">Red de Donaciones</h1>
           </div>
 
-          <HeaderNav isAuthenticated={isAuthenticated} onLogout={handleLogout} />
+          <HeaderNav isAuthenticated={isAuthenticated} usuarioSesion={usuarioSesion} onLogout={handleLogout} />
         </div>
       </header>
 
@@ -1032,7 +1045,7 @@ function AppShell() {
         </Routes>
       </main>
 
-      <BottomNav isAuthenticated={isAuthenticated} onLogout={handleLogout} />
+      <BottomNav isAuthenticated={isAuthenticated} usuarioSesion={usuarioSesion} onLogout={handleLogout} />
       <button className="fab-help">?</button>
     </div>
   )

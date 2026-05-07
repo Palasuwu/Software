@@ -2021,6 +2021,123 @@ a {
   transform: translateY(-1px);
 }
 
+.org-admin-page {
+  display: grid;
+  gap: 22px;
+}
+
+.org-admin-header {
+  padding: 28px;
+  border: 1px solid var(--outline);
+  border-radius: 24px;
+  background: linear-gradient(135deg, #eef5f0 0%, #f8fbf8 100%);
+  box-shadow: var(--shadow-sm);
+}
+
+.org-admin-form-card,
+.org-admin-list {
+  background: var(--surface);
+  border: 1px solid var(--outline);
+  border-radius: 22px;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.org-admin-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.org-admin-table {
+  display: grid;
+  gap: 14px;
+}
+
+.org-admin-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid var(--outline-soft);
+  border-radius: 18px;
+  background: var(--surface-soft);
+}
+
+.org-admin-row-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.org-admin-row h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.org-admin-row p {
+  margin: 0 0 12px;
+  color: var(--text-soft);
+  line-height: 1.55;
+}
+
+.org-admin-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+.org-admin-meta span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--outline);
+}
+
+.org-admin-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.org-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 1px solid var(--outline);
+  background: var(--surface);
+  color: var(--text-soft);
+}
+
+.org-status-verificada {
+  color: var(--success);
+  background: #eef8f1;
+  border-color: #cde7d5;
+}
+
+.org-status-pendiente {
+  color: var(--warning);
+  background: #fff8ea;
+  border-color: #f0dfb5;
+}
+
+.org-status-rechazada,
+.org-status-inactiva {
+  color: var(--danger);
+  background: #fff8f7;
+  border-color: #f0cecc;
+}
+
 .profile-edit-form {
   margin-top: 28px;
 }
@@ -2200,6 +2317,19 @@ a {
 
   .profile-user-row {
     align-items: flex-start;
+  }
+
+  .org-admin-row,
+  .org-admin-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .org-admin-row-actions {
+    justify-content: stretch;
+  }
+
+  .org-admin-row-actions button {
+    flex: 1;
   }
 }
 
