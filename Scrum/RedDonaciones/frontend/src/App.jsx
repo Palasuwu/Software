@@ -1037,7 +1037,11 @@ function AppShell() {
 
           <Route 
             path="/organizaciones" 
-            element={<OrganizacionesPage />} 
+            element={(
+              <ProtectedRoute usuarioSesion={usuarioSesion} requiredRole="administrador">
+                <OrganizacionesPage />
+              </ProtectedRoute>
+            )}
           />
 
           <Route path="/" element={<Navigate to="/home" replace />} />

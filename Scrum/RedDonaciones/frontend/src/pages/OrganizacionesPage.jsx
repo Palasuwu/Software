@@ -1,5 +1,5 @@
 import React from 'react'
-import { obtenerUsuarioSesion } from '../utils/session'
+import { apiFetch, obtenerUsuarioSesion } from '../utils/session'
 
 const EMPTY_FORM = {
   nombre: '',
@@ -104,7 +104,7 @@ function OrganizacionesPage() {
 
     try {
       const url = editingId ? `/api/organizaciones/${editingId}` : '/api/organizaciones'
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         method: editingId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
@@ -131,7 +131,7 @@ function OrganizacionesPage() {
     setError(null)
 
     try {
-      const response = await fetch(`/api/organizaciones/${org.id_organizacion}`, {
+      const response = await apiFetch(`/api/organizaciones/${org.id_organizacion}`, {
         method: 'DELETE'
       })
       const body = await response.json().catch(() => null)

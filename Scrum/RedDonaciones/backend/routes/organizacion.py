@@ -10,6 +10,12 @@ logging.basicConfig(level=logging.INFO)
 organizacion_bp = Blueprint("organizacion", __name__)
 
 
+def validar_admin():
+    if request.headers.get("X-User-Role") != "administrador":
+        return jsonify({"error": "Permisos insuficientes para administrar organizaciones"}), 403
+    return None
+
+
 def normalizar_organizacion_payload(data):
     nombre = (data.get("nombre") or "").strip()
     descripcion = (data.get("descripcion") or "").strip()
@@ -85,6 +91,10 @@ def crear_organizacion():
     cursor = None
 
     try:
+        permiso_error = validar_admin()
+        if permiso_error:
+            return permiso_error
+
         payload, errores = normalizar_organizacion_payload(request.get_json() or {})
         if errores:
             return jsonify({"error": "Datos invalidos", "campos": errores}), 400
@@ -131,6 +141,10 @@ def actualizar_organizacion(id_organizacion):
     cursor = None
 
     try:
+        permiso_error = validar_admin()
+        if permiso_error:
+            return permiso_error
+
         payload, errores = normalizar_organizacion_payload(request.get_json() or {})
         if errores:
             return jsonify({"error": "Datos invalidos", "campos": errores}), 400
@@ -186,6 +200,10 @@ def desactivar_organizacion(id_organizacion):
     cursor = None
 
     try:
+        permiso_error = validar_admin()
+        if permiso_error:
+            return permiso_error
+
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         if not obtener_organizacion(cursor, id_organizacion):

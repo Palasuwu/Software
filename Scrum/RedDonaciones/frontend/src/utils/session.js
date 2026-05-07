@@ -18,3 +18,25 @@ export function guardarUsuarioSesion(usuario) {
 export function limpiarUsuarioSesion() {
     localStorage.removeItem(USER_STORAGE_KEY)
 }
+
+export function obtenerHeadersSesion() {
+    const usuario = obtenerUsuarioSesion()
+    if (!usuario) return {}
+
+    return {
+        'X-User-Id': String(usuario.id_usuario || ''),
+        'X-User-Role': usuario.rol || ''
+    }
+}
+
+export function apiFetch(url, options = {}) {
+    const headers = {
+        ...obtenerHeadersSesion(),
+        ...(options.headers || {})
+    }
+
+    return fetch(url, {
+        ...options,
+        headers
+    })
+}
