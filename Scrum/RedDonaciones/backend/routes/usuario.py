@@ -2,17 +2,23 @@ from flask import Blueprint, jsonify, request
 import bcrypt
 import mysql.connector
 from db.connection import get_db_connection
+from auth_utils import generate_token, token_required, admin_required
 
 usuario_bp = Blueprint("usuario", __name__)
 
 # Ruta para obtener la lista de usuarios
 @usuario_bp.route("/usuarios", methods=["GET"])
+@admin_required  # Solo administradores pueden listar usuarios
 def obtener_usuarios():
     try:
         conn = get_db_connection()
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
 
-        cursor.execute("SELECT * FROM usuario")
+        # SELECT ESPECÍFICO que EXCLUYE password
+        cursor.execute("""
+            SELECT id_usuario, nombre, correo, telefono, rol, fecha_registro 
+            FROM usuario
+        """)
         data = cursor.fetchall()
 
         cursor.close()
@@ -28,6 +34,7 @@ def obtener_usuarios():
 
 
 @usuario_bp.route("/usuarios/<int:id_usuario>", methods=["GET"])
+@token_required  # Protegido con token
 def obtener_usuario_por_id(id_usuario):
     conn = None
     cursor = None
@@ -85,6 +92,7 @@ def obtener_usuario_por_id(id_usuario):
 
 
 @usuario_bp.route("/usuarios/<int:id_usuario>", methods=["PUT"])
+@token_required  # Protegido con token
 def actualizar_usuario(id_usuario):
     conn = None
     cursor = None
@@ -412,8 +420,12 @@ def login_usuario():
         if not is_valid_password:
             return jsonify({"error": "Credenciales invalidas"}), 401
 
+        # NUEVO: Generar JWT token
+        token = generate_token(usuario["id_usuario"], usuario["rol"])
+
         return jsonify({
             "message": "Login exitoso",
+            "token": token,  # NUEVO: Devolver el token
             "usuario": {
                 "id_usuario": usuario["id_usuario"],
                 "nombre": usuario["nombre"],
