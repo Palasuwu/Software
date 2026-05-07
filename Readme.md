@@ -6,26 +6,26 @@ Este repositorio reúne tanto la **evidencia del proceso de diseño y planificac
 
 ---
 
-# 📌 Objetivo del proyecto
+#  Objetivo del proyecto
 
 El objetivo principal de **RedDonaciones** es brindar una solución digital que permita gestionar solicitudes de donación y mejorar la visibilidad de necesidades de apoyo, facilitando el proceso entre quienes necesitan ayuda y quienes desean donar.
 
 ---
 
-# 🚀 Funcionalidades principales
+# Funcionalidades principales
 
 Actualmente, el proyecto contempla funcionalidades como:
 
-- 📋 Visualización de publicaciones de donación
-- 🔎 Consulta de detalle de una publicación específica
-- 🤝 Registro de donaciones
-- 👤 Gestión de usuarios
-- 🏢 Gestión de organizaciones
-- 🧭 Navegación entre vistas del sistema
+-  Visualización de publicaciones de donación
+-  Consulta de detalle de una publicación específica
+-  Registro de donaciones
+-  Gestión de usuarios
+-  Gestión de organizaciones
+-  Navegación entre vistas del sistema
 
 ---
 
-# 🛠️ Tecnologías utilizadas
+#  Tecnologías utilizadas
 
 ## Backend
 - **Python**
@@ -46,7 +46,7 @@ Actualmente, el proyecto contempla funcionalidades como:
 
 ---
 
-# 📖 Documentación técnica
+#  Documentación técnica
 
 Para facilitar la ejecución y el entendimiento del proyecto, dejamos estas guías:
 
@@ -56,7 +56,7 @@ Para facilitar la ejecución y el entendimiento del proyecto, dejamos estas guí
 
 ---
 
-# 📂 Estructura del repositorio
+#  Estructura del repositorio
 
 ```bash
 Software/
