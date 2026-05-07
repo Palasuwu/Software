@@ -250,7 +250,7 @@ function LandingFooter() {
 
         <div className="ld-footer-bottom">
           <span>© 2026 Red de Donaciones. Todos los derechos reservados.</span>
-          <span>Sistema de Donaciones — Sprint 2</span>
+          <span>Sistema de Donaciones </span>
         </div>
       </div>
     </footer>
