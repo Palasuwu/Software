@@ -201,6 +201,13 @@ function HeaderNav({ isAuthenticated, usuarioSesion, onLogout }) {
         </NavLink>
       )}
 
+      {isAuthenticated && isAdmin && (
+        <NavLink to="/organizaciones" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
+          <IconUsers />
+          <span>Organizaciones</span>
+        </NavLink>
+      )}
+
       {!isAuthenticated && (
         <NavLink to="/login" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
           <IconUser />
@@ -1082,7 +1089,11 @@ function AppShell() {
 
           <Route
             path="/organizaciones"
-            element={<OrganizacionesPage />}
+            element={(
+              <ProtectedRoute usuarioSesion={usuarioSesion} requiredRole="administrador">
+                <OrganizacionesPage />
+              </ProtectedRoute>
+            )}
           />
 
           <Route
