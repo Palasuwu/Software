@@ -67,8 +67,8 @@ export default function MisDonacionesPage() {
       return
     }
 
-    if (usuario.rol !== 'donante') {
-      setError('Solo los usuarios con rol donante pueden ver este historial')
+    if (usuario.rol !== 'donante' && usuario.rol !== 'administrador') {
+      setError('Solo los usuarios donantes o administradores pueden ver este historial')
       setLoading(false)
       return
     }

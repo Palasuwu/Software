@@ -2,9 +2,23 @@ from flask import Blueprint, jsonify, request
 import bcrypt
 import mysql.connector
 from db.connection import get_db_connection
-from auth_utils import generate_token, token_required, admin_required
+from auth_utils import generate_token, token_required, admin_required, verify_token
 
 usuario_bp = Blueprint("usuario", __name__)
+
+
+def obtener_payload_admin_desde_request():
+    auth_header = request.headers.get("Authorization", "")
+    parts = auth_header.split(" ")
+
+    if len(parts) != 2 or parts[0] != "Bearer":
+        return None
+
+    payload = verify_token(parts[1])
+    if payload and payload.get("rol") == "administrador":
+        return payload
+
+    return None
 
 # Ruta para obtener la lista de usuarios
 @usuario_bp.route("/usuarios", methods=["GET"])
@@ -252,6 +266,78 @@ def actualizar_usuario(id_usuario):
             conn.close()
 
 
+@usuario_bp.route("/usuarios/<int:id_usuario>", methods=["DELETE"])
+@admin_required
+def eliminar_usuario(id_usuario):
+    conn = None
+    cursor = None
+
+    if request.usuario_id == id_usuario:
+        return jsonify({"error": "No puedes eliminar tu propio usuario administrador"}), 400
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute(
+            "SELECT id_usuario, rol FROM usuario WHERE id_usuario = %s",
+            (id_usuario,)
+        )
+        usuario = cursor.fetchone()
+
+        if not usuario:
+            return jsonify({"error": "Usuario no encontrado"}), 404
+
+        rol = usuario["rol"]
+
+        if rol == "donante":
+            cursor.execute(
+                "SELECT COUNT(*) AS total FROM donacion WHERE id_donante = %s",
+                (id_usuario,)
+            )
+            if cursor.fetchone()["total"] > 0:
+                return jsonify({
+                    "error": "No se puede eliminar el usuario porque tiene donaciones asociadas"
+                }), 409
+
+            cursor.execute("DELETE FROM donante WHERE id_usuario = %s", (id_usuario,))
+
+        elif rol == "intermediario":
+            cursor.execute(
+                "SELECT COUNT(*) AS total FROM publicacion WHERE id_intermediario = %s",
+                (id_usuario,)
+            )
+            if cursor.fetchone()["total"] > 0:
+                return jsonify({
+                    "error": "No se puede eliminar el usuario porque tiene publicaciones asociadas"
+                }), 409
+
+            cursor.execute("DELETE FROM intermediario WHERE id_usuario = %s", (id_usuario,))
+
+        cursor.execute("DELETE FROM usuario WHERE id_usuario = %s", (id_usuario,))
+        conn.commit()
+
+        return jsonify({"message": "Usuario eliminado"}), 200
+
+    except mysql.connector.IntegrityError:
+        if conn:
+            conn.rollback()
+
+        return jsonify({
+            "error": "No se puede eliminar el usuario porque tiene informacion relacionada"
+        }), 409
+    except Exception:
+        if conn:
+            conn.rollback()
+
+        return jsonify({"error": "No se pudo eliminar el usuario"}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
 # Ruta para crear un nuevo usuario
 @usuario_bp.route("/usuarios", methods=["POST"])
 def crear_usuario():
@@ -274,8 +360,11 @@ def crear_usuario():
             return jsonify({"error": "Faltan campos obligatorios"}), 400
 
         rol = rol.strip().lower()
-        if rol not in ("donante", "intermediario"):
+        if rol not in ("donante", "intermediario", "administrador"):
             return jsonify({"error": "Rol invalido para registro"}), 400
+
+        if rol == "administrador" and not obtener_payload_admin_desde_request():
+            return jsonify({"error": "Solo un administrador puede crear otro administrador"}), 403
 
         if len(password) < 8:
             return jsonify({"error": "El password debe tener al menos 8 caracteres"}), 400

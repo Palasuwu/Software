@@ -4,6 +4,7 @@ from flask import Blueprint, request, jsonify
 from datetime import datetime
 import logging
 from db.connection import get_db_connection
+from auth_utils import admin_required
 
 # Log exceptions for easier debugging without leaking details to clients
 logging.basicConfig(level=logging.INFO)
@@ -118,6 +119,65 @@ def crear_publicacion():
             "error": "Error al crear publicación",
             "detalle": str(e)
         }), 500
+
+
+@publicacion_bp.route("/publicaciones/<int:id_publicacion>/estado", methods=["PUT"])
+@admin_required
+def actualizar_estado_publicacion(id_publicacion):
+    conn = None
+    cursor = None
+
+    try:
+        data = request.get_json()
+
+        if not data:
+            return jsonify({"error": "No se enviaron datos"}), 400
+
+        estado = (data.get("estado") or "").strip().lower()
+
+        if estado not in ("activa", "cancelada"):
+            return jsonify({"error": "Estado invalido. Usa activa o cancelada"}), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute(
+            "SELECT id_publicacion FROM publicacion WHERE id_publicacion = %s",
+            (id_publicacion,)
+        )
+        publicacion = cursor.fetchone()
+
+        if not publicacion:
+            return jsonify({"error": "Publicacion no encontrada"}), 404
+
+        cursor.execute(
+            """
+            UPDATE publicacion
+            SET estado = %s
+            WHERE id_publicacion = %s
+            """,
+            (estado, id_publicacion)
+        )
+        conn.commit()
+
+        return jsonify({
+            "message": "Estado de publicacion actualizado",
+            "publicacion": {
+                "id_publicacion": id_publicacion,
+                "estado": estado
+            }
+        }), 200
+
+    except Exception:
+        if conn:
+            conn.rollback()
+
+        return jsonify({"error": "No se pudo actualizar el estado de la publicacion"}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 # Ruta para obtener una publicación por su ID (detalle)

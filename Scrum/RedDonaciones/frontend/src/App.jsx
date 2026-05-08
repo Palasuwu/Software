@@ -17,6 +17,7 @@ import LoginPage from './pages/LoginPage'
 import DonationHistoryDetailPage from './pages/DonationHistoryDetailPage'
 import LandingPage from './pages/LandingPage'
 import OrganizacionesPage from './pages/OrganizacionesPage'
+import AdminPanel from './pages/AdminPanel'
 import { fetchWithAuth } from './utils/api'
 import { obtenerTokenSesion, obtenerUsuarioSesion, limpiarUsuarioSesion, limpiarTokenSesion, guardarUsuarioSesion } from './utils/session'
 
@@ -64,6 +65,15 @@ function IconRegister() {
       <circle cx="9" cy="7" r="4" />
       <path d="M19 8v6" />
       <path d="M16 11h6" />
+    </svg>
+  )
+}
+
+function IconAdmin() {
+  return (
+    <svg viewBox="0 0 24 24" className="nav-icon" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M12 2l7 4v6c0 5-3 8.5-7 10-4-1.5-7-5-7-10V6l7-4z" />
+      <path d="M9 12l2 2 4-5" />
     </svg>
   )
 }
@@ -160,7 +170,9 @@ function DonationCard({ org }) {
   )
 }
 
-function HeaderNav({ isAuthenticated, onLogout }) {
+function HeaderNav({ isAuthenticated, usuarioSesion, onLogout }) {
+  const isAdmin = usuarioSesion?.rol === 'administrador'
+
   return (
     <nav className="top-nav">
       <NavLink to="/home" end className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
@@ -179,6 +191,13 @@ function HeaderNav({ isAuthenticated, onLogout }) {
         <NavLink to="/perfil" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
           <IconUser />
           <span>Perfil</span>
+        </NavLink>
+      )}
+
+      {isAuthenticated && isAdmin && (
+        <NavLink to="/admin" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
+          <IconAdmin />
+          <span>Panel Admin</span>
         </NavLink>
       )}
 
@@ -205,7 +224,9 @@ function HeaderNav({ isAuthenticated, onLogout }) {
   )
 }
 
-function BottomNav({ isAuthenticated, onLogout }) {
+function BottomNav({ isAuthenticated, usuarioSesion, onLogout }) {
+  const isAdmin = usuarioSesion?.rol === 'administrador'
+
   return (
     <nav className="bottom-nav">
       <NavLink to="/home" end className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
@@ -223,6 +244,12 @@ function BottomNav({ isAuthenticated, onLogout }) {
             <IconUser />
             <span>Perfil</span>
           </NavLink>
+          {isAdmin && (
+            <NavLink to="/admin" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+              <IconAdmin />
+              <span>Admin</span>
+            </NavLink>
+          )}
           <button type="button" className="nav-item nav-item-button" onClick={onLogout}>
             <IconRegister />
             <span>Salir</span>
@@ -254,8 +281,14 @@ function HomePage({ isAuthenticated }) {
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState(null)
 
-  React.useEffect(() => {
-    fetch('/api/publicaciones')
+  const loadPublicaciones = React.useCallback((options = {}) => {
+    const { silent = false } = options
+
+    if (!silent) {
+      setLoading(true)
+    }
+
+    return fetch('/api/publicaciones')
       .then(async (res) => {
         const body = await res.json().catch(() => null)
         if (!res.ok) {
@@ -281,7 +314,8 @@ function HomePage({ isAuthenticated }) {
           supporters: publicacion.cantidad_recibida || 0
         }))
 
-        setPublicaciones(adaptadas)
+        setPublicaciones(adaptadas.filter((publicacion) => publicacion.estado !== 'cancelada'))
+        setError(null)
         setLoading(false)
       })
       .catch((fetchError) => {
@@ -289,6 +323,27 @@ function HomePage({ isAuthenticated }) {
         setLoading(false)
       })
   }, [])
+
+  React.useEffect(() => {
+    loadPublicaciones()
+
+    const intervalId = window.setInterval(() => {
+      loadPublicaciones({ silent: true })
+    }, 8000)
+
+    const handleCampaignsChanged = () => {
+      loadPublicaciones({ silent: true })
+    }
+
+    window.addEventListener('admin:campaigns-changed', handleCampaignsChanged)
+    window.addEventListener('storage', handleCampaignsChanged)
+
+    return () => {
+      window.clearInterval(intervalId)
+      window.removeEventListener('admin:campaigns-changed', handleCampaignsChanged)
+      window.removeEventListener('storage', handleCampaignsChanged)
+    }
+  }, [loadPublicaciones])
 
   const categoriasDisponibles = React.useMemo(() => {
     return Array.from(new Set(publicaciones.map((item) => item.category))).sort((a, b) => a.localeCompare(b))
@@ -377,7 +432,6 @@ function HomePage({ isAuthenticated }) {
             <option value="Todos">Estado: Todos</option>
             <option value="activa">Activa</option>
             <option value="finalizada">Finalizada</option>
-            <option value="cancelada">Cancelada</option>
           </select>
         </div>
 
@@ -941,8 +995,10 @@ function ProtectedRoute({ usuarioSesion, requiredRole, children }) {
     return <Navigate to="/login" replace />
   }
 
-  if (requiredRole && usuarioSesion.rol !== requiredRole) {
-    return <Navigate to="/" replace />
+  const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole]
+
+  if (requiredRole && !allowedRoles.includes(usuarioSesion.rol)) {
+    return <Navigate to="/home" replace />
   }
 
   return children
@@ -981,7 +1037,7 @@ function AppShell() {
             <h1 className="header-title">Red de Donaciones</h1>
           </div>
 
-          <HeaderNav isAuthenticated={isAuthenticated} onLogout={handleLogout} />
+          <HeaderNav isAuthenticated={isAuthenticated} usuarioSesion={usuarioSesion} onLogout={handleLogout} />
         </div>
       </header>
 
@@ -1010,7 +1066,7 @@ function AppShell() {
           <Route
             path="/donaciones"
             element={(
-              <ProtectedRoute usuarioSesion={usuarioSesion} requiredRole="donante">
+              <ProtectedRoute usuarioSesion={usuarioSesion} requiredRole={['donante', 'administrador']}>
                 <MisDonacionesPage />
               </ProtectedRoute>
             )}
@@ -1018,7 +1074,7 @@ function AppShell() {
           <Route
             path="/donaciones/:idDonacion"
             element={(
-              <ProtectedRoute usuarioSesion={usuarioSesion} requiredRole="donante">
+              <ProtectedRoute usuarioSesion={usuarioSesion} requiredRole={['donante', 'administrador']}>
                 <DonationHistoryDetailPage />
               </ProtectedRoute>
             )}
@@ -1029,12 +1085,21 @@ function AppShell() {
             element={<OrganizacionesPage />}
           />
 
+          <Route
+            path="/admin"
+            element={(
+              <ProtectedRoute usuarioSesion={usuarioSesion} requiredRole="administrador">
+                <AdminPanel usuarioSesion={usuarioSesion} />
+              </ProtectedRoute>
+            )}
+          />
+
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </main>
 
-      <BottomNav isAuthenticated={isAuthenticated} onLogout={handleLogout} />
+      <BottomNav isAuthenticated={isAuthenticated} usuarioSesion={usuarioSesion} onLogout={handleLogout} />
       <button className="fab-help">?</button>
     </div>
   )
