@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { guardarUsuarioSesion } from '../utils/session'
+import { guardarTokenSesion, guardarUsuarioSesion } from '../utils/session'
 
 function validateLogin(form) {
     const errors = {}
@@ -69,6 +69,11 @@ export default function LoginPage({ onAuthSuccess }) {
                 throw new Error(body?.error || 'No se pudo iniciar sesion')
             }
 
+            if (!body?.token) {
+                throw new Error('No se recibio el token de autenticacion')
+            }
+
+            guardarTokenSesion(body.token)
             guardarUsuarioSesion(body.usuario)
             if (typeof onAuthSuccess === 'function') {
                 onAuthSuccess(body.usuario)

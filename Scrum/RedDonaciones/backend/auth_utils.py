@@ -2,29 +2,43 @@
 import os
 import jwt
 from functools import wraps
-from flask import request, jsonify
+from flask import current_app, request, jsonify
 from datetime import datetime, timedelta
 
-# Clave para firmar JWT
-SECRET_KEY = os.getenv("JWT_SECRET_KEY")
-if not SECRET_KEY:
-    raise ValueError("JWT_SECRET_KEY es obligatoria y no puede estar vacía")
+
+def _get_secret_key():
+    secret_key = None
+
+    try:
+        secret_key = current_app.config.get("JWT_SECRET_KEY")
+    except RuntimeError:
+        secret_key = None
+
+    if not secret_key:
+        secret_key = os.getenv("JWT_SECRET_KEY")
+
+    if not secret_key:
+        raise ValueError("JWT_SECRET_KEY es obligatoria y no puede estar vacía")
+
+    return secret_key
 
 def generate_token(id_usuario, rol):
     """Genera un JWT token válido por 7 días."""
+    secret_key = _get_secret_key()
+
     payload = {
         'id_usuario': id_usuario,
         'rol': rol,
         'exp': datetime.utcnow() + timedelta(days=7),
         'iat': datetime.utcnow()
     }
-    token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+    token = jwt.encode(payload, secret_key, algorithm='HS256')
     return token
 
 def verify_token(token):
     """Verifica y decodifica un JWT token. Retorna el payload o None si es inválido."""
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        payload = jwt.decode(token, _get_secret_key(), algorithms=['HS256'])
         return payload
     except jwt.ExpiredSignatureError:
         return None

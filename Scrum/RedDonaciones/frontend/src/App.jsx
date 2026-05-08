@@ -17,7 +17,8 @@ import LoginPage from './pages/LoginPage'
 import DonationHistoryDetailPage from './pages/DonationHistoryDetailPage'
 import LandingPage from './pages/LandingPage'
 import OrganizacionesPage from './pages/OrganizacionesPage'
-import { obtenerUsuarioSesion, limpiarUsuarioSesion, guardarUsuarioSesion } from './utils/session'
+import { fetchWithAuth } from './utils/api'
+import { obtenerTokenSesion, obtenerUsuarioSesion, limpiarUsuarioSesion, limpiarTokenSesion, guardarUsuarioSesion } from './utils/session'
 
 function IconBrand() {
   return (
@@ -525,7 +526,7 @@ function PerfilPage({ usuarioSesion, onProfileUpdated }) {
     setLoading(true)
     setError('')
 
-    fetch(`/api/usuarios/${usuarioSesion.id_usuario}`)
+    fetchWithAuth(`/api/usuarios/${usuarioSesion.id_usuario}`)
       .then(async (res) => {
         const body = await res.json().catch(() => null)
         if (!res.ok) {
@@ -537,7 +538,7 @@ function PerfilPage({ usuarioSesion, onProfileUpdated }) {
         setPerfil(body)
         setForm(buildProfileForm(body))
         if (body.rol === 'donante') {
-          return fetch(`/api/donaciones?id_donante=${body.id_usuario}`)
+          return fetchWithAuth(`/api/donaciones?id_donante=${body.id_usuario}`)
             .then((res) => res.json())
             .then((donaciones) => {
               if (!Array.isArray(donaciones)) return
@@ -623,7 +624,7 @@ function PerfilPage({ usuarioSesion, onProfileUpdated }) {
 
     try {
       const payload = buildProfilePayload(form, perfil?.rol)
-      const response = await fetch(`/api/usuarios/${perfil.id_usuario}`, {
+      const response = await fetchWithAuth(`/api/usuarios/${perfil.id_usuario}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -936,7 +937,7 @@ function PerfilPage({ usuarioSesion, onProfileUpdated }) {
 }
 
 function ProtectedRoute({ usuarioSesion, requiredRole, children }) {
-  if (!usuarioSesion) {
+  if (!usuarioSesion || !obtenerTokenSesion()) {
     return <Navigate to="/login" replace />
   }
 
@@ -962,11 +963,12 @@ function AppShell() {
 
   const handleLogout = () => {
     limpiarUsuarioSesion()
+    limpiarTokenSesion()
     setUsuarioSesion(null)
     navigate('/login', { replace: true })
   }
 
-  const isAuthenticated = Boolean(usuarioSesion?.id_usuario)
+  const isAuthenticated = Boolean(usuarioSesion?.id_usuario && obtenerTokenSesion())
 
   return (
     <div className="app-shell">
@@ -1022,9 +1024,9 @@ function AppShell() {
             )}
           />
 
-          <Route 
-            path="/organizaciones" 
-            element={<OrganizacionesPage />} 
+          <Route
+            path="/organizaciones"
+            element={<OrganizacionesPage />}
           />
 
           <Route path="/" element={<Navigate to="/home" replace />} />

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { guardarUsuarioSesion } from '../utils/session'
+import { guardarTokenSesion, guardarUsuarioSesion } from '../utils/session'
 
 const INITIAL_FORM = {
     nombre: '',
@@ -241,6 +241,11 @@ export default function SignupPage({ onAuthSuccess }) {
                 throw new Error(loginBody?.error || 'Cuenta creada, pero no se pudo iniciar sesion automaticamente')
             }
 
+            if (!loginBody?.token) {
+                throw new Error('Cuenta creada, pero no se recibio el token de autenticacion')
+            }
+
+            guardarTokenSesion(loginBody.token)
             guardarUsuarioSesion(loginBody.usuario)
             if (typeof onAuthSuccess === 'function') {
                 onAuthSuccess(loginBody.usuario)

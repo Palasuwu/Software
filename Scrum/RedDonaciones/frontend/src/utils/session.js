@@ -1,4 +1,5 @@
 export const USER_STORAGE_KEY = 'usuario_actual'
+export const TOKEN_STORAGE_KEY = 'token'
 
 export function obtenerUsuarioSesion() {
     try {
@@ -17,4 +18,16 @@ export function guardarUsuarioSesion(usuario) {
 
 export function limpiarUsuarioSesion() {
     localStorage.removeItem(USER_STORAGE_KEY)
+}
+
+export function obtenerTokenSesion() {
+    return localStorage.getItem(TOKEN_STORAGE_KEY)
+}
+
+export function guardarTokenSesion(token) {
+    localStorage.setItem(TOKEN_STORAGE_KEY, token)
+}
+
+export function limpiarTokenSesion() {
+    localStorage.removeItem(TOKEN_STORAGE_KEY)
 }
