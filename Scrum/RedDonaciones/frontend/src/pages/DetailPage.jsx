@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { apiPost, apiPublicGet } from '../utils/api'
 import { obtenerUsuarioSesion } from '../utils/session'
 
 export default function DetailPage() {
@@ -22,17 +23,7 @@ export default function DetailPage() {
   })
 
   useEffect(() => {
-    fetch(`/api/publicaciones/${id}`)
-      .then(async (res) => {
-        const body = await res.json().catch(() => null)
-        if (!res.ok) {
-          throw new Error(body?.error || 'Error cargando detalle')
-        }
-        if (!Array.isArray(body)) {
-          throw new Error('Respuesta invalida del servidor')
-        }
-        return body
-      })
+    apiPublicGet(`/api/publicaciones/${id}`)
       .then(res => {
         setData(res)
         setLoading(false)
@@ -109,18 +100,7 @@ export default function DetailPage() {
     }
 
     try {
-      const response = await fetch('/api/donaciones', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      })
-
-      const body = await response.json().catch(() => null)
-      if (!response.ok) {
-        throw new Error(body?.error || 'No se pudo registrar la donacion')
-      }
+      await apiPost('/api/donaciones', payload)
 
       navigate('/donaciones')
     } catch (submitErr) {

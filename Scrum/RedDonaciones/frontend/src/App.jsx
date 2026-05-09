@@ -17,8 +17,9 @@ import LoginPage from './pages/LoginPage'
 import DonationHistoryDetailPage from './pages/DonationHistoryDetailPage'
 import LandingPage from './pages/LandingPage'
 import OrganizacionesPage from './pages/OrganizacionesPage'
+import AdminOrganizacionesPage from './pages/AdminOrganizacionesPage'
 import AdminPanel from './pages/AdminPanel'
-import { fetchWithAuth } from './utils/api'
+import { apiPublicGet, fetchWithAuth } from './utils/api'
 import { obtenerTokenSesion, obtenerUsuarioSesion, limpiarUsuarioSesion, limpiarTokenSesion, guardarUsuarioSesion } from './utils/session'
 
 function IconBrand() {
@@ -180,6 +181,11 @@ function HeaderNav({ isAuthenticated, usuarioSesion, onLogout }) {
         <span>Inicio</span>
       </NavLink>
 
+      <NavLink to="/organizaciones" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
+        <IconUsers />
+        <span>Organizaciones</span>
+      </NavLink>
+
       {isAuthenticated && (
         <NavLink to="/donaciones" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
           <IconDonation />
@@ -202,9 +208,9 @@ function HeaderNav({ isAuthenticated, usuarioSesion, onLogout }) {
       )}
 
       {isAuthenticated && isAdmin && (
-        <NavLink to="/organizaciones" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
+        <NavLink to="/admin/organizaciones" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
           <IconUsers />
-          <span>Organizaciones</span>
+          <span>Gestion Orgs</span>
         </NavLink>
       )}
 
@@ -239,6 +245,10 @@ function BottomNav({ isAuthenticated, usuarioSesion, onLogout }) {
       <NavLink to="/home" end className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
         <IconHome />
         <span>Inicio</span>
+      </NavLink>
+      <NavLink to="/organizaciones" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+        <IconUsers />
+        <span>Orgs</span>
       </NavLink>
 
       {isAuthenticated ? (
@@ -295,17 +305,7 @@ function HomePage({ isAuthenticated }) {
       setLoading(true)
     }
 
-    return fetch('/api/publicaciones')
-      .then(async (res) => {
-        const body = await res.json().catch(() => null)
-        if (!res.ok) {
-          throw new Error(body?.error || 'No se pudieron cargar las publicaciones')
-        }
-        if (!Array.isArray(body)) {
-          throw new Error('Respuesta invalida del servidor')
-        }
-        return body
-      })
+    return apiPublicGet('/api/publicaciones')
       .then((data) => {
         const adaptadas = data.map((publicacion) => ({
           id: publicacion.id_publicacion,
@@ -334,21 +334,14 @@ function HomePage({ isAuthenticated }) {
   React.useEffect(() => {
     loadPublicaciones()
 
-    const intervalId = window.setInterval(() => {
-      loadPublicaciones({ silent: true })
-    }, 8000)
-
     const handleCampaignsChanged = () => {
       loadPublicaciones({ silent: true })
     }
 
     window.addEventListener('admin:campaigns-changed', handleCampaignsChanged)
-    window.addEventListener('storage', handleCampaignsChanged)
 
     return () => {
-      window.clearInterval(intervalId)
       window.removeEventListener('admin:campaigns-changed', handleCampaignsChanged)
-      window.removeEventListener('storage', handleCampaignsChanged)
     }
   }, [loadPublicaciones])
 
@@ -623,16 +616,9 @@ function PerfilPage({ usuarioSesion, onProfileUpdated }) {
     setOrgLoading(true)
     setOrgError('')
 
-    fetch('/api/organizaciones')
-      .then(async (res) => {
-        const body = await res.json().catch(() => null)
-        if (!res.ok) {
-          throw new Error(body?.error || 'No se pudo cargar la lista de organizaciones')
-        }
-        if (!Array.isArray(body)) {
-          throw new Error('Respuesta invalida del servidor')
-        }
-        setOrganizaciones(body)
+    apiPublicGet('/api/organizaciones')
+      .then((body) => {
+        setOrganizaciones(Array.isArray(body) ? body : [])
       })
       .catch((fetchError) => {
         setOrgError(fetchError.message || 'No se pudo cargar la lista de organizaciones')
@@ -1089,11 +1075,7 @@ function AppShell() {
 
           <Route
             path="/organizaciones"
-            element={(
-              <ProtectedRoute usuarioSesion={usuarioSesion} requiredRole="administrador">
-                <OrganizacionesPage />
-              </ProtectedRoute>
-            )}
+            element={<OrganizacionesPage />}
           />
 
           <Route
@@ -1101,6 +1083,14 @@ function AppShell() {
             element={(
               <ProtectedRoute usuarioSesion={usuarioSesion} requiredRole="administrador">
                 <AdminPanel usuarioSesion={usuarioSesion} />
+              </ProtectedRoute>
+            )}
+          />
+          <Route
+            path="/admin/organizaciones"
+            element={(
+              <ProtectedRoute usuarioSesion={usuarioSesion} requiredRole="administrador">
+                <AdminOrganizacionesPage />
               </ProtectedRoute>
             )}
           />

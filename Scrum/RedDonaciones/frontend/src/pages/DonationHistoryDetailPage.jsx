@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { apiGet } from '../utils/api'
 import { obtenerUsuarioSesion } from '../utils/session'
 
 function formatearFecha(fecha) {
@@ -50,13 +51,8 @@ export default function DonationHistoryDetailPage() {
             return
         }
 
-        fetch(`/api/donaciones/${idDonacion}`)
-            .then(async (res) => {
-                const body = await res.json().catch(() => null)
-                if (!res.ok) {
-                    throw new Error(body?.error || 'No se pudo cargar el detalle de la donacion')
-                }
-
+        apiGet(`/api/donaciones/${idDonacion}`)
+            .then((body) => {
                 if (!body || typeof body !== 'object') {
                     throw new Error('Respuesta invalida del servidor')
                 }

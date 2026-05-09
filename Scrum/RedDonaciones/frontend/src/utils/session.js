@@ -31,32 +31,3 @@ export function guardarTokenSesion(token) {
 export function limpiarTokenSesion() {
     localStorage.removeItem(TOKEN_STORAGE_KEY)
 }
-
-export function obtenerHeadersSesion() {
-    const usuario = obtenerUsuarioSesion()
-    const token = obtenerTokenSesion()
-    const headers = {}
-
-    if (token) {
-        headers.Authorization = `Bearer ${token}`
-    }
-
-    if (!usuario) return headers
-
-    headers['X-User-Id'] = String(usuario.id_usuario || '')
-    headers['X-User-Role'] = usuario.rol || ''
-
-    return headers
-}
-
-export function apiFetch(url, options = {}) {
-    const headers = {
-        ...obtenerHeadersSesion(),
-        ...(options.headers || {})
-    }
-
-    return fetch(url, {
-        ...options,
-        headers
-    })
-}

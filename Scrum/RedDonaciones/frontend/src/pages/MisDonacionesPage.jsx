@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { apiGet } from '../utils/api'
 import { obtenerUsuarioSesion } from '../utils/session'
 
 // Íconos definidos como SVG inline dentro del componente
@@ -73,16 +74,9 @@ export default function MisDonacionesPage() {
       return
     }
 
-    fetch(`/api/donaciones?id_donante=${usuario.id_usuario}`)
-      .then(async (res) => {
-        const body = await res.json().catch(() => null)
-        if (!res.ok) {
-          throw new Error(body?.error || 'No fue posible obtener tus donaciones')
-        }
-        if (!Array.isArray(body)) {
-          throw new Error('Respuesta invalida del servidor')
-        }
-        setDonaciones(body)
+    apiGet(`/api/donaciones?id_donante=${usuario.id_usuario}`)
+      .then((body) => {
+        setDonaciones(Array.isArray(body) ? body : [])
       })
       .catch((err) => {
         setError(err.message || 'No fue posible obtener tus donaciones')

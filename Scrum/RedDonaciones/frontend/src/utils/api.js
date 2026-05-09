@@ -45,6 +45,20 @@ export async function apiGet(url, init = {}) {
     return parseApiResponse(response)
 }
 
+export async function apiPublicGet(url, init = {}) {
+    const response = await fetch(url, {
+        ...init,
+        method: 'GET'
+    })
+
+    return parseApiResponse(response)
+}
+
+export async function apiPublicPost(url, data, init = {}) {
+    const response = await fetch(url, buildJsonInit('POST', data, init))
+    return parseApiResponse(response)
+}
+
 export async function apiPost(url, data, init = {}) {
     const response = await fetchWithAuth(url, buildJsonInit('POST', data, init))
     return parseApiResponse(response)

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { apiPublicGet, apiPublicPost } from '../utils/api'
 import { guardarTokenSesion, guardarUsuarioSesion } from '../utils/session'
 
 const INITIAL_FORM = {
@@ -133,17 +134,9 @@ export default function SignupPage({ onAuthSuccess }) {
         setOrgLoading(true)
         setOrgError('')
 
-        fetch('/api/organizaciones')
-            .then(async (res) => {
-                const body = await res.json().catch(() => null)
-                if (!res.ok) {
-                    const message = body?.error || 'No se pudo cargar la lista de organizaciones'
-                    throw new Error(message)
-                }
-                if (!Array.isArray(body)) {
-                    throw new Error('Respuesta invalida del servidor')
-                }
-                setOrganizaciones(body)
+        apiPublicGet('/api/organizaciones')
+            .then((body) => {
+                setOrganizaciones(Array.isArray(body) ? body : [])
             })
             .catch((err) => {
                 setOrgError(err.message || 'No se pudo cargar la lista de organizaciones')
@@ -212,36 +205,13 @@ export default function SignupPage({ onAuthSuccess }) {
         try {
             const payload = buildPayload(form)
 
-            const signupResponse = await fetch('/api/usuarios', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
+            await apiPublicPost('/api/usuarios', payload)
+            const loginBody = await apiPublicPost('/api/login', {
+                correo: payload.correo,
+                password: payload.password
             })
 
-            const signupBody = await signupResponse.json().catch(() => null)
-            if (!signupResponse.ok) {
-                throw new Error(signupBody?.error || 'No se pudo completar el registro')
-            }
-
-            const loginResponse = await fetch('/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    correo: payload.correo,
-                    password: payload.password
-                })
-            })
-
-            const loginBody = await loginResponse.json().catch(() => null)
-            if (!loginResponse.ok || !loginBody?.usuario) {
-                throw new Error(loginBody?.error || 'Cuenta creada, pero no se pudo iniciar sesion automaticamente')
-            }
-
-            if (!loginBody?.token) {
+            if (!loginBody?.usuario || !loginBody?.token) {
                 throw new Error('Cuenta creada, pero no se recibio el token de autenticacion')
             }
 

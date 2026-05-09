@@ -4,7 +4,7 @@ from flask import Blueprint, request, jsonify
 from datetime import datetime
 import logging
 from db.connection import get_db_connection
-from auth_utils import admin_required
+from auth_utils import admin_required, token_required
 
 # Log exceptions for easier debugging without leaking details to clients
 logging.basicConfig(level=logging.INFO)
@@ -60,6 +60,7 @@ def listar_publicaciones():
 
 # Ruta para crear una nueva publicación
 @publicacion_bp.route("/publicaciones", methods=["POST"])
+@admin_required
 def crear_publicacion():
     try:
         data = request.get_json()
@@ -306,6 +307,7 @@ def obtener_publicacion(id):
 
 # Ruta para obtener donaciones (filtro opcional por donante)
 @publicacion_bp.route("/donaciones", methods=["GET"])
+@token_required
 def listar_donaciones():
     id_donante = request.args.get("id_donante")
 
@@ -314,6 +316,12 @@ def listar_donaciones():
             id_donante = int(id_donante)
         except ValueError:
             return jsonify({"error": "id_donante debe ser un entero"}), 400
+
+    if request.usuario_rol != "administrador":
+        if id_donante is None:
+            id_donante = request.usuario_id
+        elif id_donante != request.usuario_id:
+            return jsonify({"error": "No tienes permiso para ver estas donaciones"}), 403
 
     try:
         conn = get_db_connection()
@@ -397,6 +405,7 @@ def listar_donaciones():
 
 # Ruta para obtener el detalle de una donación por su ID
 @publicacion_bp.route("/donaciones/<int:id_donacion>", methods=["GET"])
+@token_required
 def obtener_detalle_donacion(id_donacion):
     try:
         conn = get_db_connection()
@@ -477,6 +486,11 @@ def obtener_detalle_donacion(id_donacion):
             conn.close()
             return jsonify({"error": "Donación no encontrada"}), 404
 
+        if request.usuario_rol != "administrador" and donacion["id_donante"] != request.usuario_id:
+            cursor.close()
+            conn.close()
+            return jsonify({"error": "No tienes permiso para ver esta donacion"}), 403
+
         articulos_sql = """
         SELECT
             a.id_articulo,
@@ -506,6 +520,7 @@ def obtener_detalle_donacion(id_donacion):
 
 # Ruta para registrar una donación
 @publicacion_bp.route("/donaciones", methods=["POST"])
+@token_required
 def crear_donacion():
     conn = None
     cursor = None
@@ -537,6 +552,14 @@ def crear_donacion():
             or not cantidad_donada
         ):
             return jsonify({"error": "Faltan datos obligatorios"}), 400
+
+        try:
+            id_donante = int(id_donante)
+        except (ValueError, TypeError):
+            return jsonify({"error": "id_donante debe ser un entero"}), 400
+
+        if request.usuario_rol != "donante" or id_donante != request.usuario_id:
+            return jsonify({"error": "No tienes permiso para registrar esta donacion"}), 403
 
         try:
             cantidad_donada = int(cantidad_donada)

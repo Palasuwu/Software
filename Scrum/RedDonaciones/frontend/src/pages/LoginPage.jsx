@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { apiPublicPost } from '../utils/api'
 import { guardarTokenSesion, guardarUsuarioSesion } from '../utils/session'
 
 function validateLogin(form) {
@@ -55,21 +56,12 @@ export default function LoginPage({ onAuthSuccess }) {
         setIsSubmitting(true)
 
         try {
-            const response = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    correo: form.correo.trim().toLowerCase(),
-                    password: form.password
-                })
+            const body = await apiPublicPost('/api/login', {
+                correo: form.correo.trim().toLowerCase(),
+                password: form.password
             })
 
-            const body = await response.json().catch(() => null)
-            if (!response.ok || !body?.usuario) {
-                throw new Error(body?.error || 'No se pudo iniciar sesion')
-            }
-
-            if (!body?.token) {
+            if (!body?.usuario || !body?.token) {
                 throw new Error('No se recibio el token de autenticacion')
             }
 

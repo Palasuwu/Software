@@ -467,16 +467,6 @@ export default function AdminPanel({ usuarioSesion }) {
     }, [loadUsers, loadCampaigns])
 
     React.useEffect(() => {
-        if (activeTab !== 'campanas') return undefined
-
-        const intervalId = window.setInterval(() => {
-            loadCampaigns({ silent: true })
-        }, 8000)
-
-        return () => window.clearInterval(intervalId)
-    }, [activeTab, loadCampaigns])
-
-    React.useEffect(() => {
         if (modal && userForm.rol === 'intermediario') {
             ensureOrganizations()
         }
@@ -639,7 +629,6 @@ export default function AdminPanel({ usuarioSesion }) {
                     : item
             )))
             window.dispatchEvent(new Event('admin:campaigns-changed'))
-            localStorage.setItem('admin_campaigns_changed_at', String(Date.now()))
             setSuccessMessage(`Campana ${nextStatus === 'activa' ? 'activada' : 'desactivada'} con exito`)
         } catch (error) {
             setCampaignsError(error.message || 'No se pudo cambiar el estado de la campana')

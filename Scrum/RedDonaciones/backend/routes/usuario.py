@@ -2,23 +2,21 @@ from flask import Blueprint, jsonify, request
 import bcrypt
 import mysql.connector
 from db.connection import get_db_connection
-from auth_utils import generate_token, token_required, admin_required, verify_token
+from auth_utils import admin_required, generate_token, get_token_payload_from_request, token_required
 
 usuario_bp = Blueprint("usuario", __name__)
 
 
 def obtener_payload_admin_desde_request():
-    auth_header = request.headers.get("Authorization", "")
-    parts = auth_header.split(" ")
-
-    if len(parts) != 2 or parts[0] != "Bearer":
-        return None
-
-    payload = verify_token(parts[1])
+    payload = get_token_payload_from_request()
     if payload and payload.get("rol") == "administrador":
         return payload
 
     return None
+
+
+def usuario_puede_acceder(id_usuario):
+    return request.usuario_rol == "administrador" or request.usuario_id == id_usuario
 
 # Ruta para obtener la lista de usuarios
 @usuario_bp.route("/usuarios", methods=["GET"])
@@ -52,6 +50,9 @@ def obtener_usuarios():
 def obtener_usuario_por_id(id_usuario):
     conn = None
     cursor = None
+
+    if not usuario_puede_acceder(id_usuario):
+        return jsonify({"error": "No tienes permiso para consultar este usuario"}), 403
 
     try:
         conn = get_db_connection()
@@ -110,6 +111,9 @@ def obtener_usuario_por_id(id_usuario):
 def actualizar_usuario(id_usuario):
     conn = None
     cursor = None
+
+    if not usuario_puede_acceder(id_usuario):
+        return jsonify({"error": "No tienes permiso para editar este usuario"}), 403
 
     try:
         data = request.get_json()
