@@ -1,5 +1,7 @@
 import React from 'react'
 import { apiDelete, apiGet, apiPost, apiPut } from '../utils/api'
+import Spinner from '../components/Spinner'
+import ErrorView from '../components/ErrorView'
 
 const USER_INITIAL_FORM = {
     nombre: '',
@@ -392,6 +394,16 @@ function UserFormFields({ form, errors, mode, organizaciones, orgLoading, orgErr
     )
 }
 
+function SkeletonRows({ cols, rows = 5 }) {
+    return Array.from({ length: rows }).map((_, i) => (
+        <tr key={i} className="skeleton-row">
+            {Array.from({ length: cols }).map((__, j) => (
+                <td key={j}><div className="skeleton-cell" /></td>
+            ))}
+        </tr>
+    ))
+}
+
 export default function AdminPanel({ usuarioSesion }) {
     const [activeTab, setActiveTab] = React.useState('usuarios')
     const [usuarios, setUsuarios] = React.useState([])
@@ -410,6 +422,12 @@ export default function AdminPanel({ usuarioSesion }) {
     const [modalError, setModalError] = React.useState('')
     const [isSubmitting, setIsSubmitting] = React.useState(false)
     const [savingCampaignId, setSavingCampaignId] = React.useState(null)
+
+    React.useEffect(() => {
+        if (!successMessage) return
+        const t = setTimeout(() => setSuccessMessage(''), 3500)
+        return () => clearTimeout(t)
+    }, [successMessage])
 
     const loadUsers = React.useCallback(async () => {
         setLoadingUsers(true)
@@ -649,9 +667,8 @@ export default function AdminPanel({ usuarioSesion }) {
     }
 
     const renderUsersTable = () => {
-        if (loadingUsers) return <div className="empty-box">Cargando usuarios...</div>
-        if (usersError) return <div className="error-box">{usersError}</div>
-        if (usuarios.length === 0) return <div className="empty-box">No hay usuarios registrados.</div>
+        if (usersError) return <ErrorView message={usersError} onRetry={loadUsers} />
+        if (usuarios.length === 0 && !loadingUsers) return <div className="empty-box">No hay usuarios registrados.</div>
 
         return (
             <div className="admin-table-wrap">
@@ -666,7 +683,9 @@ export default function AdminPanel({ usuarioSesion }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {usuarios.map((usuario) => {
+                        {loadingUsers
+                            ? <SkeletonRows cols={5} rows={4} />
+                            : usuarios.map((usuario) => {
                             const isSelf = usuarioSesion?.id_usuario === usuario.id_usuario
 
                             return (
@@ -714,9 +733,8 @@ export default function AdminPanel({ usuarioSesion }) {
     }
 
     const renderCampaignsTable = () => {
-        if (loadingCampaigns) return <div className="empty-box">Cargando campanas...</div>
-        if (campaignsError) return <div className="error-box">{campaignsError}</div>
-        if (publicaciones.length === 0) return <div className="empty-box">No hay campanas registradas.</div>
+        if (campaignsError) return <ErrorView message={campaignsError} onRetry={loadCampaigns} />
+        if (publicaciones.length === 0 && !loadingCampaigns) return <div className="empty-box">No hay campanas registradas.</div>
 
         return (
             <div className="admin-table-wrap">
@@ -731,7 +749,9 @@ export default function AdminPanel({ usuarioSesion }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {publicaciones.map((publicacion) => {
+                        {loadingCampaigns
+                            ? <SkeletonRows cols={5} rows={4} />
+                            : publicaciones.map((publicacion) => {
                             const progress = getProgress(publicacion)
                             const isVisible = publicacion.estado !== 'cancelada'
                             const isSaving = savingCampaignId === publicacion.id_publicacion
@@ -777,6 +797,7 @@ export default function AdminPanel({ usuarioSesion }) {
     }
 
     const currentModal = (() => {
+
         if (modal?.type === 'createUser' || modal?.type === 'editUser') {
             const isCreate = modal.type === 'createUser'
 
@@ -861,7 +882,14 @@ export default function AdminPanel({ usuarioSesion }) {
                 </div>
             </header>
 
-            {successMessage && <div className="loading-box">{successMessage}</div>}
+            {successMessage && (
+                <div className="admin-toast">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="18" height="18">
+                        <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    {successMessage}
+                </div>
+            )}
 
             <div className="admin-layout">
                 <aside className="admin-sidebar">

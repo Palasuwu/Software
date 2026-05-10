@@ -13,6 +13,8 @@ import defaultImg from './assets/Defult.jpg'
 import card1Img from './assets/Card1.jpg'
 
 import MisDonacionesPage from './pages/MisDonacionesPage'
+import Spinner from './components/Spinner'
+import ErrorView from './components/ErrorView'
 import DetailPage from './pages/DetailPage'
 import AuthPage from './pages/AuthPage'
 import DonationHistoryDetailPage from './pages/DonationHistoryDetailPage'
@@ -491,8 +493,8 @@ function HomePage({ isAuthenticated }) {
       )}
 
       <section className="campaign-grid">
-        {loading && <div className="empty-box">Cargando publicaciones...</div>}
-        {error && <div className="error-box">{error}</div>}
+        {loading && <Spinner message="Cargando publicaciones..." />}
+        {error && <ErrorView message={error} onRetry={loadPublicaciones} />}
         {!loading && !error && (
           filtered.length > 0
             ? filtered.map((item) => <DonationCard key={item.id} org={item} />)

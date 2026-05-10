@@ -1,6 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { obtenerUsuarioSesion } from '../utils/session'
+import Spinner from '../components/Spinner'
+import ErrorView from '../components/ErrorView'
 
 // Íconos definidos como SVG inline dentro del componente
 
@@ -56,7 +58,7 @@ export default function MisDonacionesPage() {
   const [error, setError] = useState('')
   const [filtro, setFiltro] = useState('todas')
 
-  useEffect(() => {
+  const cargarDonaciones = useCallback(() => {
     setLoading(true)
     setError('')
 
@@ -76,21 +78,17 @@ export default function MisDonacionesPage() {
     fetch(`/api/donaciones?id_donante=${usuario.id_usuario}`)
       .then(async (res) => {
         const body = await res.json().catch(() => null)
-        if (!res.ok) {
-          throw new Error(body?.error || 'No fue posible obtener tus donaciones')
-        }
-        if (!Array.isArray(body)) {
-          throw new Error('Respuesta invalida del servidor')
-        }
+        if (!res.ok) throw new Error(body?.error || 'No fue posible obtener tus donaciones')
+        if (!Array.isArray(body)) throw new Error('Respuesta invalida del servidor')
         setDonaciones(body)
       })
       .catch((err) => {
         setError(err.message || 'No fue posible obtener tus donaciones')
       })
-      .finally(() => {
-        setLoading(false)
-      })
+      .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => { cargarDonaciones() }, [cargarDonaciones])
 
   const resumen = useMemo(() => {
     const total = donaciones.length
@@ -142,8 +140,8 @@ export default function MisDonacionesPage() {
         </article>
       </div>
 
-      {loading && <div className="loading-box">Cargando donaciones...</div>}
-      {!loading && error && <div className="error-box">{error}</div>}
+      {loading && <Spinner message="Cargando donaciones..." />}
+      {!loading && error && <ErrorView message={error} onRetry={cargarDonaciones} />}
 
       {!loading && !error && (
         <section className="donations-panel-figma">

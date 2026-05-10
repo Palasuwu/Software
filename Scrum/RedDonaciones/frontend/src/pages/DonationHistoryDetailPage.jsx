@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { obtenerUsuarioSesion } from '../utils/session'
+import Spinner from '../components/Spinner'
+import ErrorView from '../components/ErrorView'
 
 function formatearFecha(fecha) {
     if (!fecha) {
@@ -81,11 +83,11 @@ export default function DonationHistoryDetailPage() {
     }, [detalle])
 
     if (loading) {
-        return <div className="empty-box">Cargando detalle de donacion...</div>
+        return <Spinner message="Cargando detalle de donacion..." />
     }
 
     if (error) {
-        return <div className="error-box">{error}</div>
+        return <ErrorView message={error} onRetry={() => navigate(0)} />
     }
 
     if (!detalle) {

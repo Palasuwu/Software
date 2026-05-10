@@ -4516,6 +4516,127 @@ a {
   }
 }
 
+/* ============================================================
+   LOADING / ERROR / TOAST — componentes globales
+   ============================================================ */
+
+/* ---- Spinner ---- */
+.spinner-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 48px 24px;
+}
+
+.spinner-ring {
+  width: 44px;
+  height: 44px;
+  border: 3px solid var(--outline);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: dp-spin 0.75s linear infinite;
+}
+
+.spinner-msg {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--text-soft);
+  font-weight: 500;
+}
+
+/* ---- Error view ---- */
+.error-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.error-view-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #fff5f5;
+  border: 1.5px solid #f5c6c6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--danger);
+}
+
+.error-view-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.error-view-msg {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-soft);
+  max-width: 340px;
+  line-height: 1.5;
+}
+
+.error-view-retry {
+  padding: 10px 24px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--primary);
+  background: transparent;
+  color: var(--primary-strong);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+
+.error-view-retry:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ---- Skeleton ---- */
+.skeleton-row td {
+  padding: 18px 18px;
+}
+
+.skeleton-cell {
+  height: 16px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--outline) 25%, var(--surface-soft) 50%, var(--outline) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s infinite;
+}
+
+.skeleton-row:nth-child(1) .skeleton-cell { width: 85%; }
+.skeleton-row:nth-child(2) .skeleton-cell { width: 70%; }
+.skeleton-row:nth-child(3) .skeleton-cell { width: 90%; }
+.skeleton-row:nth-child(4) .skeleton-cell { width: 60%; }
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ---- Admin toast ---- */
+.admin-toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 20px;
+  border-radius: var(--radius-md);
+  background: #eef8f2;
+  border: 1px solid #b8dfc8;
+  color: var(--success);
+  font-weight: 600;
+  font-size: 0.93rem;
+  animation: fadeInUp 0.25s ease;
+}
+
 /* ADMIN PANEL */
 .admin-page {
   display: grid;
