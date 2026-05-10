@@ -9,6 +9,8 @@ import {
   useLocation,
   useNavigate
 } from 'react-router-dom'
+import defaultImg from './assets/Defult.jpg'
+import card1Img from './assets/Card1.jpg'
 
 import MisDonacionesPage from './pages/MisDonacionesPage'
 import DetailPage from './pages/DetailPage'
@@ -109,6 +111,29 @@ function IconUsers() {
   )
 }
 
+const DEFAULT_IMAGE = defaultImg
+
+const PUBLICATION_IMAGES = {
+  1: card1Img,
+  2: defaultImg,
+}
+
+function isValidImageUrl(url) {
+  if (!url || typeof url !== 'string') return false
+  try {
+    const u = new URL(url)
+    return u.protocol === 'http:' || u.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+function resolvePublicationImage(id, urlFromDb) {
+  if (PUBLICATION_IMAGES[id]) return PUBLICATION_IMAGES[id]
+  if (isValidImageUrl(urlFromDb)) return urlFromDb
+  return DEFAULT_IMAGE
+}
+
 function formatAmount(value) {
   return new Intl.NumberFormat('es-GT').format(value)
 }
@@ -126,7 +151,13 @@ function DonationCard({ org }) {
   return (
     <article className="campaign-card" onClick={() => navigate(`/detalle/${org.id}`)}>
       <div className="campaign-image-wrap">
-        <div className="campaign-image-placeholder" />
+        <img
+          className="campaign-image"
+          src={org.imagen}
+          alt={org.title}
+          loading="lazy"
+          onError={(e) => { e.currentTarget.src = DEFAULT_IMAGE }}
+        />
         <span className="campaign-tag">{org.category}</span>
       </div>
 
@@ -304,6 +335,7 @@ function HomePage({ isAuthenticated }) {
           location: publicacion.direccion,
           organizacion: publicacion.organizacion || 'Sin organizacion',
           estado: publicacion.estado || 'activa',
+          imagen: resolvePublicationImage(publicacion.id_publicacion, publicacion.imagen_url),
           progress: publicacion.cantidad_necesaria > 0
             ? Math.min(100, Math.round((publicacion.cantidad_recibida / publicacion.cantidad_necesaria) * 100))
             : 0,

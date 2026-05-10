@@ -19,7 +19,7 @@ def listar_publicaciones():
         cursor = conn.cursor(dictionary=True)
 
         sql = """
-        SELECT 
+        SELECT
             p.id_publicacion,
             p.titulo,
             p.descripcion,
@@ -28,6 +28,7 @@ def listar_publicaciones():
             p.estado,
             p.fecha_publicacion,
             p.fecha_limite,
+            p.imagen_url,
 
             o.nombre AS organizacion,
             o.direccion AS direccion,
@@ -35,13 +36,13 @@ def listar_publicaciones():
             c.nombre AS categoria
 
         FROM publicacion p
-        INNER JOIN organizacion o 
+        INNER JOIN organizacion o
             ON p.id_organizacion = o.id_organizacion
 
-        LEFT JOIN articulo a 
+        LEFT JOIN articulo a
             ON p.id_articulo = a.id_articulo
 
-        LEFT JOIN categoria_articulo c 
+        LEFT JOIN categoria_articulo c
             ON a.id_categoria = c.id_categoria
         """
 
@@ -86,14 +87,16 @@ def crear_publicacion():
         conn = get_db_connection()
         cursor = conn.cursor()
 
+        imagen_url = data.get("imagen_url") or None
+
         sql = """
         INSERT INTO publicacion (
             id_intermediario, id_organizacion, id_articulo,
             titulo, descripcion, cantidad_necesaria,
             cantidad_recibida, fecha_publicacion,
-            fecha_limite, estado
+            fecha_limite, estado, imagen_url
         )
-        VALUES (%s, %s, %s, %s, %s, %s, 0, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, 0, %s, %s, %s, %s)
         """
 
         cursor.execute(sql, (
@@ -105,7 +108,8 @@ def crear_publicacion():
             data.get("cantidad_necesaria"),
             data.get("fecha_publicacion"),
             data.get("fecha_limite"),
-            data.get("estado")
+            data.get("estado"),
+            imagen_url
         ))
 
         conn.commit()
@@ -188,7 +192,7 @@ def obtener_publicacion(id):
         cursor = conn.cursor(dictionary=True)
 
         publicacion_sql = """
-        SELECT 
+        SELECT
             p.id_publicacion,
             p.id_articulo,
             p.titulo,
@@ -196,6 +200,7 @@ def obtener_publicacion(id):
             p.cantidad_necesaria,
             p.cantidad_recibida,
             p.estado,
+            p.imagen_url,
             DATE_FORMAT(p.fecha_publicacion, '%Y-%m-%d') AS fecha_publicacion,
             DATE_FORMAT(p.fecha_limite, '%Y-%m-%d') AS fecha_limite,
 
@@ -204,13 +209,13 @@ def obtener_publicacion(id):
             c.nombre AS categoria
 
         FROM publicacion p
-        INNER JOIN organizacion o 
+        INNER JOIN organizacion o
             ON p.id_organizacion = o.id_organizacion
 
         LEFT JOIN articulo a
             ON p.id_articulo = a.id_articulo
 
-        LEFT JOIN categoria_articulo c 
+        LEFT JOIN categoria_articulo c
             ON a.id_categoria = c.id_categoria
 
         WHERE p.id_publicacion = %s
@@ -282,6 +287,7 @@ def obtener_publicacion(id):
                 "cantidad_necesaria": publicacion["cantidad_necesaria"],
                 "cantidad_recibida": publicacion["cantidad_recibida"],
                 "estado": publicacion["estado"],
+                "imagen_url": publicacion.get("imagen_url"),
                 "fecha_publicacion": publicacion["fecha_publicacion"],
                 "fecha_limite": publicacion["fecha_limite"],
                 "organizacion": publicacion["organizacion"],
