@@ -11,6 +11,7 @@ export default function DetailPage() {
   const [error, setError] = useState(null)
   const [submitError, setSubmitError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [submitSuccess, setSubmitSuccess] = useState(false)
 
   const [form, setForm] = useState({
     nombre: '',
@@ -25,46 +26,32 @@ export default function DetailPage() {
     fetch(`/api/publicaciones/${id}`)
       .then(async (res) => {
         const body = await res.json().catch(() => null)
-        if (!res.ok) {
-          throw new Error(body?.error || 'Error cargando detalle')
-        }
-        if (!Array.isArray(body)) {
-          throw new Error('Respuesta invalida del servidor')
-        }
+        if (!res.ok) throw new Error(body?.error || 'Error cargando detalle')
+        if (!Array.isArray(body)) throw new Error('Respuesta invalida del servidor')
         return body
       })
-      .then(res => {
-        setData(res)
-        setLoading(false)
-      })
-      .catch(err => {
-        console.error(err)
-        setError('Error cargando detalle')
-        setLoading(false)
-      })
+      .then(res => { setData(res); setLoading(false) })
+      .catch(err => { setError('Error cargando detalle'); setLoading(false) })
   }, [id])
 
   useEffect(() => {
     const usuario = obtenerUsuarioSesion()
     if (!usuario) return
-
-    setForm((previous) => ({
-      ...previous,
-      nombre: usuario.nombre || previous.nombre,
-      telefono: usuario.telefono || previous.telefono
+    setForm(prev => ({
+      ...prev,
+      nombre: usuario.nombre || prev.nombre,
+      telefono: usuario.telefono || prev.telefono
     }))
   }, [])
 
   const info = data[0]
-
-  const items = data.map(item => ({
-    name: item.articulo,
-    qty: item.descripcion_detalle,
-    cantidad: item.cantidad
-  }))
+  const items = data.map(item => ({ name: item.articulo, qty: item.descripcion_detalle }))
 
   const handleChange = (e) =>
     setForm(f => ({ ...f, [e.target.name]: e.target.value }))
+
+  const adjustQty = (delta) =>
+    setForm(f => ({ ...f, cantidad: String(Math.max(1, Number(f.cantidad) + delta)) }))
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -75,12 +62,10 @@ export default function DetailPage() {
       navigate('/login', { state: { from: `/detalle/${id}` } })
       return
     }
-
     if (usuario.rol !== 'donante') {
       setSubmitError('Solo los usuarios con rol donante pueden registrar donaciones')
       return
     }
-
     const cantidadDonada = Number(form.cantidad)
     if (!Number.isInteger(cantidadDonada) || cantidadDonada <= 0) {
       setSubmitError('La cantidad a donar debe ser un entero mayor a 0')
@@ -111,225 +96,256 @@ export default function DetailPage() {
     try {
       const response = await fetch('/api/donaciones', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
-
       const body = await response.json().catch(() => null)
-      if (!response.ok) {
-        throw new Error(body?.error || 'No se pudo registrar la donacion')
-      }
-
-      navigate('/donaciones')
-    } catch (submitErr) {
-      setSubmitError(submitErr.message || 'No se pudo registrar la donacion')
+      if (!response.ok) throw new Error(body?.error || 'No se pudo registrar la donacion')
+      setSubmitSuccess(true)
+      setTimeout(() => navigate('/donaciones'), 1400)
+    } catch (err) {
+      setSubmitError(err.message || 'No se pudo registrar la donacion')
     } finally {
       setSubmitting(false)
     }
   }
 
-  // Estados de carga
   if (loading) return <div className="empty-box">Cargando detalle...</div>
-  if (error) return <div className="empty-box">{error}</div>
-  if (!info) return <div className="empty-box">No encontrado</div>
+  if (error)   return <div className="empty-box">{error}</div>
+  if (!info)   return <div className="empty-box">No encontrado</div>
+
+  const pct = info.cantidad_necesaria > 0
+    ? Math.min(100, Math.round((info.cantidad_recibida / info.cantidad_necesaria) * 100))
+    : 0
 
   return (
-    <div className="detail-page detail-page-figma fade-in">
-      <button className="detail-back detail-back-figma" onClick={() => navigate(-1)}>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" strokeWidth="2">
+    <div className="dp-page fade-in">
+      <button className="dp-back" onClick={() => navigate(-1)}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <polyline points="15 18 9 12 15 6" />
         </svg>
         Volver
       </button>
 
-      <div className="detail-hero detail-hero-figma">
-        <div className="detail-chip-row">
-          <span className="card-chip">
-            <span className="card-chip-dot" />
-            {info.categoria}
-          </span>
-        </div>
+      <div className="dp-layout">
 
-        <h1 className="detail-title detail-title-figma">
-          {info.titulo}
-        </h1>
+        {/* ── COLUMNA IZQUIERDA ── */}
+        <div className="dp-left">
 
-        <p className="detail-subtitle detail-subtitle-figma">
-          {info.descripcion}
-        </p>
-      </div>
+          {/* Hero */}
+          <div className="dp-hero">
+            <span className="dp-chip">
+              <span className="dp-chip-dot" />
+              {info.categoria}
+            </span>
+            <h1 className="dp-title">{info.titulo}</h1>
+            <p className="dp-desc">{info.descripcion}</p>
+          </div>
 
-      <div className="detail-grid detail-grid-figma">
-        <div className="detail-card detail-card-figma">
-          <div className="detail-card-label">Horario de recepción</div>
-          <div className="detail-card-value">Coordinar con la organización</div>
-        </div>
+          {/* Stats */}
+          <div className="dp-stats">
+            <div className="dp-stat">
+              <span className="dp-stat-label">Organizacion</span>
+              <span className="dp-stat-value">{info.organizacion}</span>
+            </div>
+            <div className="dp-stat">
+              <span className="dp-stat-label">Estado</span>
+              <span className="dp-stat-value dp-stat-active">{info.estado}</span>
+            </div>
+            <div className="dp-stat">
+              <span className="dp-stat-label">Horario</span>
+              <span className="dp-stat-value">Coordinar con la org.</span>
+            </div>
+            <div className="dp-stat">
+              <span className="dp-stat-label">Progreso</span>
+              <span className="dp-stat-value">{pct}%</span>
+            </div>
+          </div>
 
-        <div className="detail-card detail-card-figma">
-          <div className="detail-card-label">Contacto</div>
-          <div className="detail-card-value">{info.organizacion}</div>
-        </div>
+          {/* Barra de progreso */}
+          <div className="dp-progress-wrap">
+            <div className="dp-progress-header">
+              <span>Progreso de la campaña</span>
+              <span className="dp-progress-pct">{pct}%</span>
+            </div>
+            <div className="dp-progress-track">
+              <div className="dp-progress-fill" style={{ width: `${pct}%` }} />
+            </div>
+            <div className="dp-progress-footer">
+              <span>{info.cantidad_recibida} recibidos</span>
+              <span>{info.cantidad_necesaria} necesarios</span>
+            </div>
+          </div>
 
-        <div className="detail-card detail-card-figma">
-          <div className="detail-card-label">Estado</div>
-          <div className="detail-card-value" style={{ color: 'var(--success)' }}>
-            {info.estado} ✓
+          {/* Items */}
+          <div className="dp-section">
+            <div className="dp-section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+              </svg>
+              Articulos necesitados
+            </div>
+            <div className="dp-items">
+              {items.map((item, i) => (
+                <div className="dp-item" key={i}>
+                  <span className="dp-item-dot">{i + 1}</span>
+                  <span className="dp-item-name">{item.name}</span>
+                  <span className="dp-item-qty">{item.qty}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Ubicacion */}
+          <div className="dp-section">
+            <div className="dp-section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              Ubicacion
+            </div>
+            <div className="dp-map">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              <span>Ver en mapa</span>
+            </div>
+            <p className="dp-address">{info?.direccion || 'Direccion no disponible'}</p>
           </div>
         </div>
 
-        <div className="detail-card detail-card-figma">
-          <div className="detail-card-label">Progreso</div>
-          <div className="detail-card-value">
-            {info.cantidad_necesaria > 0
-              ? Math.round((info.cantidad_recibida / info.cantidad_necesaria) * 100)
-              : 0}%
-          </div>
-        </div>
-      </div>
+        {/* ── COLUMNA DERECHA — FORM STICKY ── */}
+        <div className="dp-right">
+          <div className="dp-form-card">
 
-      <div className="detail-section detail-section-figma">
-        <div className="detail-section-title">Artículos necesitados</div>
-
-        <div className="items-list">
-          {items.map((item, i) => (
-            <div className="item-row item-row-figma" key={i}>
-              <div className="item-icon item-icon-figma">
-                <span style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  background: 'var(--primary)',
-                  display: 'inline-block'
-                }} />
+            {submitSuccess ? (
+              <div className="dp-success">
+                <div className="dp-success-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+                <h3>Donacion registrada</h3>
+                <p>Te redirigimos a tu historial...</p>
               </div>
-              <span className="item-name">{item.name}</span>
-              <span className="item-qty item-qty-figma">{item.qty}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+            ) : (
+              <>
+                <div className="dp-form-header">
+                  <h2>Agendar entrega</h2>
+                  <p>Completa los datos para coordinar tu donacion</p>
+                </div>
 
+                <div className="dp-form-body">
+                <form onSubmit={handleSubmit} noValidate>
 
-      <div className="detail-section detail-section-figma">
-        <div className="detail-section-title">Ubicación</div>
+                  {/* Contacto */}
+                  <div className="dp-form-group">
+                    <div className="dp-form-group-title">Contacto</div>
+                    <div className="dp-field">
+                      <label className="dp-label">Nombre completo</label>
+                      <input
+                        className="dp-input"
+                        name="nombre"
+                        placeholder="Tu nombre"
+                        value={form.nombre}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                    <div className="dp-field">
+                      <label className="dp-label">Telefono</label>
+                      <input
+                        className="dp-input"
+                        name="telefono"
+                        placeholder="5555-0000"
+                        value={form.telefono}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                  </div>
 
-        <div className="map-placeholder map-placeholder-figma">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="1.5">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-            <circle cx="12" cy="10" r="3" />
-          </svg>
-          <span>Ver en mapa</span>
-        </div>
+                  {/* Cantidad */}
+                  <div className="dp-form-group">
+                    <div className="dp-form-group-title">Cantidad a donar</div>
+                    <div className="dp-qty-control">
+                      <button type="button" className="dp-qty-btn" onClick={() => adjustQty(-1)}>−</button>
+                      <input
+                        className="dp-qty-input"
+                        type="number"
+                        name="cantidad"
+                        min="1"
+                        value={form.cantidad}
+                        onChange={handleChange}
+                        required
+                      />
+                      <button type="button" className="dp-qty-btn" onClick={() => adjustQty(1)}>+</button>
+                    </div>
+                  </div>
 
-        <div className="map-address">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="2" style={{ width: 12, height: 12 }}>
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-            <circle cx="12" cy="10" r="3" />
-          </svg>
-          {info?.direccion || 'Direccion no disponible'}
-        </div>
-      </div>
+                  {/* Fecha y hora */}
+                  <div className="dp-form-group">
+                    <div className="dp-form-group-title">Fecha y hora</div>
+                    <div className="dp-row">
+                      <div className="dp-field">
+                        <label className="dp-label">Fecha de entrega</label>
+                        <input
+                          className="dp-input"
+                          type="date"
+                          name="fecha"
+                          value={form.fecha}
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+                      <div className="dp-field">
+                        <label className="dp-label">Hora preferida</label>
+                        <select className="dp-input" name="hora" value={form.hora} onChange={handleChange} required>
+                          <option value="">Selecciona</option>
+                          <option value="08:00">08:00</option>
+                          <option value="09:00">09:00</option>
+                          <option value="10:00">10:00</option>
+                          <option value="11:00">11:00</option>
+                          <option value="13:00">13:00</option>
+                          <option value="14:00">14:00</option>
+                          <option value="15:00">15:00</option>
+                          <option value="16:00">16:00</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
 
-      <div className="detail-section detail-section-figma">
-        <div className="detail-section-title">Agendar entrega</div>
+                  {/* Nota */}
+                  <div className="dp-field">
+                    <label className="dp-label">Nota adicional <span className="dp-optional">(opcional)</span></label>
+                    <textarea
+                      className="dp-input dp-textarea"
+                      name="nota"
+                      placeholder="Ej: llevaré 3 bolsas, necesito ayuda para bajarlas..."
+                      value={form.nota}
+                      onChange={handleChange}
+                    />
+                  </div>
 
-        <form className="form-grid form-grid-figma" onSubmit={handleSubmit}>
-          <div className="form-row">
-            <div className="form-field">
-              <label className="form-label">Nombre completo</label>
-              <input
-                className="form-input"
-                name="nombre"
-                placeholder="Tu nombre"
-                value={form.nombre}
-                onChange={handleChange}
-                required
-              />
-            </div>
+                  {submitError && <div className="dp-error">{submitError}</div>}
 
-            <div className="form-field">
-              <label className="form-label">Teléfono</label>
-              <input
-                className="form-input"
-                name="telefono"
-                placeholder="5555-0000"
-                value={form.telefono}
-                onChange={handleChange}
-                required
-              />
-            </div>
+                  <button type="submit" className="dp-submit" disabled={submitting}>
+                    {submitting ? (
+                      <span className="dp-submit-loading">
+                        <span className="dp-spinner" />
+                        Registrando...
+                      </span>
+                    ) : 'Confirmar entrega'}
+                  </button>
+                </form>
+                </div>
+              </>
+            )}
           </div>
+        </div>
 
-          <div className="form-row">
-            <div className="form-field">
-              <label className="form-label">Cantidad a donar</label>
-              <input
-                className="form-input"
-                type="number"
-                name="cantidad"
-                min="1"
-                value={form.cantidad}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="form-field">
-              <label className="form-label">Fecha de entrega</label>
-              <input
-                className="form-input"
-                type="date"
-                name="fecha"
-                value={form.fecha}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="form-field">
-              <label className="form-label">Hora preferida</label>
-              <select
-                className="form-select"
-                name="hora"
-                value={form.hora}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Selecciona</option>
-                <option value="08:00">08:00</option>
-                <option value="09:00">09:00</option>
-                <option value="10:00">10:00</option>
-                <option value="11:00">11:00</option>
-                <option value="13:00">13:00</option>
-                <option value="14:00">14:00</option>
-                <option value="15:00">15:00</option>
-                <option value="16:00">16:00</option>
-              </select>
-            </div>
-          </div>
-
-          {submitError && <div className="error-box">{submitError}</div>}
-
-          <div className="form-field">
-            <label className="form-label">Nota adicional (opcional)</label>
-            <textarea
-              className="form-textarea"
-              name="nota"
-              placeholder="Ej: llevaré 3 bolsas, necesito ayuda para bajarlas..."
-              value={form.nota}
-              onChange={handleChange}
-            />
-          </div>
-
-          <button type="submit" className="btn-confirmar btn-confirmar-figma" disabled={submitting}>
-            {submitting ? 'Registrando...' : 'Confirmar entrega'}
-          </button>
-        </form>
       </div>
     </div>
   )

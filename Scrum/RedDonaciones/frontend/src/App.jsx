@@ -12,8 +12,7 @@ import {
 
 import MisDonacionesPage from './pages/MisDonacionesPage'
 import DetailPage from './pages/DetailPage'
-import SignupPage from './pages/SignupPage'
-import LoginPage from './pages/LoginPage'
+import AuthPage from './pages/AuthPage'
 import DonationHistoryDetailPage from './pages/DonationHistoryDetailPage'
 import LandingPage from './pages/LandingPage'
 import OrganizacionesPage from './pages/OrganizacionesPage'
@@ -215,12 +214,6 @@ function HeaderNav({ isAuthenticated, usuarioSesion, onLogout }) {
         </NavLink>
       )}
 
-      {!isAuthenticated && (
-        <NavLink to="/signup" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
-          <IconRegister />
-          <span>Registro</span>
-        </NavLink>
-      )}
 
       {isAuthenticated && (
         <button type="button" className="top-nav-link top-nav-button" onClick={onLogout}>
@@ -267,10 +260,6 @@ function BottomNav({ isAuthenticated, usuarioSesion, onLogout }) {
           <NavLink to="/login" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
             <IconUser />
             <span>Login</span>
-          </NavLink>
-          <NavLink to="/signup" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-            <IconRegister />
-            <span>Registro</span>
           </NavLink>
         </>
       )}
@@ -1054,11 +1043,11 @@ function AppShell() {
           <Route path="/detalle/:id" element={<DetailPage />} />
           <Route
             path="/login"
-            element={isAuthenticated ? <Navigate to="/perfil" replace /> : <LoginPage onAuthSuccess={handleAuthSuccess} />}
+            element={isAuthenticated ? <Navigate to="/perfil" replace /> : <AuthPage onAuthSuccess={handleAuthSuccess} defaultMode="login" />}
           />
           <Route
             path="/signup"
-            element={isAuthenticated ? <Navigate to="/perfil" replace /> : <SignupPage onAuthSuccess={handleAuthSuccess} />}
+            element={isAuthenticated ? <Navigate to="/perfil" replace /> : <AuthPage onAuthSuccess={handleAuthSuccess} defaultMode="register" />}
           />
 
           <Route
