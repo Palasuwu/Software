@@ -151,7 +151,8 @@ function roleLabel(role) {
 
 function DonationCard({ org, index = 0 }) {
   const navigate = useNavigate()
-  const isFeatured = index === 0
+  const groupPos = index % 6
+  const isFeatured = groupPos === 0 || groupPos === 5
 
   return (
     <motion.article
