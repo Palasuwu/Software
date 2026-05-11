@@ -439,8 +439,20 @@ a {
 
 .campaign-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 28px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.campaign-card--featured {
+  grid-column: span 2;
+}
+
+.campaign-card--featured .campaign-image-wrap {
+  height: 300px;
+}
+
+.campaign-card--featured .campaign-title {
+  font-size: 1.18rem;
 }
 
 .campaign-card {
@@ -1455,6 +1467,7 @@ a {
   .campaign-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  /* featured spans full row at 2-col — intentional hero banner */
 }
 
 @media (max-width: 860px) {
@@ -1497,6 +1510,18 @@ a {
 
   .campaign-grid {
     grid-template-columns: 1fr;
+  }
+
+  .campaign-card--featured {
+    grid-column: unset;
+  }
+
+  .campaign-card--featured .campaign-image-wrap {
+    height: 220px;
+  }
+
+  .campaign-card--featured .campaign-title {
+    font-size: 1.05rem;
   }
 
   .campaign-image-wrap {

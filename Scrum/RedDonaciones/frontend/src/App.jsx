@@ -149,12 +149,13 @@ function roleLabel(role) {
   return role
 }
 
-function DonationCard({ org }) {
+function DonationCard({ org, index = 0 }) {
   const navigate = useNavigate()
+  const isFeatured = index === 0
 
   return (
     <motion.article
-      className="campaign-card"
+      className={`campaign-card${isFeatured ? ' campaign-card--featured' : ''}`}
       whileTap={{ scale: 0.985 }}
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
       onClick={() => navigate(`/detalle/${org.id}`)}
@@ -497,7 +498,7 @@ function HomePage({ isAuthenticated }) {
         {error && <ErrorView message={error} onRetry={loadPublicaciones} />}
         {!loading && !error && (
           filtered.length > 0
-            ? filtered.map((item) => <DonationCard key={item.id} org={item} />)
+            ? filtered.map((item, i) => <DonationCard key={item.id} org={item} index={i} />)
             : <div className="empty-box">No hay publicaciones para los filtros seleccionados.</div>
         )}
       </section>
