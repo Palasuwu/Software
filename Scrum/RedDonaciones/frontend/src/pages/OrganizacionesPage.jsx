@@ -68,7 +68,7 @@ function OrganizacionesPage() {
             </div>
             <button 
               className="campaign-button"
-              onClick={() => navigate(`/organizacion/${org.id_organizacion}`)}
+              onClick={() => navigate(`/organizaciones/${org.id_organizacion}`)}
             >
               Ver más
             </button>

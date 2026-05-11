@@ -51,7 +51,7 @@ function OrgaDetailPage() {
         Volver
       </button>
 
-      {/* ── HEADER DE ORGANIZACIÓN ── */}
+      {/* ── HEADER ── */}
       <div className="org-detail-header">
         <div className="org-detail-status">
           <span className={`org-status org-status-${organizacion.estado_verificacion}`}>

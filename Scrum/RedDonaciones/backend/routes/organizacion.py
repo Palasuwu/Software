@@ -80,6 +80,53 @@ def listar_organizaciones():
         return jsonify({"error": "Error al obtener organizaciones"}), 500
 
 
+# Para el detalle
+@organizacion_bp.route("/organizaciones/<int:id_organizacion>", methods=["GET"])
+def obtener_detalle_organizacion(id_organizacion):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute(
+            """
+            SELECT id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion
+            FROM organizacion
+            WHERE id_organizacion = %s
+            """,
+            (id_organizacion,),
+        )
+        organizacion = cursor.fetchone()
+
+        if not organizacion:
+            cursor.close()
+            conn.close()
+            return jsonify({"error": "Organización no encontrada"}), 404
+
+        cursor.execute(
+            """
+            SELECT id_publicacion, titulo, descripcion, cantidad_necesaria, cantidad_recibida, estado
+            FROM publicacion
+            WHERE id_organizacion = %s
+            ORDER BY fecha_publicacion DESC
+            """,
+            (id_organizacion,),
+        )
+        publicaciones = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            "organizacion": organizacion,
+            "publicaciones": publicaciones
+        }), 200
+
+    except Exception:
+        logging.exception("Error al obtener detalles de organización")
+        return jsonify({"error": "Error al obtener detalles"}), 500
+
+
+# Rutas de admin
 @organizacion_bp.route("/organizaciones", methods=["POST"])
 @admin_required
 def crear_organizacion():

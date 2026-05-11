@@ -234,12 +234,10 @@ function HeaderNav({ isAuthenticated, usuarioSesion, onLogout }) {
         </NavLink>
       )}
 
-      {isAuthenticated && isAdmin && (
-        <NavLink to="/organizaciones" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
-          <IconUsers />
-          <span>Organizaciones</span>
-        </NavLink>
-      )}
+      <NavLink to="/organizaciones" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
+        <IconUsers />
+        <span>Organizaciones</span>
+      </NavLink>
 
       {!isAuthenticated && (
         <NavLink to="/login" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
@@ -266,6 +264,11 @@ function BottomNav({ isAuthenticated, usuarioSesion, onLogout }) {
       <NavLink to="/home" end className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
         <IconHome />
         <span>Inicio</span>
+      </NavLink>
+
+      <NavLink to="/organizaciones" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+        <IconUsers />
+        <span>Organizaciones</span>
       </NavLink>
 
       {isAuthenticated ? (
@@ -427,16 +430,6 @@ function HomePage({ isAuthenticated }) {
           Encuentra organizaciones y causas que necesitan tu apoyo. Cada donacion cuenta para crear un mundo mejor.
         </p>
       </section>
-
-      {!isAuthenticated && (
-        <section className="auth-cta-panel">
-          <p>Para donar, ver tu historial y perfil, inicia sesion o registrate.</p>
-          <div className="auth-cta-actions">
-            <Link to="/login" className="campaign-button auth-cta-button">Iniciar sesion</Link>
-            <Link to="/signup" className="campaign-button auth-cta-button">Registrarme</Link>
-          </div>
-        </section>
-      )}
 
       <section className="search-panel search-panel-extended">
         <div className="search-box">
@@ -1113,19 +1106,12 @@ function AppShell() {
 
           <Route
             path="/organizaciones"
-            element={(
-              <ProtectedRoute usuarioSesion={usuarioSesion} requiredRole="administrador">
-                <OrganizacionesPage />
-              </ProtectedRoute>
-            )}
+            element={(<OrganizacionesPage /> )}
           />
 
           <Route
-            path="/organizacion/:id"
-            element={(
-              <ProtectedRoute usuarioSesion={usuarioSesion} requiredRole="administrador">
-                <OrgaDetailPage />
-              </ProtectedRoute>
+            path="/organizaciones/:id"
+            element={(<OrgaDetailPage />
             )}
           />
 
