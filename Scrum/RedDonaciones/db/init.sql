@@ -201,9 +201,6 @@ VALUES
     (2, 2, 1, 1, 'Jornada de ropa infantil', 'Donaciones de ropa para ninos.', 90, 90, '2026-03-15', '2026-03-30', 'finalizada',
      'https://placehold.co/600x340/b8d5c8/1e3d2e?text=Hogar+La+Esperanza');
 
--- Migración: agregar imagen_url a registros existentes si la columna no existía antes
-ALTER TABLE publicacion ADD COLUMN IF NOT EXISTS imagen_url VARCHAR(500) NULL;
-
 -- Actualizar URLs en registros ya existentes que no tengan imagen
 UPDATE publicacion SET imagen_url = 'https://placehold.co/600x340/d4c5a9/5c3d1e?text=Asilo+El+Refugio'
     WHERE id_publicacion = 1 AND (imagen_url IS NULL OR imagen_url = '');

@@ -11,14 +11,34 @@ logging.basicConfig(level=logging.INFO)
 
 publicacion_bp = Blueprint("publicacion", __name__)
 
+
+def publicacion_tiene_imagen_url(cursor):
+    cursor.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'publicacion'
+          AND COLUMN_NAME = 'imagen_url'
+        """
+    )
+    row = cursor.fetchone()
+
+    if isinstance(row, dict):
+        return row.get("total", 0) > 0
+
+    return bool(row and row[0] > 0)
+
+
 # Ruta para obtener la lista de publicaciones
 @publicacion_bp.route("/publicaciones", methods=["GET"])
 def listar_publicaciones():
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
+        imagen_select = "p.imagen_url," if publicacion_tiene_imagen_url(cursor) else "NULL AS imagen_url,"
 
-        sql = """
+        sql = f"""
         SELECT
             p.id_publicacion,
             p.titulo,
@@ -28,7 +48,7 @@ def listar_publicaciones():
             p.estado,
             p.fecha_publicacion,
             p.fecha_limite,
-            p.imagen_url,
+            {imagen_select}
 
             o.nombre AS organizacion,
             o.direccion AS direccion,
@@ -88,18 +108,16 @@ def crear_publicacion():
         cursor = conn.cursor()
 
         imagen_url = data.get("imagen_url") or None
+        tiene_imagen_url = publicacion_tiene_imagen_url(cursor)
 
-        sql = """
-        INSERT INTO publicacion (
+        columnas = """
             id_intermediario, id_organizacion, id_articulo,
             titulo, descripcion, cantidad_necesaria,
             cantidad_recibida, fecha_publicacion,
-            fecha_limite, estado, imagen_url
-        )
-        VALUES (%s, %s, %s, %s, %s, %s, 0, %s, %s, %s, %s)
+            fecha_limite, estado
         """
-
-        cursor.execute(sql, (
+        placeholders = "%s, %s, %s, %s, %s, %s, 0, %s, %s, %s"
+        valores = [
             data.get("id_intermediario"),
             data.get("id_organizacion"),
             data.get("id_articulo"),
@@ -108,9 +126,20 @@ def crear_publicacion():
             data.get("cantidad_necesaria"),
             data.get("fecha_publicacion"),
             data.get("fecha_limite"),
-            data.get("estado"),
-            imagen_url
-        ))
+            data.get("estado")
+        ]
+
+        if tiene_imagen_url:
+            columnas += ", imagen_url"
+            placeholders += ", %s"
+            valores.append(imagen_url)
+
+        sql = f"""
+        INSERT INTO publicacion ({columnas})
+        VALUES ({placeholders})
+        """
+
+        cursor.execute(sql, tuple(valores))
 
         conn.commit()
         cursor.close()
@@ -190,8 +219,9 @@ def obtener_publicacion(id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
+        imagen_select = "p.imagen_url," if publicacion_tiene_imagen_url(cursor) else "NULL AS imagen_url,"
 
-        publicacion_sql = """
+        publicacion_sql = f"""
         SELECT
             p.id_publicacion,
             p.id_articulo,
@@ -200,7 +230,7 @@ def obtener_publicacion(id):
             p.cantidad_necesaria,
             p.cantidad_recibida,
             p.estado,
-            p.imagen_url,
+            {imagen_select}
             DATE_FORMAT(p.fecha_publicacion, '%Y-%m-%d') AS fecha_publicacion,
             DATE_FORMAT(p.fecha_limite, '%Y-%m-%d') AS fecha_limite,
 
