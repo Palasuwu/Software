@@ -1,4 +1,5 @@
 import React from 'react'
+import { motion } from 'framer-motion'
 import {
   BrowserRouter as Router,
   Routes,
@@ -152,7 +153,12 @@ function DonationCard({ org }) {
   const navigate = useNavigate()
 
   return (
-    <article className="campaign-card" onClick={() => navigate(`/detalle/${org.id}`)}>
+    <motion.article
+      className="campaign-card"
+      whileTap={{ scale: 0.985 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+      onClick={() => navigate(`/detalle/${org.id}`)}
+    >
       <div className="campaign-image-wrap">
         <img
           className="campaign-image"
@@ -199,7 +205,7 @@ function DonationCard({ org }) {
           Ver detalle
         </button>
       </div>
-    </article>
+    </motion.article>
   )
 }
 

@@ -1,10 +1,38 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { motion, useReducedMotion } from 'framer-motion'
 import { obtenerUsuarioSesion } from '../utils/session'
+
+const EASE_OUT_EXPO = [0.16, 1, 0.3, 1]
+
+const pageVariants = {
+  hidden: { opacity: 0, y: 8, scale: 0.985 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.38,
+      ease: EASE_OUT_EXPO,
+      staggerChildren: 0.05,
+      delayChildren: 0.08
+    }
+  }
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 6 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.28, ease: EASE_OUT_EXPO }
+  }
+}
 
 export default function DetailPage() {
   const navigate = useNavigate()
   const { id } = useParams()
+  const prefersReducedMotion = useReducedMotion()
 
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
@@ -110,24 +138,33 @@ export default function DetailPage() {
     }
   }
 
-  if (loading) return <div className="empty-box">Cargando detalle...</div>
-  if (error)   return <div className="empty-box">{error}</div>
-  if (!info)   return <div className="empty-box">No encontrado</div>
-
-  const pct = info.cantidad_necesaria > 0
+  const pct = info && info.cantidad_necesaria > 0
     ? Math.min(100, Math.round((info.cantidad_recibida / info.cantidad_necesaria) * 100))
     : 0
 
   return (
-    <div className="dp-page fade-in">
-      <button className="dp-back" onClick={() => navigate(-1)}>
+    <motion.div
+      className="dp-page"
+      variants={prefersReducedMotion ? undefined : pageVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {loading ? (
+        <div className="empty-box">Cargando detalle...</div>
+      ) : error ? (
+        <div className="empty-box">{error}</div>
+      ) : !info ? (
+        <div className="empty-box">No encontrado</div>
+      ) : (
+        <>
+      <motion.button variants={itemVariants} className="dp-back" onClick={() => navigate(-1)}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <polyline points="15 18 9 12 15 6" />
         </svg>
         Volver
-      </button>
+      </motion.button>
 
-      <div className="dp-layout">
+      <motion.div variants={itemVariants} className="dp-layout">
 
         {/* ── COLUMNA IZQUIERDA ── */}
         <div className="dp-left">
@@ -346,7 +383,9 @@ export default function DetailPage() {
           </div>
         </div>
 
-      </div>
-    </div>
+      </motion.div>
+        </>
+      )}
+    </motion.div>
   )
 }
