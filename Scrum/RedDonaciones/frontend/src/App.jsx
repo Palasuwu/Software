@@ -20,6 +20,7 @@ import AuthPage from './pages/AuthPage'
 import DonationHistoryDetailPage from './pages/DonationHistoryDetailPage'
 import LandingPage from './pages/LandingPage'
 import OrganizacionesPage from './pages/OrganizacionesPage'
+import OrgaDetailPage from './pages/OrgaDetailPage'
 import AdminPanel from './pages/AdminPanel'
 import { fetchWithAuth } from './utils/api'
 import { obtenerTokenSesion, obtenerUsuarioSesion, limpiarUsuarioSesion, limpiarTokenSesion, guardarUsuarioSesion } from './utils/session'
@@ -1115,6 +1116,15 @@ function AppShell() {
             element={(
               <ProtectedRoute usuarioSesion={usuarioSesion} requiredRole="administrador">
                 <OrganizacionesPage />
+              </ProtectedRoute>
+            )}
+          />
+
+          <Route
+            path="/organizacion/:id"
+            element={(
+              <ProtectedRoute usuarioSesion={usuarioSesion} requiredRole="administrador">
+                <OrgaDetailPage />
               </ProtectedRoute>
             )}
           />

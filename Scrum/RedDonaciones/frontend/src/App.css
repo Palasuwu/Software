@@ -346,27 +346,27 @@ a {
 
 .filter-box select {
   width: 100%;
-  padding: 0 20px;
+  padding: 0 14px;
   outline: none;
   color: var(--text);
   cursor: pointer;
 }
 
 .btn-filter-reset {
-  height: 74px;
+  height: 58px;
   border: none;
-  border-radius: 20px;
-  background: var(--text);
+  border-radius: var(--radius-sm);
+  background: var(--secondary);
   color: #fff;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.15s ease, opacity 0.2s ease;
 }
 
 .btn-filter-reset:hover {
   transform: translateY(-1px);
   opacity: 0.92;
 }
+
 
 .active-filters-text {
   margin: -16px 0 22px;
@@ -2564,6 +2564,125 @@ a {
    ORGANIZACIONES PAGE — op-* namespace
    ============================================================ */
 
+.org-directory-page {
+  display: grid;
+  gap: 22px;
+}
+
+.org-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+@media (max-width: 1040px) {
+  .org-directory-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .org-directory-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.org-directory-card {
+  background: var(--surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+  cursor: pointer;
+  padding: 22px;
+}
+
+.org-directory-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-muted);
+}
+
+.org-directory-card p {
+  margin: 0 0 18px;
+  color: var(--text-soft);
+  font-size: 0.98rem;
+  line-height: 1.7;
+  min-height: 66px;
+}
+
+.org-directory-card .org-admin-row-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.org-directory-card .org-admin-row-title h3 {
+  margin: 0;
+  font-size: 1.12rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--text);
+}
+
+.org-directory-card .org-admin-meta {
+  display: grid;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.org-directory-card .org-admin-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--outline-soft);
+  background: var(--surface-soft);
+}
+
+.org-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 1px solid var(--outline);
+  background: var(--surface);
+  color: var(--text-soft);
+}
+
+.org-status-verificada {
+  color: var(--success);
+  background: #eef8f1;
+  border-color: #cde7d5;
+}
+
+.org-status-pendiente {
+  color: var(--warning);
+  background: #fff8ea;
+  border-color: #f0dfb5;
+}
+
+.org-status-rechazada {
+  color: var(--danger);
+  background: #fff4f2;
+  border-color: #f1d1cd;
+}
+
+.org-status-inactiva {
+  color: var(--secondary);
+  background: #eef4fb;
+  border-color: #d8e3f3;
+}
+
 .op-page {
   display: grid;
   gap: 24px;
@@ -3933,6 +4052,105 @@ a {
   .dp-form-body { padding: 18px 16px 24px; }
   .dp-stats { grid-template-columns: repeat(2, 1fr); }
   .dp-row { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   ORGANIZATION DETAIL PAGE — org-detail-* namespace
+   ============================================================ */
+
+.org-detail-header {
+  background: linear-gradient(135deg, var(--primary-soft) 0%, var(--secondary-soft) 100%);
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  margin-bottom: 36px;
+  box-shadow: var(--shadow-sm);
+}
+
+.org-detail-status {
+  display: inline-block;
+  margin-bottom: 18px;
+}
+
+.org-detail-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 12px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.org-detail-desc {
+  font-size: 1.05rem;
+  color: var(--text-soft);
+  margin: 0 0 28px;
+  line-height: 1.75;
+}
+
+.org-detail-contact {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.contact-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.contact-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.contact-value {
+  font-size: 1rem;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.org-detail-section {
+  margin-bottom: 48px;
+}
+
+.org-detail-section .section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.org-detail-section .section-count {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: var(--surface-tinted);
+  border: 1px solid var(--outline);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .org-detail-header {
+    padding: 28px;
+  }
+
+  .org-detail-title {
+    font-size: 2rem;
+  }
+
+  .org-detail-contact {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

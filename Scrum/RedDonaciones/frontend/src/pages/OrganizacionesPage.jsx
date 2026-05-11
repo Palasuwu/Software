@@ -1,5 +1,8 @@
+// Página donde se miran todas las organizaciones registradas y activas 
+
 import React from 'react'
 import { apiGet } from '../utils/api'
+import { useNavigate } from 'react-router-dom'
 
 function estadoLabel(estado) {
   const labels = {
@@ -13,6 +16,7 @@ function estadoLabel(estado) {
 }
 
 function OrganizacionesPage() {
+  const navigate = useNavigate()
   const [organizaciones, setOrganizaciones] = React.useState([])
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState('')
@@ -34,10 +38,9 @@ function OrganizacionesPage() {
   return (
     <div className="fade-in org-directory-page">
       <header className="org-admin-header">
-        <p className="page-kicker">Directorio</p>
         <h1 className="page-title">Organizaciones</h1>
         <p className="page-subtitle">
-          Consulta las organizaciones registradas y su estado de verificacion dentro de la red de donaciones.
+          Estas son las organizaciones que estan dentro de nuestra red de donaciones
         </p>
       </header>
 
@@ -46,7 +49,7 @@ function OrganizacionesPage() {
         {error && <div className="error-box">{error}</div>}
 
         {!loading && !error && organizaciones.length === 0 && (
-          <div className="empty-box">No hay organizaciones registradas.</div>
+          <div className="empty-box">No hay organizaciones registradas</div>
         )}
 
         {!loading && !error && organizaciones.map((org) => (
@@ -61,8 +64,14 @@ function OrganizacionesPage() {
             <div className="org-admin-meta">
               <span>{org.direccion || 'Sin direccion'}</span>
               <span>{org.telefono || 'Sin telefono'}</span>
-              <span>{org.correo || 'Sin correo'}</span>
+              <span> {org.correo || 'Sin correo'}</span>
             </div>
+            <button 
+              className="campaign-button"
+              onClick={() => navigate(`/organizacion/${org.id_organizacion}`)}
+            >
+              Ver más
+            </button>
           </article>
         ))}
       </section>

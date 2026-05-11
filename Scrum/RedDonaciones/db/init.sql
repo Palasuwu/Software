@@ -150,8 +150,8 @@ VALUES
 -- ORGANIZACIONES
 INSERT IGNORE INTO organizacion (id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion)
 VALUES
-    (1, 'Hogar de Ninos La Esperanza', 'Apoyo integral para ninos en situacion de vulnerabilidad.', 'Zona Centro, Ciudad', '3100000001', 'contacto@laesperanza.org', 'verificada'),
-    (2, 'Asilo de Ancianos El Refugio', 'Cuidado y apoyo para adultos mayores en situacion de vulnerabilidad.', 'Barrio San Juan, Ciudad', '3100000002', 'contacto@elrefugio.org', 'verificada');
+    (1, 'Hogar de Ninos La Esperanza', 'Apoyo integral para niños en situación de vulnerabilidad.', 'Zona Centro, Ciudad', '3100000001', 'contacto@laesperanza.org', 'verificada'),
+    (2, 'Asilo de Ancianos El Refugio', 'Cuidado y apoyo para adultos mayores en situación de vulnerabilidad.', 'Barrio San Juan, Ciudad', '3100000002', 'contacto@elrefugio.org', 'verificada');
 
 -- DONANTE
 INSERT IGNORE INTO donante (id_usuario, departamento, municipio, zona, direccion_detalle)
@@ -167,7 +167,7 @@ VALUES
 -- CATEGORIA
 INSERT IGNORE INTO categoria_articulo (id_categoria, nombre, descripcion)
 VALUES
-    (1, 'Ropa', 'Prendas de vestir para ninos, jovenes y adultos.');
+    (1, 'Ropa', 'Prendas de vestir para niños, jovenes y adultos.');
 
 -- ARTICULO
 INSERT IGNORE INTO articulo (id_articulo, nombre, descripcion, id_categoria)
