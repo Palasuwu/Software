@@ -172,7 +172,16 @@ export default function MisDonacionesPage() {
           </div>
 
           {donacionesFiltradas.length === 0 ? (
-            <div className="empty-box">No hay donaciones registradas para este donante.</div>
+            donaciones.length === 0 ? (
+              <div className="empty-box">
+                <p>Todavía no registraste ninguna donación.</p>
+                <button className="campaign-button" style={{ marginTop: '12px' }} onClick={() => navigate('/home')}>
+                  Explorar campañas
+                </button>
+              </div>
+            ) : (
+              <div className="empty-box">No hay donaciones en esta categoría.</div>
+            )
           ) : (
             <div className="donations-list-figma">
               {donacionesFiltradas.map((donacion) => {

@@ -53,7 +53,12 @@ function OrganizacionesPage() {
         )}
 
         {!loading && !error && organizaciones.map((org) => (
-          <article className="org-directory-card" key={org.id_organizacion}>
+          <article
+            className="org-directory-card"
+            key={org.id_organizacion}
+            onClick={() => navigate(`/organizaciones/${org.id_organizacion}`)}
+            style={{ cursor: 'pointer' }}
+          >
             <div className="org-admin-row-title">
               <h3>{org.nombre}</h3>
               <span className={`org-status org-status-${org.estado_verificacion}`}>
@@ -66,9 +71,12 @@ function OrganizacionesPage() {
               <span>{org.telefono || 'Sin telefono'}</span>
               <span> {org.correo || 'Sin correo'}</span>
             </div>
-            <button 
+            <button
               className="campaign-button"
-              onClick={() => navigate(`/organizaciones/${org.id_organizacion}`)}
+              onClick={(e) => {
+                e.stopPropagation()
+                navigate(`/organizaciones/${org.id_organizacion}`)
+              }}
             >
               Ver más
             </button>
