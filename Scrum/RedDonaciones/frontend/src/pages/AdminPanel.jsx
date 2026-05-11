@@ -415,6 +415,15 @@ export default function AdminPanel({ usuarioSesion }) {
     const [usersError, setUsersError] = React.useState('')
     const [campaignsError, setCampaignsError] = React.useState('')
     const [orgError, setOrgError] = React.useState('')
+    const [orgForm, setOrgForm] = React.useState({
+        nombre: '',
+        descripcion: '',
+        direccion: '',
+        telefono: '',
+        correo: '',
+        estado_verificacion: 'pendiente'
+    })
+    const [orgFormErrors, setOrgFormErrors] = React.useState({})
     const [successMessage, setSuccessMessage] = React.useState('')
     const [modal, setModal] = React.useState(null)
     const [userForm, setUserForm] = React.useState(USER_INITIAL_FORM)
@@ -493,6 +502,12 @@ export default function AdminPanel({ usuarioSesion }) {
 
         return () => window.clearInterval(intervalId)
     }, [activeTab, loadCampaigns])
+
+    React.useEffect(() => {
+        if (activeTab === 'organizaciones') {
+            ensureOrganizations()
+        }
+    }, [activeTab, ensureOrganizations])
 
     React.useEffect(() => {
         if (modal && userForm.rol === 'intermediario') {
@@ -591,6 +606,81 @@ export default function AdminPanel({ usuarioSesion }) {
     const openDeleteUser = (usuario) => {
         clearFeedback()
         setModal({ type: 'deleteUser', usuario })
+    }
+
+    const openCreateOrg = () => {
+        clearFeedback()
+        setOrgForm({
+            nombre: '',
+            descripcion: '',
+            direccion: '',
+            telefono: '',
+            correo: '',
+            estado_verificacion: 'pendiente'
+        })
+        setOrgFormErrors({})
+        setModal({ type: 'createOrg' })
+    }
+
+    const openEditOrg = (org) => {
+        clearFeedback()
+        setOrgForm({
+            nombre: org.nombre || '',
+            descripcion: org.descripcion || '',
+            direccion: org.direccion || '',
+            telefono: org.telefono || '',
+            correo: org.correo || '',
+            estado_verificacion: org.estado_verificacion || 'pendiente'
+        })
+        setModal({ type: 'editOrg', org })
+    }
+
+    const handleOrgChange = (event) => {
+        const { name, value } = event.target
+        setOrgForm((previous) => ({
+            ...previous,
+            [name]: value
+        }))
+    }
+
+    const submitOrgForm = async (event) => {
+        event.preventDefault()
+
+        setModalError('')
+        setIsSubmitting(true)
+
+        try {
+            if (modal?.type === 'editOrg') {
+                await apiPut(`/api/organizaciones/${modal.org.id_organizacion}`, orgForm)
+                setSuccessMessage('Organizacion actualizada')
+            } else {
+                await apiPost('/api/organizaciones', orgForm)
+                setSuccessMessage('Organizacion creada')
+            }
+
+            await ensureOrganizations()
+            closeModal()
+        } catch (error) {
+            setModalError(error.message || 'Error guardando organizacion')
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    const handleDeactivateOrg = async (org) => {
+        setIsSubmitting(true)
+        setModalError('')
+        setSuccessMessage('')
+
+        try {
+            await apiDelete(`/api/organizaciones/${org.id_organizacion}`)
+            setSuccessMessage('Organizacion desactivada')
+            await ensureOrganizations()
+        } catch (error) {
+            setModalError(error.message || 'No se pudo desactivar la organizacion')
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     const submitUserForm = async (event) => {
@@ -833,7 +923,103 @@ export default function AdminPanel({ usuarioSesion }) {
             )
         }
 
-        if (modal?.type === 'deleteUser') {
+        if (modal?.type === 'createOrg' || modal?.type === 'editOrg') {
+            return (
+                <AdminModal
+                    title={modal.type === 'editOrg' ? 'Editar organizacion' : 'Nueva organizacion'}
+                    description={modal.type === 'editOrg' ? 'Actualiza los datos de la organizacion.' : 'Crea una organizacion en la plataforma'}
+                    onClose={closeModal}
+                    footer={(
+                        <>
+                            <button type="button" className="profile-cancel-button" onClick={closeModal} disabled={isSubmitting}>
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                form="org-form"
+                                className="btn-confirmar"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? 'Guardando...' : 'Guardar'}
+                            </button>
+                        </>
+                    )}
+                >
+                    {modalError && <div className="error-box">{modalError}</div>}
+
+                    <form id="org-form" onSubmit={submitOrgForm}>
+                        <div className="form-grid">
+                            <div className="form-field">
+                                <label className="form-label">Nombre</label>
+                                <input
+                                    className="form-input"
+                                    name="nombre"
+                                    value={orgForm.nombre}
+                                    onChange={handleOrgChange}
+                                />
+                            </div>
+
+                            <div className="form-field">
+                                <label className="form-label">Descripcion</label>
+                                <textarea
+                                    className="form-textarea"
+                                    name="descripcion"
+                                    value={orgForm.descripcion}
+                                    onChange={handleOrgChange}
+                                />
+                            </div>
+
+                            <div className="form-field">
+                                <label className="form-label">Direccion</label>
+                                <input
+                                    className="form-input"
+                                    name="direccion"
+                                    value={orgForm.direccion}
+                                    onChange={handleOrgChange}
+                                />
+                            </div>
+
+                            <div className="form-field">
+                                <label className="form-label">Telefono</label>
+                                <input
+                                    className="form-input"
+                                    name="telefono"
+                                    value={orgForm.telefono}
+                                    onChange={handleOrgChange}
+                                />
+                            </div>
+
+                            <div className="form-field">
+                                <label className="form-label">Correo</label>
+                                <input
+                                    className="form-input"
+                                    name="correo"
+                                    value={orgForm.correo}
+                                    onChange={handleOrgChange}
+                                />
+                            </div>
+
+                            <div className="form-field">
+                                <label className="form-label">Estado</label>
+                                <select
+                                    className="form-select"
+                                    name="estado_verificacion"
+                                    value={orgForm.estado_verificacion}
+                                    onChange={handleOrgChange}
+                                >
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="verificada">Verificada</option>
+                                    <option value="rechazada">Rechazada</option>
+                                    <option value="inactiva">Inactiva</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </AdminModal>
+            )
+        }
+
+        if (modal?.type === 'createOrg') {
             return (
                 <AdminModal
                     title="Eliminar usuario"
@@ -903,6 +1089,14 @@ export default function AdminPanel({ usuarioSesion }) {
                     </button>
                     <button
                         type="button"
+                        className={`admin-tab-button ${activeTab === 'organizaciones' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('organizaciones')}
+                    >
+                        <IconUsers />
+                        <span>Organizaciones</span>
+                    </button>
+                    <button
+                        type="button"
                         className={`admin-tab-button ${activeTab === 'campanas' ? 'active' : ''}`}
                         onClick={() => setActiveTab('campanas')}
                     >
@@ -925,6 +1119,76 @@ export default function AdminPanel({ usuarioSesion }) {
                                 </button>
                             </div>
                             {renderUsersTable()}
+                        </>
+                    ) : activeTab === 'organizaciones' ? (
+                        <>
+                            <div className="admin-section-head">
+                                <div>
+                                    <h2>Gestion de organizaciones</h2>
+                                    <p>Administra organizaciones registradas en la plataforma.</p>
+                                </div>
+                                <button type="button" className="admin-primary-action" onClick={openCreateOrg}>
+                                    <IconPlus />
+                                    <span>Nueva Organizacion</span>
+                                </button>
+                            </div>
+
+                            {orgError && <ErrorView message={orgError} onRetry={ensureOrganizations} />}
+                            {orgLoading && <div className="empty-box">Cargando organizaciones...</div>}
+                            {!orgLoading && !orgError && organizaciones.length === 0 && (
+                                <div className="empty-box">No hay organizaciones registradas.</div>
+                            )}
+                            {!orgLoading && !orgError && organizaciones.length > 0 && (
+                                <div className="admin-table-wrap">
+                                    <table className="admin-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Organizacion</th>
+                                                <th>Estado</th>
+                                                <th>Direccion</th>
+                                                <th>Telefono</th>
+                                                <th>Correo</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {organizaciones.map((org) => (
+                                                <tr key={org.id_organizacion}>
+                                                    <td>
+                                                        <div className="admin-table-primary">{org.nombre}</div>
+                                                        <div className="admin-table-muted">{org.descripcion || 'Sin descripcion'}</div>
+                                                    </td>
+                                                    <td>{org.estado_verificacion || 'Sin estado'}</td>
+                                                    <td>{org.direccion || '-'}</td>
+                                                    <td>{org.telefono || '-'}</td>
+                                                    <td>{org.correo || '-'}</td>
+                                                    <td>
+                                                        <div className="admin-row-actions">
+                                                            <button
+                                                                type="button"
+                                                                className="admin-icon-button"
+                                                                onClick={() => openEditOrg(org)}
+                                                                aria-label={`Editar ${org.nombre}`}
+                                                            >
+                                                                <IconEdit />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                className="admin-icon-button admin-icon-button-danger"
+                                                                onClick={() => handleDeactivateOrg(org)}
+                                                                disabled={isSubmitting}
+                                                                aria-label={`Desactivar ${org.nombre}`}
+                                                            >
+                                                                <IconTrash />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
                         </>
                     ) : (
                         <>

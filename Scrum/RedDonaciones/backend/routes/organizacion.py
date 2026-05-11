@@ -4,16 +4,11 @@ import logging
 from flask import Blueprint, jsonify, request
 
 from db.connection import get_db_connection
+from auth_utils import admin_required, token_required
 
 logging.basicConfig(level=logging.INFO)
 
 organizacion_bp = Blueprint("organizacion", __name__)
-
-
-def validar_admin():
-    if request.headers.get("X-User-Role") != "administrador":
-        return jsonify({"error": "Permisos insuficientes para administrar organizaciones"}), 403
-    return None
 
 
 def normalizar_organizacion_payload(data):
@@ -86,14 +81,12 @@ def listar_organizaciones():
 
 
 @organizacion_bp.route("/organizaciones", methods=["POST"])
+@admin_required
 def crear_organizacion():
     conn = None
     cursor = None
 
     try:
-        permiso_error = validar_admin()
-        if permiso_error:
-            return permiso_error
 
         payload, errores = normalizar_organizacion_payload(request.get_json() or {})
         if errores:
@@ -136,14 +129,12 @@ def crear_organizacion():
 
 
 @organizacion_bp.route("/organizaciones/<int:id_organizacion>", methods=["PUT"])
+@admin_required
 def actualizar_organizacion(id_organizacion):
     conn = None
     cursor = None
 
     try:
-        permiso_error = validar_admin()
-        if permiso_error:
-            return permiso_error
 
         payload, errores = normalizar_organizacion_payload(request.get_json() or {})
         if errores:
@@ -195,14 +186,12 @@ def actualizar_organizacion(id_organizacion):
 
 
 @organizacion_bp.route("/organizaciones/<int:id_organizacion>", methods=["DELETE"])
+@admin_required
 def desactivar_organizacion(id_organizacion):
     conn = None
     cursor = None
 
     try:
-        permiso_error = validar_admin()
-        if permiso_error:
-            return permiso_error
 
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
