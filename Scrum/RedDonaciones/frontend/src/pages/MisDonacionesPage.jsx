@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { obtenerUsuarioSesion } from '../utils/session'
+import { apiGet } from '../utils/api'
 import Spinner from '../components/Spinner'
 import ErrorView from '../components/ErrorView'
 
@@ -75,12 +76,10 @@ export default function MisDonacionesPage() {
       return
     }
 
-    fetch(`/api/donaciones?id_donante=${usuario.id_usuario}`)
-      .then(async (res) => {
-        const body = await res.json().catch(() => null)
-        if (!res.ok) throw new Error(body?.error || 'No fue posible obtener tus donaciones')
-        if (!Array.isArray(body)) throw new Error('Respuesta invalida del servidor')
-        setDonaciones(body)
+    apiGet(`/api/donaciones?id_donante=${usuario.id_usuario}`)
+      .then((data) => {
+        if (!Array.isArray(data)) throw new Error('Respuesta invalida del servidor')
+        setDonaciones(data)
       })
       .catch((err) => {
         setError(err.message || 'No fue posible obtener tus donaciones')

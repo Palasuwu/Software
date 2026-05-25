@@ -4,7 +4,7 @@ import logging
 from flask import Blueprint, jsonify, request
 
 from db.connection import get_db_connection
-from auth_utils import admin_required, token_required
+from auth_utils import admin_required
 
 logging.basicConfig(level=logging.INFO)
 

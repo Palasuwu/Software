@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { obtenerUsuarioSesion } from '../utils/session'
+import { apiGet, apiPost } from '../utils/api'
 
 const EASE_OUT_EXPO = [0.16, 1, 0.3, 1]
 
@@ -51,10 +52,8 @@ export default function DetailPage() {
   })
 
   useEffect(() => {
-    fetch(`/api/publicaciones/${id}`)
-      .then(async (res) => {
-        const body = await res.json().catch(() => null)
-        if (!res.ok) throw new Error(body?.error || 'Error cargando detalle')
+    apiGet(`/api/publicaciones/${id}`)
+      .then((body) => {
         if (!Array.isArray(body)) throw new Error('Respuesta invalida del servidor')
         return body
       })
@@ -110,7 +109,6 @@ export default function DetailPage() {
     ].filter(Boolean).join(' | ')
 
     const payload = {
-      id_donante: usuario.id_usuario,
       id_publicacion: info.id_publicacion,
       descripcion: descripcionDonacion,
       nombre_contacto: form.nombre.trim(),
@@ -122,13 +120,7 @@ export default function DetailPage() {
     }
 
     try {
-      const response = await fetch('/api/donaciones', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      const body = await response.json().catch(() => null)
-      if (!response.ok) throw new Error(body?.error || 'No se pudo registrar la donacion')
+      await apiPost('/api/donaciones', payload)
       setSubmitSuccess(true)
       setTimeout(() => navigate('/donaciones'), 1400)
     } catch (err) {

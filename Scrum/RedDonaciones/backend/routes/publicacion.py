@@ -4,7 +4,7 @@ from flask import Blueprint, request, jsonify
 from datetime import datetime
 import logging
 from db.connection import get_db_connection
-from auth_utils import admin_required
+from auth_utils import admin_required, token_required
 
 # Log exceptions for easier debugging without leaking details to clients
 logging.basicConfig(level=logging.INFO)
@@ -81,6 +81,7 @@ def listar_publicaciones():
 
 # Ruta para crear una nueva publicación
 @publicacion_bp.route("/publicaciones", methods=["POST"])
+@admin_required
 def crear_publicacion():
     try:
         data = request.get_json()
@@ -342,6 +343,7 @@ def obtener_publicacion(id):
 
 # Ruta para obtener donaciones (filtro opcional por donante)
 @publicacion_bp.route("/donaciones", methods=["GET"])
+@token_required
 def listar_donaciones():
     id_donante = request.args.get("id_donante")
 
@@ -351,30 +353,29 @@ def listar_donaciones():
         except ValueError:
             return jsonify({"error": "id_donante debe ser un entero"}), 400
 
+    if request.usuario_rol != "administrador":
+        if id_donante is not None and id_donante != request.usuario_id:
+            return jsonify({"error": "No autorizado para consultar donaciones de otro usuario"}), 403
+        id_donante = request.usuario_id
+
+    conn = None
+    cursor = None
+
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
         sql = """
         SELECT
-            d.id_donacion,
-            d.id_donante,
-            d.id_publicacion,
-            d.descripcion,
-            d.nombre_contacto,
-            d.telefono_contacto,
+            d.id_donacion, d.id_donante, d.id_publicacion, d.descripcion,
+            d.nombre_contacto, d.telefono_contacto,
             DATE_FORMAT(d.hora_preferida, '%H:%i') AS hora_preferida,
-            d.nota,
-            d.cantidad_donada,
+            d.nota, d.cantidad_donada,
             DATE_FORMAT(d.fecha_donacion, '%Y-%m-%d') AS fecha_donacion,
-            p.titulo AS publicacion_titulo,
-            p.descripcion AS publicacion_descripcion,
-            p.estado AS publicacion_estado,
-            p.cantidad_necesaria,
-            p.cantidad_recibida,
+            p.titulo AS publicacion_titulo, p.descripcion AS publicacion_descripcion,
+            p.estado AS publicacion_estado, p.cantidad_necesaria, p.cantidad_recibida,
             DATE_FORMAT(p.fecha_limite, '%Y-%m-%d') AS fecha_limite,
-            o.nombre AS organizacion_nombre,
-            o.direccion AS organizacion_direccion,
+            o.nombre AS organizacion_nombre, o.direccion AS organizacion_direccion,
             c.nombre AS categoria
         FROM donacion d
         JOIN publicacion p ON p.id_publicacion = d.id_publicacion
@@ -390,22 +391,15 @@ def listar_donaciones():
             cursor.execute(sql, (id_donante, id_donante))
             donaciones = cursor.fetchall()
         except Exception:
-            logging.exception("Error listing donaciones with enriched fields, falling back to simpler query")
+            logging.exception("Error en query enriquecido, ejecutando fallback_sql")
             fallback_sql = """
             SELECT
-                d.id_donacion,
-                d.id_donante,
-                d.id_publicacion,
-                d.descripcion,
+                d.id_donacion, d.id_donante, d.id_publicacion, d.descripcion,
                 DATE_FORMAT(d.fecha_donacion, '%Y-%m-%d') AS fecha_donacion,
-                p.titulo AS publicacion_titulo,
-                p.descripcion AS publicacion_descripcion,
-                p.estado AS publicacion_estado,
-                p.cantidad_necesaria,
-                p.cantidad_recibida,
+                p.titulo AS publicacion_titulo, p.descripcion AS publicacion_descripcion,
+                p.estado AS publicacion_estado, p.cantidad_necesaria, p.cantidad_recibida,
                 DATE_FORMAT(p.fecha_limite, '%Y-%m-%d') AS fecha_limite,
-                o.nombre AS organizacion_nombre,
-                o.direccion AS organizacion_direccion,
+                o.nombre AS organizacion_nombre, o.direccion AS organizacion_direccion,
                 c.nombre AS categoria
             FROM donacion d
             JOIN publicacion p ON p.id_publicacion = d.id_publicacion
@@ -419,9 +413,6 @@ def listar_donaciones():
             cursor.execute(fallback_sql, (id_donante, id_donante))
             donaciones = cursor.fetchall()
 
-        cursor.close()
-        conn.close()
-
         return jsonify(donaciones), 200
 
     except Exception as e:
@@ -429,10 +420,16 @@ def listar_donaciones():
             "error": "Error al listar donaciones",
             "detalle": str(e)
         }), 500
-
+        
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 # Ruta para obtener el detalle de una donación por su ID
 @publicacion_bp.route("/donaciones/<int:id_donacion>", methods=["GET"])
+@token_required
 def obtener_detalle_donacion(id_donacion):
     try:
         conn = get_db_connection()
@@ -513,6 +510,11 @@ def obtener_detalle_donacion(id_donacion):
             conn.close()
             return jsonify({"error": "Donación no encontrada"}), 404
 
+        if request.usuario_rol != "administrador" and donacion["id_donante"] != request.usuario_id:
+            cursor.close()
+            conn.close()
+            return jsonify({"error": "No autorizado para consultar esta donacion"}), 403
+
         articulos_sql = """
         SELECT
             a.id_articulo,
@@ -542,6 +544,7 @@ def obtener_detalle_donacion(id_donacion):
 
 # Ruta para registrar una donación
 @publicacion_bp.route("/donaciones", methods=["POST"])
+@token_required
 def crear_donacion():
     conn = None
     cursor = None
@@ -552,7 +555,7 @@ def crear_donacion():
         if not data:
             return jsonify({"error": "No se enviaron datos"}), 400
 
-        id_donante = data.get("id_donante")
+        id_donante = request.usuario_id
         id_publicacion = data.get("id_publicacion")
         descripcion = data.get("descripcion")
         nombre_contacto = data.get("nombre_contacto")
@@ -563,8 +566,7 @@ def crear_donacion():
         cantidad_donada = data.get("cantidad_donada")
 
         if (
-            not id_donante
-            or not id_publicacion
+            not id_publicacion
             or not descripcion
             or not nombre_contacto
             or not telefono_contacto
@@ -679,13 +681,14 @@ def crear_donacion():
 
     # Ruta para obtener el estado de una donación por su ID
 @publicacion_bp.route("/donaciones/<int:id_donacion>/estado", methods=["GET"])
+@token_required
 def obtener_estado_donacion(id_donacion):
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
         sql = """
-        SELECT d.id_donacion, d.id_publicacion, p.estado
+        SELECT d.id_donacion, d.id_donante, d.id_publicacion, p.estado
         FROM donacion d
         JOIN publicacion p ON p.id_publicacion = d.id_publicacion
         WHERE d.id_donacion = %s
@@ -696,10 +699,13 @@ def obtener_estado_donacion(id_donacion):
         cursor.close()
         conn.close()
 
-        if donacion:
-            return jsonify(donacion), 200
-        else:
+        if not donacion:
             return jsonify({"error": "Donación no encontrada"}), 404
+
+        if request.usuario_rol != "administrador" and donacion["id_donante"] != request.usuario_id:
+            return jsonify({"error": "No autorizado para consultar esta donacion"}), 403
+
+        return jsonify(donacion), 200
 
     except Exception as e:
         return jsonify({

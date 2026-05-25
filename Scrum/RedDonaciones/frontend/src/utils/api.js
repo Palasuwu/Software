@@ -1,12 +1,38 @@
-import { obtenerTokenSesion } from './session'
+import { limpiarTokenSesion, limpiarUsuarioSesion, obtenerHeadersSesion } from './session'
 
-export async function fetchWithAuth(input, init = {}) {
-    const token = obtenerTokenSesion()
-    const headers = new Headers(init.headers || {})
-
-    if (token) {
-        headers.set('Authorization', `Bearer ${token}`)
+export class ApiError extends Error {
+    constructor(message, response, body = null) {
+        super(message)
+        this.name = 'ApiError'
+        this.status = response?.status
+        this.body = body
     }
+}
+
+export function isAuthError(error) {
+    return error?.status === 401 || error?.status === 403
+}
+
+function dispatchAuthEvent(response, body) {
+    if (response.status === 401) {
+        limpiarUsuarioSesion()
+        limpiarTokenSesion()
+        window.dispatchEvent(new CustomEvent('auth:unauthorized', { detail: { status: response.status, body } }))
+        return
+    }
+
+    if (response.status === 403) {
+        window.dispatchEvent(new CustomEvent('auth:forbidden', { detail: { status: response.status, body } }))
+    }
+}
+
+export async function apiFetch(input, init = {}) {
+    const headers = new Headers(obtenerHeadersSesion())
+    const initHeaders = new Headers(init.headers || {})
+
+    initHeaders.forEach((value, key) => {
+        headers.set(key, value)
+    })
 
     return fetch(input, {
         ...init,
@@ -14,11 +40,18 @@ export async function fetchWithAuth(input, init = {}) {
     })
 }
 
-async function parseApiResponse(response) {
+export const fetchWithAuth = apiFetch
+
+export async function parseApiResponse(response) {
     const body = await response.json().catch(() => null)
 
     if (!response.ok) {
-        throw new Error(body?.error || body?.message || 'No se pudo completar la solicitud')
+        dispatchAuthEvent(response, body)
+        throw new ApiError(
+            body?.error || body?.message || 'No se pudo completar la solicitud',
+            response,
+            body
+        )
     }
 
     return body
@@ -37,7 +70,7 @@ function buildJsonInit(method, data, init = {}) {
 }
 
 export async function apiGet(url, init = {}) {
-    const response = await fetchWithAuth(url, {
+    const response = await apiFetch(url, {
         ...init,
         method: 'GET'
     })
@@ -46,17 +79,17 @@ export async function apiGet(url, init = {}) {
 }
 
 export async function apiPost(url, data, init = {}) {
-    const response = await fetchWithAuth(url, buildJsonInit('POST', data, init))
+    const response = await apiFetch(url, buildJsonInit('POST', data, init))
     return parseApiResponse(response)
 }
 
 export async function apiPut(url, data, init = {}) {
-    const response = await fetchWithAuth(url, buildJsonInit('PUT', data, init))
+    const response = await apiFetch(url, buildJsonInit('PUT', data, init))
     return parseApiResponse(response)
 }
 
 export async function apiDelete(url, init = {}) {
-    const response = await fetchWithAuth(url, {
+    const response = await apiFetch(url, {
         ...init,
         method: 'DELETE'
     })

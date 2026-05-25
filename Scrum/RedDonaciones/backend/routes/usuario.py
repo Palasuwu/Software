@@ -2,23 +2,21 @@ from flask import Blueprint, jsonify, request
 import bcrypt
 import mysql.connector
 from db.connection import get_db_connection
-from auth_utils import generate_token, token_required, admin_required, verify_token
+from auth_utils import generate_token, token_required, admin_required
 
 usuario_bp = Blueprint("usuario", __name__)
 
 
-def obtener_payload_admin_desde_request():
-    auth_header = request.headers.get("Authorization", "")
-    parts = auth_header.split(" ")
+def usuario_autorizado_para_id(id_usuario):
+    return request.usuario_rol == "administrador" or request.usuario_id == id_usuario
 
-    if len(parts) != 2 or parts[0] != "Bearer":
+
+def validar_admin_para_registro():
+    @admin_required
+    def _validar():
         return None
 
-    payload = verify_token(parts[1])
-    if payload and payload.get("rol") == "administrador":
-        return payload
-
-    return None
+    return _validar()
 
 # Ruta para obtener la lista de usuarios
 @usuario_bp.route("/usuarios", methods=["GET"])
@@ -52,6 +50,9 @@ def obtener_usuarios():
 def obtener_usuario_por_id(id_usuario):
     conn = None
     cursor = None
+
+    if not usuario_autorizado_para_id(id_usuario):
+        return jsonify({"error": "No autorizado para acceder a este usuario"}), 403
 
     try:
         conn = get_db_connection()
@@ -110,6 +111,9 @@ def obtener_usuario_por_id(id_usuario):
 def actualizar_usuario(id_usuario):
     conn = None
     cursor = None
+
+    if not usuario_autorizado_para_id(id_usuario):
+        return jsonify({"error": "No autorizado para actualizar este usuario"}), 403
 
     try:
         data = request.get_json()
@@ -363,8 +367,10 @@ def crear_usuario():
         if rol not in ("donante", "intermediario", "administrador"):
             return jsonify({"error": "Rol invalido para registro"}), 400
 
-        if rol == "administrador" and not obtener_payload_admin_desde_request():
-            return jsonify({"error": "Solo un administrador puede crear otro administrador"}), 403
+        if rol == "administrador":
+            respuesta_admin = validar_admin_para_registro()
+            if respuesta_admin:
+                return respuesta_admin
 
         if len(password) < 8:
             return jsonify({"error": "El password debe tener al menos 8 caracteres"}), 400

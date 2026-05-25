@@ -23,7 +23,7 @@ import LandingPage from './pages/LandingPage'
 import OrganizacionesPage from './pages/OrganizacionesPage'
 import OrgaDetailPage from './pages/OrgaDetailPage'
 import AdminPanel from './pages/AdminPanel'
-import { fetchWithAuth } from './utils/api'
+import { apiGet, apiPut } from './utils/api'
 import { obtenerTokenSesion, obtenerUsuarioSesion, limpiarUsuarioSesion, limpiarTokenSesion, guardarUsuarioSesion } from './utils/session'
 
 function IconBrand() {
@@ -329,18 +329,12 @@ function HomePage({ isAuthenticated }) {
       setLoading(true)
     }
 
-    return fetch('/api/publicaciones')
-      .then(async (res) => {
-        const body = await res.json().catch(() => null)
-        if (!res.ok) {
-          throw new Error(body?.error || 'No se pudieron cargar las publicaciones')
-        }
-        if (!Array.isArray(body)) {
+    return apiGet('/api/publicaciones')
+      .then((data) => {
+        if (!Array.isArray(data)) {
           throw new Error('Respuesta invalida del servidor')
         }
-        return body
-      })
-      .then((data) => {
+
         const adaptadas = data.map((publicacion) => ({
           id: publicacion.id_publicacion,
           title: publicacion.titulo,
@@ -612,20 +606,12 @@ function PerfilPage({ usuarioSesion, onProfileUpdated }) {
     setLoading(true)
     setError('')
 
-    fetchWithAuth(`/api/usuarios/${usuarioSesion.id_usuario}`)
-      .then(async (res) => {
-        const body = await res.json().catch(() => null)
-        if (!res.ok) {
-          throw new Error(body?.error || 'No se pudo cargar tu perfil')
-        }
-        return body
-      })
+    apiGet(`/api/usuarios/${usuarioSesion.id_usuario}`)
       .then((body) => {
         setPerfil(body)
         setForm(buildProfileForm(body))
         if (body.rol === 'donante') {
-          return fetchWithAuth(`/api/donaciones?id_donante=${body.id_usuario}`)
-            .then((res) => res.json())
+          return apiGet(`/api/donaciones?id_donante=${body.id_usuario}`)
             .then((donaciones) => {
               if (!Array.isArray(donaciones)) return
               const organizaciones = new Set(donaciones.map((item) => item.organizacion_nombre).filter(Boolean))
@@ -648,16 +634,12 @@ function PerfilPage({ usuarioSesion, onProfileUpdated }) {
     setOrgLoading(true)
     setOrgError('')
 
-    fetch('/api/organizaciones')
-      .then(async (res) => {
-        const body = await res.json().catch(() => null)
-        if (!res.ok) {
-          throw new Error(body?.error || 'No se pudo cargar la lista de organizaciones')
-        }
-        if (!Array.isArray(body)) {
+    apiGet('/api/organizaciones')
+      .then((data) => {
+        if (!Array.isArray(data)) {
           throw new Error('Respuesta invalida del servidor')
         }
-        setOrganizaciones(body)
+        setOrganizaciones(data)
       })
       .catch((fetchError) => {
         setOrgError(fetchError.message || 'No se pudo cargar la lista de organizaciones')
@@ -710,15 +692,9 @@ function PerfilPage({ usuarioSesion, onProfileUpdated }) {
 
     try {
       const payload = buildProfilePayload(form, perfil?.rol)
-      const response = await fetchWithAuth(`/api/usuarios/${perfil.id_usuario}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-
-      const body = await response.json().catch(() => null)
-      if (!response.ok || !body?.usuario) {
-        throw new Error(body?.error || 'No se pudo actualizar tu perfil')
+      const body = await apiPut(`/api/usuarios/${perfil.id_usuario}`, payload)
+      if (!body?.usuario) {
+        throw new Error('No se pudo actualizar tu perfil')
       }
 
       const usuarioActualizado = {
@@ -765,8 +741,6 @@ function PerfilPage({ usuarioSesion, onProfileUpdated }) {
 
   return (
     <div className="fade-in profile-page-figma">
-      {!!location.state?.flash && <div className="loading-box">{location.state.flash}</div>}
-
       <header className="profile-header-figma">
         <h1 className="profile-main-title">Mi Perfil</h1>
         <p className="profile-main-subtitle">Informacion personal y datos de tu cuenta</p>
@@ -1023,14 +997,16 @@ function PerfilPage({ usuarioSesion, onProfileUpdated }) {
 }
 
 function ProtectedRoute({ usuarioSesion, requiredRole, children }) {
+  const location = useLocation()
+
   if (!usuarioSesion || !obtenerTokenSesion()) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />
   }
 
   const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole]
 
   if (requiredRole && !allowedRoles.includes(usuarioSesion.rol)) {
-    return <Navigate to="/home" replace />
+    return <Navigate to="/home" replace state={{ flash: 'No tienes permisos para acceder a esa seccion' }} />
   }
 
   return children
@@ -1040,10 +1016,35 @@ function AppShell() {
   const location = useLocation()
   const navigate = useNavigate()
   const [usuarioSesion, setUsuarioSesion] = React.useState(() => obtenerUsuarioSesion())
+  const [authNotice, setAuthNotice] = React.useState('')
 
   React.useEffect(() => {
     setUsuarioSesion(obtenerUsuarioSesion())
   }, [location.pathname])
+
+  React.useEffect(() => {
+    setAuthNotice(location.state?.flash || '')
+  }, [location.state])
+
+  React.useEffect(() => {
+    const handleUnauthorized = () => {
+      setUsuarioSesion(null)
+      setAuthNotice('Tu sesion expiro. Inicia sesion nuevamente.')
+      navigate('/login', { replace: true, state: { from: location.pathname } })
+    }
+
+    const handleForbidden = () => {
+      setAuthNotice('No tienes permisos para realizar esta accion.')
+    }
+
+    window.addEventListener('auth:unauthorized', handleUnauthorized)
+    window.addEventListener('auth:forbidden', handleForbidden)
+
+    return () => {
+      window.removeEventListener('auth:unauthorized', handleUnauthorized)
+      window.removeEventListener('auth:forbidden', handleForbidden)
+    }
+  }, [location.pathname, navigate])
 
   const handleAuthSuccess = (usuario) => {
     setUsuarioSesion(usuario)
@@ -1074,6 +1075,12 @@ function AppShell() {
       </header>
 
       <main className="main-content">
+        {authNotice && (
+          <div className="error-box" role="alert">
+            {authNotice}
+          </div>
+        )}
+
         <Routes>
           <Route path="/home" element={<HomePage isAuthenticated={isAuthenticated} />} />
           <Route path="/detalle/:id" element={<DetailPage />} />
@@ -1114,7 +1121,7 @@ function AppShell() {
 
           <Route
             path="/organizaciones"
-            element={(<OrganizacionesPage /> )}
+            element={(<OrganizacionesPage />)}
           />
 
           <Route
