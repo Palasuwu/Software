@@ -9,6 +9,10 @@ from routes.publicacion import publicacion_bp
 app = Flask(__name__)
 CORS(app)
 
+# Evitar secuencias de escape ASCII en respuestas JSON para conservar tildes reales
+app.json.ensure_ascii = False
+app.config['JSON_AS_ASCII'] = False
+
 # Cargar variables de entorno
 # El SECRET_KEY será usado por auth_utils
 app.config['JWT_SECRET_KEY'] = os.getenv("JWT_SECRET_KEY")
@@ -19,6 +23,12 @@ if not app.config['JWT_SECRET_KEY']:
 app.register_blueprint(usuario_bp)
 app.register_blueprint(organizacion_bp)
 app.register_blueprint(publicacion_bp)
+
+@app.after_request
+def add_charset_to_json(response):
+    if response.content_type == "application/json" or "application/json" in response.headers.get("Content-Type", ""):
+        response.headers["Content-Type"] = "application/json; charset=utf-8"
+    return response
 
 @app.route("/")
 def home():

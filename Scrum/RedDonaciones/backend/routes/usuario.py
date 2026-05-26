@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, request
 import bcrypt
 import mysql.connector
+import secrets
+import string
 from db.connection import get_db_connection
 from auth_utils import generate_token, token_required, admin_required
 
@@ -22,19 +24,18 @@ def validar_admin_para_registro():
 @usuario_bp.route("/usuarios", methods=["GET"])
 @admin_required  # Solo administradores pueden listar usuarios
 def obtener_usuarios():
+    conn = None
+    cursor = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
         # SELECT ESPECÍFICO que EXCLUYE password
         cursor.execute("""
-            SELECT id_usuario, nombre, correo, telefono, rol, fecha_registro 
+            SELECT id_usuario, nombre, correo, telefono, rol, fecha_registro, activo 
             FROM usuario
         """)
         data = cursor.fetchall()
-
-        cursor.close()
-        conn.close()
 
         return jsonify(data), 200
 
@@ -43,6 +44,11 @@ def obtener_usuarios():
             "error": "Error al obtener usuarios",
             "detalle": str(e)
         }), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 @usuario_bp.route("/usuarios/<int:id_usuario>", methods=["GET"])
@@ -309,7 +315,7 @@ def eliminar_usuario(id_usuario):
         elif rol == "intermediario":
             cursor.execute(
                 "SELECT COUNT(*) AS total FROM publicacion WHERE id_intermediario = %s",
-                (id_usuario,)
+                (id_intermediario,)
             )
             if cursor.fetchone()["total"] > 0:
                 return jsonify({
@@ -360,7 +366,8 @@ def crear_usuario():
         telefono = data.get("telefono")
         rol = data.get("rol")
 
-        if not nombre or not correo or not password or not telefono or not rol:
+        # El password ya no es estrictamente obligatorio en la entrada si se genera temporalmente
+        if not nombre or not correo or not telefono or not rol:
             return jsonify({"error": "Faltan campos obligatorios"}), 400
 
         rol = rol.strip().lower()
@@ -371,6 +378,13 @@ def crear_usuario():
             respuesta_admin = validar_admin_para_registro()
             if respuesta_admin:
                 return respuesta_admin
+
+        # Generar contraseña temporal si no se provee
+        temp_password = None
+        if not password:
+            alphabet = string.ascii_letters + string.digits
+            temp_password = ''.join(secrets.choice(alphabet) for _ in range(12))
+            password = temp_password
 
         if len(password) < 8:
             return jsonify({"error": "El password debe tener al menos 8 caracteres"}), 400
@@ -440,7 +454,7 @@ def crear_usuario():
 
         conn.commit()
 
-        return jsonify({
+        respuesta = {
             "message": "Usuario creado",
             "usuario": {
                 "id_usuario": id_usuario,
@@ -448,7 +462,11 @@ def crear_usuario():
                 "correo": correo,
                 "rol": rol
             }
-        }), 201
+        }
+        if temp_password:
+            respuesta["password_temporal"] = temp_password
+
+        return jsonify(respuesta), 201
 
     except mysql.connector.IntegrityError as e:
         if conn:
@@ -475,6 +493,8 @@ def crear_usuario():
 # Ruta para iniciar sesión
 @usuario_bp.route("/login", methods=["POST"])
 def login_usuario():
+    conn = None
+    cursor = None
     try:
         data = request.get_json()
 
@@ -491,18 +511,18 @@ def login_usuario():
         cursor = conn.cursor(dictionary=True)
 
         sql = """
-        SELECT id_usuario, nombre, correo, telefono, password, rol
+        SELECT id_usuario, nombre, correo, telefono, password, rol, activo
         FROM usuario
         WHERE correo = %s
         """
         cursor.execute(sql, (correo,))
         usuario = cursor.fetchone()
 
-        cursor.close()
-        conn.close()
-
         if not usuario:
             return jsonify({"error": "Credenciales invalidas"}), 401
+
+        if usuario.get("activo") == 0:
+            return jsonify({"error": "Esta cuenta está desactivada. Por favor contacte al administrador."}), 403
 
         stored_password = usuario.get("password") or ""
         if not stored_password.startswith("$2"):
@@ -537,3 +557,112 @@ def login_usuario():
             "error": "Error al iniciar sesion",
             "detalle": str(e)
         }), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+@usuario_bp.route("/usuarios/<int:id_usuario>/desactivar", methods=["PUT"])
+@admin_required
+def desactivar_usuario(id_usuario):
+    conn = None
+    cursor = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("SELECT id_usuario FROM usuario WHERE id_usuario = %s", (id_usuario,))
+        usuario = cursor.fetchone()
+        if not usuario:
+            return jsonify({"error": "Usuario no encontrado"}), 404
+
+        # Cambiar columna activo a 0
+        cursor.execute("UPDATE usuario SET activo = 0 WHERE id_usuario = %s", (id_usuario,))
+        conn.commit()
+
+        return jsonify({"message": "Usuario desactivado correctamente"}), 200
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        return jsonify({"error": "No se pudo desactivar el usuario", "detalle": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+@usuario_bp.route("/usuarios/<int:id_usuario>/activar", methods=["PUT"])
+@admin_required
+def activar_usuario(id_usuario):
+    conn = None
+    cursor = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("SELECT id_usuario FROM usuario WHERE id_usuario = %s", (id_usuario,))
+        usuario = cursor.fetchone()
+        if not usuario:
+            return jsonify({"error": "Usuario no encontrado"}), 404
+
+        # Cambiar columna activo a 1
+        cursor.execute("UPDATE usuario SET activo = 1 WHERE id_usuario = %s", (id_usuario,))
+        conn.commit()
+
+        return jsonify({"message": "Usuario activado correctamente"}), 200
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        return jsonify({"error": "No se pudo activar el usuario", "detalle": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+@usuario_bp.route("/usuarios/<int:id_usuario>/anonimizar", methods=["PUT"])
+@admin_required
+def anonimizar_usuario(id_usuario):
+    conn = None
+    cursor = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("SELECT id_usuario FROM usuario WHERE id_usuario = %s", (id_usuario,))
+        usuario = cursor.fetchone()
+        if not usuario:
+            return jsonify({"error": "Usuario no encontrado"}), 404
+
+        # Generar correo único anonimizado para cumplir con la restricción UNIQUE y GDPR
+        correo_anonimo = f"anonimo_{id_usuario}@reddonaciones.local"
+        telefono_anonimo = ""
+
+        # Actualizar la fila en la tabla de usuario
+        cursor.execute(
+            """
+            UPDATE usuario
+            SET nombre = 'Usuario Anonimizado',
+                correo = %s,
+                telefono = %s,
+                activo = 0
+            WHERE id_usuario = %s
+            """,
+            (correo_anonimo, telefono_anonimo, id_usuario)
+        )
+        conn.commit()
+
+        return jsonify({"message": "Usuario anonimizado correctamente"}), 200
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        return jsonify({"error": "No se pudo anonimizar el usuario", "detalle": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()

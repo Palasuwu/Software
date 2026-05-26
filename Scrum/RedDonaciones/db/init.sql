@@ -1,13 +1,8 @@
 -- Archivo init es para crear la base de datos y las tablas necesarias para el funcionamiento de la aplicación
 -- También incluye algunos datos de ejemplo para facilitar las pruebas iniciales.
-
-
 -- BASE DE DATOS
--- ======================
 
-/* NO ESTAN TODAS LAS TABLAS, SOLO LAS PRINCIPALES PARA EL INICIO */
-
-CREATE DATABASE IF NOT EXISTS donaciones;
+CREATE DATABASE IF NOT EXISTS donaciones CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE donaciones;
 
 
@@ -20,8 +15,9 @@ CREATE TABLE usuario (
     password VARCHAR(200) NOT NULL,
     telefono VARCHAR(100) NOT NULL,
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    rol ENUM('donante', 'intermediario', 'administrador') NOT NULL
-) ENGINE=InnoDB;
+    rol ENUM('donante', 'intermediario', 'administrador') NOT NULL,
+    activo TINYINT(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- ORGANIZACION
@@ -34,7 +30,7 @@ CREATE TABLE organizacion (
     telefono VARCHAR(50) NOT NULL UNIQUE,
     correo VARCHAR(200) NOT NULL UNIQUE,
     estado_verificacion VARCHAR(200) NOT NULL
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- DONANTE
@@ -46,7 +42,7 @@ CREATE TABLE donante (
     zona VARCHAR(200) NOT NULL,
     direccion_detalle VARCHAR(300) NOT NULL,
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- INTERMEDIARIO
@@ -57,7 +53,7 @@ CREATE TABLE intermediario (
     cargo VARCHAR(200) NOT NULL,
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
     FOREIGN KEY (id_organizacion) REFERENCES organizacion(id_organizacion)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- CATEGORIA
@@ -66,7 +62,7 @@ CREATE TABLE categoria_articulo (
     id_categoria INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(200) NOT NULL UNIQUE,
     descripcion VARCHAR(200) NOT NULL
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- ARTICULO
@@ -78,7 +74,7 @@ CREATE TABLE articulo (
     id_categoria INT NOT NULL,
     UNIQUE (nombre, id_categoria),
     FOREIGN KEY (id_categoria) REFERENCES categoria_articulo(id_categoria)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- PUBLICACION
@@ -100,7 +96,7 @@ CREATE TABLE publicacion (
     FOREIGN KEY (id_organizacion) REFERENCES organizacion(id_organizacion),
     FOREIGN KEY (id_articulo) REFERENCES articulo(id_articulo),
     CHECK (fecha_limite >= fecha_publicacion)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- DONACION
@@ -119,7 +115,7 @@ CREATE TABLE donacion (
     fecha_donacion DATE NOT NULL,
     FOREIGN KEY (id_donante) REFERENCES donante(id_usuario),
     FOREIGN KEY (id_publicacion) REFERENCES publicacion(id_publicacion)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 
@@ -134,7 +130,7 @@ CREATE TABLE publicacion_articulo (
     PRIMARY KEY (id_publicacion, id_articulo),
     FOREIGN KEY (id_publicacion) REFERENCES publicacion(id_publicacion) ON DELETE CASCADE,
     FOREIGN KEY (id_articulo) REFERENCES articulo(id_articulo) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- DATOS DE EJEMPLO

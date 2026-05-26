@@ -33,6 +33,8 @@ def publicacion_tiene_imagen_url(cursor):
 # Ruta para obtener la lista de publicaciones
 @publicacion_bp.route("/publicaciones", methods=["GET"])
 def listar_publicaciones():
+    conn = None
+    cursor = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -69,20 +71,24 @@ def listar_publicaciones():
         cursor.execute(sql)
         publicaciones = cursor.fetchall()
 
-        cursor.close()
-        conn.close()
-
         return jsonify(publicaciones)
 
     except Exception as e:
         print("ERROR EN JOIN:", e)  
         return jsonify({"error": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 # Ruta para crear una nueva publicación
 @publicacion_bp.route("/publicaciones", methods=["POST"])
 @admin_required
 def crear_publicacion():
+    conn = None
+    cursor = None
     try:
         data = request.get_json()
 
@@ -143,16 +149,21 @@ def crear_publicacion():
         cursor.execute(sql, tuple(valores))
 
         conn.commit()
-        cursor.close()
-        conn.close()
 
         return jsonify({"message": "Publicación creada"}), 201
 
     except Exception as e:
+        if conn:
+            conn.rollback()
         return jsonify({
             "error": "Error al crear publicación",
             "detalle": str(e)
         }), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 @publicacion_bp.route("/publicaciones/<int:id_publicacion>/estado", methods=["PUT"])
@@ -169,8 +180,9 @@ def actualizar_estado_publicacion(id_publicacion):
 
         estado = (data.get("estado") or "").strip().lower()
 
-        if estado not in ("activa", "cancelada"):
-            return jsonify({"error": "Estado invalido. Usa activa o cancelada"}), 400
+        # Se amplía para soportar activa, finalizada y cancelada
+        if estado not in ("activa", "finalizada", "cancelada"):
+            return jsonify({"error": "Estado invalido. Usa activa, finalizada o cancelada"}), 400
 
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -217,6 +229,8 @@ def actualizar_estado_publicacion(id_publicacion):
 # Ruta para obtener una publicación por su ID (detalle)
 @publicacion_bp.route("/publicaciones/<int:id>", methods=["GET"])
 def obtener_publicacion(id):
+    conn = None
+    cursor = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -256,8 +270,6 @@ def obtener_publicacion(id):
         publicacion = cursor.fetchone()
 
         if not publicacion:
-            cursor.close()
-            conn.close()
             return jsonify({"error": "Publicación no encontrada"}), 404
 
         articulos_sql = """
@@ -330,15 +342,17 @@ def obtener_publicacion(id):
             }
             resultados.append(fila)
 
-        cursor.close()
-        conn.close()
-
         return jsonify(resultados), 200
 
     except Exception:
         return jsonify({
             "error": "Error al obtener la publicación"
         }), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 # Ruta para obtener donaciones (filtro opcional por donante)
@@ -431,6 +445,8 @@ def listar_donaciones():
 @publicacion_bp.route("/donaciones/<int:id_donacion>", methods=["GET"])
 @token_required
 def obtener_detalle_donacion(id_donacion):
+    conn = None
+    cursor = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -506,13 +522,9 @@ def obtener_detalle_donacion(id_donacion):
             donacion = cursor.fetchone()
 
         if not donacion:
-            cursor.close()
-            conn.close()
             return jsonify({"error": "Donación no encontrada"}), 404
 
         if request.usuario_rol != "administrador" and donacion["id_donante"] != request.usuario_id:
-            cursor.close()
-            conn.close()
             return jsonify({"error": "No autorizado para consultar esta donacion"}), 403
 
         articulos_sql = """
@@ -530,9 +542,6 @@ def obtener_detalle_donacion(id_donacion):
         cursor.execute(articulos_sql, (donacion["id_publicacion"],))
         donacion["articulos"] = cursor.fetchall()
 
-        cursor.close()
-        conn.close()
-
         return jsonify(donacion), 200
 
     except Exception as e:
@@ -540,6 +549,11 @@ def obtener_detalle_donacion(id_donacion):
             "error": "Error al obtener el detalle de la donación",
             "detalle": str(e)
         }), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 # Ruta para registrar una donación
@@ -683,6 +697,8 @@ def crear_donacion():
 @publicacion_bp.route("/donaciones/<int:id_donacion>/estado", methods=["GET"])
 @token_required
 def obtener_estado_donacion(id_donacion):
+    conn = None
+    cursor = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -695,9 +711,6 @@ def obtener_estado_donacion(id_donacion):
         """
         cursor.execute(sql, (id_donacion,))
         donacion = cursor.fetchone()
-
-        cursor.close()
-        conn.close()
 
         if not donacion:
             return jsonify({"error": "Donación no encontrada"}), 404
@@ -712,3 +725,8 @@ def obtener_estado_donacion(id_donacion):
             "error": "Error al obtener el estado de la donación",
             "detalle": str(e)
         }), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()

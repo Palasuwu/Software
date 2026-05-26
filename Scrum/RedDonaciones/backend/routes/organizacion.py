@@ -24,13 +24,32 @@ def normalizar_organizacion_payload(data):
         errores["nombre"] = "El nombre debe tener al menos 3 caracteres"
     if len(descripcion) < 10:
         errores["descripcion"] = "La descripcion debe tener al menos 10 caracteres"
+
+logging.basicConfig(level=logging.INFO)
+
+organizacion_bp = Blueprint("organizacion", __name__)
+
+
+def normalizar_organizacion_payload(data):
+    nombre = (data.get("nombre") or "").strip()
+    descripcion = (data.get("descripcion") or "").strip()
+    direccion = (data.get("direccion") or "").strip()
+    telefono = (data.get("telefono") or "").strip()
+    correo = (data.get("correo") or "").strip().lower()
+    estado_verificacion = (data.get("estado_verificacion") or "pendiente").strip().lower()
+
+    errores = {}
+    if len(nombre) < 3:
+        errores["nombre"] = "El nombre debe tener al menos 3 caracteres"
+    if len(descripcion) < 10:
+        errores["descripcion"] = "La descripcion debe tener al menos 10 caracteres"
     if not direccion:
         errores["direccion"] = "La direccion es obligatoria"
     if not telefono:
         errores["telefono"] = "El telefono es obligatorio"
     if not correo or "@" not in correo:
         errores["correo"] = "El correo debe ser valido"
-    if estado_verificacion not in ("pendiente", "verificada", "rechazada", "inactiva"):
+    if estado_verificacion not in ("pendiente", "verificada", "rechazada", "inactiva", "archivada"):
         errores["estado_verificacion"] = "Estado de verificacion no valido"
 
     return {
@@ -57,6 +76,8 @@ def obtener_organizacion(cursor, id_organizacion):
 
 @organizacion_bp.route("/organizaciones", methods=["GET"])
 def listar_organizaciones():
+    conn = None
+    cursor = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -65,24 +86,28 @@ def listar_organizaciones():
             """
             SELECT id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion
             FROM organizacion
-            ORDER BY FIELD(estado_verificacion, 'pendiente', 'verificada', 'rechazada', 'inactiva'), nombre
+            ORDER BY FIELD(estado_verificacion, 'pendiente', 'verificada', 'rechazada', 'inactiva', 'archivada'), nombre
             """
         )
         organizaciones = cursor.fetchall()
-
-        cursor.close()
-        conn.close()
 
         return jsonify(organizaciones), 200
 
     except Exception:
         logging.exception("Error al listar organizaciones")
         return jsonify({"error": "Error al obtener organizaciones"}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 # Para el detalle
 @organizacion_bp.route("/organizaciones/<int:id_organizacion>", methods=["GET"])
 def obtener_detalle_organizacion(id_organizacion):
+    conn = None
+    cursor = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -98,8 +123,6 @@ def obtener_detalle_organizacion(id_organizacion):
         organizacion = cursor.fetchone()
 
         if not organizacion:
-            cursor.close()
-            conn.close()
             return jsonify({"error": "Organización no encontrada"}), 404
 
         cursor.execute(
@@ -113,9 +136,6 @@ def obtener_detalle_organizacion(id_organizacion):
         )
         publicaciones = cursor.fetchall()
 
-        cursor.close()
-        conn.close()
-
         return jsonify({
             "organizacion": organizacion,
             "publicaciones": publicaciones
@@ -124,6 +144,11 @@ def obtener_detalle_organizacion(id_organizacion):
     except Exception:
         logging.exception("Error al obtener detalles de organización")
         return jsonify({"error": "Error al obtener detalles"}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 # Rutas de admin
@@ -134,8 +159,13 @@ def crear_organizacion():
     cursor = None
 
     try:
+        data = request.get_json() or {}
+        campos_obligatorios = ["nombre", "descripcion", "direccion", "telefono", "correo"]
+        for campo in campos_obligatorios:
+            if not data.get(campo) or not str(data.get(campo)).strip():
+                return jsonify({"error": f"Falta el campo {campo}"}), 400
 
-        payload, errores = normalizar_organizacion_payload(request.get_json() or {})
+        payload, errores = normalizar_organizacion_payload(data)
         if errores:
             return jsonify({"error": "Datos invalidos", "campos": errores}), 400
 
@@ -258,6 +288,38 @@ def desactivar_organizacion(id_organizacion):
             conn.rollback()
         logging.exception("Error al desactivar organizacion")
         return jsonify({"error": "No se pudo desactivar la organizacion"}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+@organizacion_bp.route("/organizaciones/<int:id_organizacion>/archivar", methods=["PUT"])
+@admin_required
+def archivar_organizacion(id_organizacion):
+    conn = None
+    cursor = None
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        if not obtener_organizacion(cursor, id_organizacion):
+            return jsonify({"error": "Organizacion no encontrada"}), 404
+
+        cursor.execute(
+            "UPDATE organizacion SET estado_verificacion = 'archivada' WHERE id_organizacion = %s",
+            (id_organizacion,),
+        )
+        conn.commit()
+
+        return jsonify({"message": "Organizacion archivada"}), 200
+
+    except Exception:
+        if conn:
+            conn.rollback()
+        logging.exception("Error al archivar organizacion")
+        return jsonify({"error": "No se pudo archivar la organizacion"}), 500
     finally:
         if cursor:
             cursor.close()

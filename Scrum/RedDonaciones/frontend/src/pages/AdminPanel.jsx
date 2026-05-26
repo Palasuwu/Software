@@ -2,6 +2,7 @@ import React from 'react'
 import { apiDelete, apiGet, apiPost, apiPut } from '../utils/api'
 import Spinner from '../components/Spinner'
 import ErrorView from '../components/ErrorView'
+import './AdminPanel.css'
 
 const USER_INITIAL_FORM = {
     nombre: '',
@@ -65,6 +66,15 @@ function IconPlus() {
         <svg viewBox="0 0 24 24" className="admin-button-icon" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 5v14" />
             <path d="M5 12h14" />
+        </svg>
+    )
+}
+
+function IconToggle({ checked }) {
+    return (
+        <svg viewBox="0 0 24 24" className={`admin-action-icon ${checked ? 'checked' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" style={{ transition: 'all 0.2s ease' }}>
+            <rect x="2" y="6" width="20" height="12" rx="6" ry="6" fill={checked ? "var(--success)" : "var(--danger)"} stroke={checked ? "var(--success)" : "var(--danger)"} />
+            <circle cx={checked ? "16" : "8"} cy="12" r="3.5" fill="#ffffff" stroke="#ffffff" style={{ transition: 'all 0.2s ease' }} />
         </svg>
     )
 }
@@ -155,10 +165,8 @@ function validateUserForm(form, mode) {
     }
 
     if (mode === 'create') {
-        if (!form.password) {
-            errors.password = 'La contrasena es obligatoria'
-        } else if (form.password.length < 8) {
-            errors.password = 'La contrasena debe tener al menos 8 caracteres'
+        if (form.password && form.password.length < 8) {
+            errors.password = 'La contraseña debe tener al menos 8 caracteres'
         }
 
         if (!['donante', 'intermediario', 'administrador'].includes(form.rol)) {
@@ -174,18 +182,41 @@ function validateUserForm(form, mode) {
     }
 
     if (form.rol === 'intermediario') {
-        if (!form.id_organizacion) errors.id_organizacion = 'Selecciona una organizacion'
+        if (!form.id_organizacion) errors.id_organizacion = 'Selecciona una organización'
         if (!form.cargo.trim()) errors.cargo = 'El cargo es obligatorio'
     }
 
-    return errors
+    return errors;
 }
 
-function AdminModal({ title, description, children, footer, onClose }) {
+function ConfirmationModal({ isOpen, title, message, onCancel, onConfirm, isSubmitting }) {
+    if (!isOpen) return null;
+    return (
+        <AdminModal
+            title={title}
+            onClose={onCancel}
+            sizeClass="modal-confirm"
+            footer={(
+                <>
+                    <button type="button" className="profile-cancel-button" onClick={onCancel} disabled={isSubmitting}>
+                        Cancelar
+                    </button>
+                    <button type="button" className="admin-danger-button" onClick={onConfirm} disabled={isSubmitting}>
+                        {isSubmitting ? 'Confirmando...' : 'Confirmar'}
+                    </button>
+                </>
+            )}
+        >
+            <p className="admin-confirm-text">{message}</p>
+        </AdminModal>
+    )
+}
+
+function AdminModal({ title, description, children, footer, onClose, sizeClass = '' }) {
     return (
         <div className="admin-modal-backdrop" role="presentation" onMouseDown={onClose}>
             <section
-                className="admin-modal"
+                className={`admin-modal ${sizeClass}`}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="admin-modal-title"
@@ -274,12 +305,13 @@ function UserFormFields({ form, errors, mode, organizaciones, orgLoading, orgErr
 
             {mode === 'create' && (
                 <div className="form-field">
-                    <label className="form-label" htmlFor="admin-user-password">Contrasena temporal</label>
+                    <label className="form-label" htmlFor="admin-user-password">Contraseña temporal</label>
                     <input
                         id="admin-user-password"
                         type="password"
                         className={`form-input ${errors.password ? 'form-input-invalid' : ''}`}
                         name="password"
+                        placeholder="Dejar en blanco para autogenerar automáticamente"
                         value={form.password}
                         onChange={onChange}
                     />
@@ -348,7 +380,7 @@ function UserFormFields({ form, errors, mode, organizaciones, orgLoading, orgErr
             {isIntermediario && (
                 <div className="form-row">
                     <div className="form-field">
-                        <label className="form-label" htmlFor="admin-user-organizacion">Organizacion</label>
+                        <label className="form-label" htmlFor="admin-user-organizacion">Organización</label>
                         <select
                             id="admin-user-organizacion"
                             className={`form-select ${errors.id_organizacion ? 'form-input-invalid' : ''}`}
@@ -357,7 +389,7 @@ function UserFormFields({ form, errors, mode, organizaciones, orgLoading, orgErr
                             onChange={onChange}
                             disabled={orgLoading}
                         >
-                            <option value="">Selecciona una organizacion</option>
+                            <option value="">Selecciona una organización</option>
                             {organizaciones.map((organizacion) => (
                                 <option key={organizacion.id_organizacion} value={organizacion.id_organizacion}>
                                     {organizacion.nombre}
@@ -431,6 +463,13 @@ export default function AdminPanel({ usuarioSesion }) {
     const [modalError, setModalError] = React.useState('')
     const [isSubmitting, setIsSubmitting] = React.useState(false)
     const [savingCampaignId, setSavingCampaignId] = React.useState(null)
+    const [copied, setCopied] = React.useState(false)
+    const [confirmModal, setConfirmModal] = React.useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: null
+    })
 
     React.useEffect(() => {
         if (!successMessage) return
@@ -472,9 +511,7 @@ export default function AdminPanel({ usuarioSesion }) {
         }
     }, [])
 
-    const ensureOrganizations = React.useCallback(async () => {
-        if (organizaciones.length > 0 || orgLoading) return
-
+    const loadOrganizations = React.useCallback(async () => {
         setOrgLoading(true)
         setOrgError('')
 
@@ -486,12 +523,23 @@ export default function AdminPanel({ usuarioSesion }) {
         } finally {
             setOrgLoading(false)
         }
-    }, [organizaciones.length, orgLoading])
+    }, [])
+
+    const ensureOrganizations = React.useCallback(async () => {
+        if (organizaciones.length > 0 || orgLoading) return
+        await loadOrganizations()
+    }, [organizaciones.length, orgLoading, loadOrganizations])
 
     React.useEffect(() => {
         loadUsers()
         loadCampaigns()
     }, [loadUsers, loadCampaigns])
+
+    React.useEffect(() => {
+        if (activeTab === 'organizaciones') {
+            ensureOrganizations()
+        }
+    }, [activeTab, ensureOrganizations])
 
     React.useEffect(() => {
         if (activeTab !== 'campanas') return undefined
@@ -502,12 +550,6 @@ export default function AdminPanel({ usuarioSesion }) {
 
         return () => window.clearInterval(intervalId)
     }, [activeTab, loadCampaigns])
-
-    React.useEffect(() => {
-        if (activeTab === 'organizaciones') {
-            ensureOrganizations()
-        }
-    }, [activeTab, ensureOrganizations])
 
     React.useEffect(() => {
         if (modal && userForm.rol === 'intermediario') {
@@ -524,6 +566,7 @@ export default function AdminPanel({ usuarioSesion }) {
         setModal(null)
         setUserForm(USER_INITIAL_FORM)
         setFormErrors({})
+        setOrgFormErrors({})
         setModalError('')
         setIsSubmitting(false)
     }
@@ -624,6 +667,7 @@ export default function AdminPanel({ usuarioSesion }) {
 
     const openEditOrg = (org) => {
         clearFeedback()
+        setOrgFormErrors({})
         setOrgForm({
             nombre: org.nombre || '',
             descripcion: org.descripcion || '',
@@ -641,6 +685,13 @@ export default function AdminPanel({ usuarioSesion }) {
             ...previous,
             [name]: value
         }))
+        setOrgFormErrors((previous) => {
+            if (!previous[name]) return previous
+            const next = { ...previous }
+            delete next[name]
+            return next
+        })
+        setModalError(null)
     }
 
     const submitOrgForm = async (event) => {
@@ -652,35 +703,47 @@ export default function AdminPanel({ usuarioSesion }) {
         try {
             if (modal?.type === 'editOrg') {
                 await apiPut(`/api/organizaciones/${modal.org.id_organizacion}`, orgForm)
-                setSuccessMessage('Organizacion actualizada')
+                setSuccessMessage('Organización actualizada')
             } else {
                 await apiPost('/api/organizaciones', orgForm)
-                setSuccessMessage('Organizacion creada')
+                setSuccessMessage('Organización creada')
             }
 
-            await ensureOrganizations()
+            await loadOrganizations()
             closeModal()
         } catch (error) {
-            setModalError(error.message || 'Error guardando organizacion')
+            const errMsg = error.message || ''
+            if (errMsg.startsWith("Falta el campo ")) {
+                const fieldName = errMsg.replace("Falta el campo ", "").trim()
+                setOrgFormErrors({ [fieldName]: errMsg })
+            } else {
+                setModalError(errMsg || 'Error guardando organización')
+            }
         } finally {
             setIsSubmitting(false)
         }
     }
 
-    const handleDeactivateOrg = async (org) => {
-        setIsSubmitting(true)
-        setModalError('')
-        setSuccessMessage('')
-
-        try {
-            await apiDelete(`/api/organizaciones/${org.id_organizacion}`)
-            setSuccessMessage('Organizacion desactivada')
-            await ensureOrganizations()
-        } catch (error) {
-            setModalError(error.message || 'No se pudo desactivar la organizacion')
-        } finally {
-            setIsSubmitting(false)
-        }
+    const openArchivarOrg = (org) => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Archivar Organización',
+            message: `¿Estás seguro de que deseas archivar la organización "${org.nombre}"? Esta acción cambiará su estado a 'archivada'.`,
+            onConfirm: async () => {
+                setIsSubmitting(true)
+                setModalError('')
+                setSuccessMessage('')
+                try {
+                    await apiPut(`/api/organizaciones/${org.id_organizacion}/archivar`, {})
+                    setSuccessMessage('Organización archivada')
+                    await loadOrganizations()
+                } catch (error) {
+                    setModalError(error.message || 'No se pudo archivar la organización')
+                } finally {
+                    setIsSubmitting(false)
+                }
+            }
+        })
     }
 
     const submitUserForm = async (event) => {
@@ -698,20 +761,92 @@ export default function AdminPanel({ usuarioSesion }) {
 
         try {
             if (mode === 'create') {
-                await apiPost('/api/usuarios', buildUserPayload(userForm, true))
-                setSuccessMessage('Usuario creado con exito')
+                const response = await apiPost('/api/usuarios', buildUserPayload(userForm, true))
+                if (response && response.password_temporal) {
+                    await loadUsers()
+                    setModal({ type: 'tempPassword', password: response.password_temporal, email: userForm.correo })
+                } else {
+                    setSuccessMessage('Usuario creado con exito')
+                    await loadUsers()
+                    closeModal()
+                }
             } else {
                 await apiPut(`/api/usuarios/${modal.usuario.id_usuario}`, buildUserPayload(userForm, false))
                 setSuccessMessage('Usuario actualizado con exito')
+                await loadUsers()
+                closeModal()
             }
-
-            await loadUsers()
-            closeModal()
         } catch (error) {
             setModalError(error.message || 'No se pudo guardar el usuario')
         } finally {
             setIsSubmitting(false)
         }
+    }
+
+    const openDesactivarUser = (usuario) => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Desactivar Usuario',
+            message: `¿Estás seguro de que deseas desactivar la cuenta del usuario "${usuario.nombre}"? No podra iniciar sesion temporalmente.`,
+            onConfirm: async () => {
+                setIsSubmitting(true)
+                setModalError('')
+                setSuccessMessage('')
+                try {
+                    await apiPut(`/api/usuarios/${usuario.id_usuario}/desactivar`, {})
+                    setSuccessMessage('Usuario desactivado con exito')
+                    await loadUsers()
+                } catch (error) {
+                    setModalError(error.message || 'No se pudo desactivar el usuario')
+                } finally {
+                    setIsSubmitting(false)
+                }
+            }
+        })
+    }
+
+    const openActivarUser = (usuario) => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Activar Usuario',
+            message: `¿Estás seguro de que deseas activar la cuenta del usuario "${usuario.nombre}"? Volverá a tener acceso a la plataforma.`,
+            onConfirm: async () => {
+                setIsSubmitting(true)
+                setModalError('')
+                setSuccessMessage('')
+                try {
+                    await apiPut(`/api/usuarios/${usuario.id_usuario}/activar`, {})
+                    setSuccessMessage('Usuario activado con éxito')
+                    await loadUsers()
+                } catch (error) {
+                    setModalError(error.message || 'No se pudo activar el usuario')
+                } finally {
+                    setIsSubmitting(false)
+                }
+            }
+        })
+    }
+
+    const openAnonimizarUser = (usuario) => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Anonimizar Usuario (GDPR)',
+            message: `¿Estás seguro de que deseas anonimizar la cuenta del usuario "${usuario.nombre}"? Se eliminaran su correo y telefono, y su nombre sera cambiado a 'Usuario Anonimizado'. Esta accion cumple con la normativa GDPR y no se puede deshacer.`,
+            onConfirm: async () => {
+                setIsSubmitting(true)
+                setModalError('')
+                setSuccessMessage('')
+                try {
+                    await apiPut(`/api/usuarios/${usuario.id_usuario}/anonimizar`, {})
+                    setSuccessMessage('Usuario anonimizado con exito')
+                    await loadUsers()
+                } catch (error) {
+                    setModalError(error.message || 'No se pudo anonimizar el usuario')
+                } finally {
+                    setIsSubmitting(false)
+                }
+            }
+        })
     }
 
     const confirmDeleteUser = async () => {
@@ -733,26 +868,36 @@ export default function AdminPanel({ usuarioSesion }) {
         }
     }
 
-    const toggleCampaignStatus = async (publicacion) => {
-        const nextStatus = publicacion.estado === 'cancelada' ? 'activa' : 'cancelada'
-        setSavingCampaignId(publicacion.id_publicacion)
-        setCampaignsError('')
-        setSuccessMessage('')
+    const handleChangeCampaignStatus = (publicacion, nextStatus) => {
+        const performChange = async () => {
+            setSavingCampaignId(publicacion.id_publicacion)
+            setCampaignsError('')
+            setSuccessMessage('')
+            try {
+                await apiPut(`/api/publicaciones/${publicacion.id_publicacion}/estado`, { estado: nextStatus })
+                setPublicaciones((previous) => previous.map((item) => (
+                    item.id_publicacion === publicacion.id_publicacion
+                        ? { ...item, estado: nextStatus }
+                        : item
+                )))
+                window.dispatchEvent(new Event('admin:campaigns-changed'))
+                setSuccessMessage(`Campana cambiada a "${campaignStatusLabel(nextStatus)}" con exito`)
+            } catch (error) {
+                setCampaignsError(error.message || 'No se pudo cambiar el estado de la campana')
+            } finally {
+                setSavingCampaignId(null)
+            }
+        }
 
-        try {
-            await apiPut(`/api/publicaciones/${publicacion.id_publicacion}/estado`, { estado: nextStatus })
-            setPublicaciones((previous) => previous.map((item) => (
-                item.id_publicacion === publicacion.id_publicacion
-                    ? { ...item, estado: nextStatus }
-                    : item
-            )))
-            window.dispatchEvent(new Event('admin:campaigns-changed'))
-            localStorage.setItem('admin_campaigns_changed_at', String(Date.now()))
-            setSuccessMessage(`Campana ${nextStatus === 'activa' ? 'activada' : 'desactivada'} con exito`)
-        } catch (error) {
-            setCampaignsError(error.message || 'No se pudo cambiar el estado de la campana')
-        } finally {
-            setSavingCampaignId(null)
+        if (nextStatus === 'cancelada') {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Cancelar Campaña',
+                message: `¿Estás seguro de que deseas cancelar la campaña "${publicacion.titulo}"? Esta acción detendrá la recolección de donaciones y no se puede deshacer.`,
+                onConfirm: performChange
+            })
+        } else {
+            performChange()
         }
     }
 
@@ -762,7 +907,7 @@ export default function AdminPanel({ usuarioSesion }) {
 
         return (
             <div className="admin-table-wrap">
-                <table className="admin-table">
+                <table className="admin-table admin-table-users">
                     <thead>
                         <tr>
                             <th>Usuario</th>
@@ -798,16 +943,40 @@ export default function AdminPanel({ usuarioSesion }) {
                                                 className="admin-icon-button"
                                                 onClick={() => openEditUser(usuario)}
                                                 aria-label={`Editar ${usuario.nombre}`}
+                                                title="Editar"
                                             >
                                                 <IconEdit />
                                             </button>
+                                            {usuario.activo !== 0 ? (
+                                                <button
+                                                    type="button"
+                                                    className="admin-icon-button"
+                                                    onClick={() => openDesactivarUser(usuario)}
+                                                    disabled={isSelf}
+                                                    aria-label={`Desactivar ${usuario.nombre}`}
+                                                    title="Desactivar"
+                                                >
+                                                    <IconToggle checked={true} />
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    className="admin-icon-button"
+                                                    onClick={() => openActivarUser(usuario)}
+                                                    disabled={isSelf}
+                                                    aria-label={`Activar ${usuario.nombre}`}
+                                                    title="Activar"
+                                                >
+                                                    <IconToggle checked={false} />
+                                                </button>
+                                            )}
                                             <button
                                                 type="button"
                                                 className="admin-icon-button admin-icon-button-danger"
-                                                onClick={() => openDeleteUser(usuario)}
-                                                disabled={isSelf}
-                                                title={isSelf ? 'No puedes eliminar tu propio usuario' : 'Eliminar'}
-                                                aria-label={`Eliminar ${usuario.nombre}`}
+                                                onClick={() => openAnonimizarUser(usuario)}
+                                                disabled={isSelf || usuario.nombre === 'Usuario Anonimizado'}
+                                                aria-label={`Anonimizar ${usuario.nombre}`}
+                                                title="Anonimizar"
                                             >
                                                 <IconTrash />
                                             </button>
@@ -828,11 +997,11 @@ export default function AdminPanel({ usuarioSesion }) {
 
         return (
             <div className="admin-table-wrap">
-                <table className="admin-table">
+                <table className="admin-table admin-table-campaigns">
                     <thead>
                         <tr>
                             <th>Campana</th>
-                            <th>Organizacion</th>
+                            <th>Organización</th>
                             <th>Progreso</th>
                             <th>Fechas</th>
                             <th>Estado</th>
@@ -843,8 +1012,15 @@ export default function AdminPanel({ usuarioSesion }) {
                             ? <SkeletonRows cols={5} rows={4} />
                             : publicaciones.map((publicacion) => {
                             const progress = getProgress(publicacion)
-                            const isVisible = publicacion.estado !== 'cancelada'
                             const isSaving = savingCampaignId === publicacion.id_publicacion
+                            
+                            const statusClass = publicacion.estado === 'activa'
+                                ? 'status-active'
+                                : publicacion.estado === 'finalizada'
+                                ? 'status-finished'
+                                : publicacion.estado === 'cancelada'
+                                ? 'status-canceled'
+                                : ''
 
                             return (
                                 <tr key={publicacion.id_publicacion}>
@@ -852,7 +1028,7 @@ export default function AdminPanel({ usuarioSesion }) {
                                         <div className="admin-table-primary">{publicacion.titulo}</div>
                                         <div className="admin-table-muted">{publicacion.categoria || 'Sin categoria'}</div>
                                     </td>
-                                    <td>{publicacion.organizacion || 'Sin organizacion'}</td>
+                                    <td>{publicacion.organizacion || 'Sin organización'}</td>
                                     <td>
                                         <div className="admin-progress-cell">
                                             <span>{progress}%</span>
@@ -866,16 +1042,16 @@ export default function AdminPanel({ usuarioSesion }) {
                                         <div className="admin-table-muted">Limite: {formatDate(publicacion.fecha_limite)}</div>
                                     </td>
                                     <td>
-                                        <button
-                                            type="button"
-                                            className={`admin-switch ${isVisible ? 'admin-switch-active' : ''}`}
-                                            onClick={() => toggleCampaignStatus(publicacion)}
+                                        <select
+                                            className={`form-select admin-select-status campaign-select-status ${statusClass}`}
+                                            value={publicacion.estado}
+                                            onChange={(e) => handleChangeCampaignStatus(publicacion, e.target.value)}
                                             disabled={isSaving}
-                                            aria-pressed={isVisible}
                                         >
-                                            <span className="admin-switch-knob" />
-                                            <span>{isSaving ? 'Guardando...' : campaignStatusLabel(publicacion.estado)}</span>
-                                        </button>
+                                            <option value="activa">Activa</option>
+                                            <option value="finalizada">Finalizada</option>
+                                            <option value="cancelada">Cancelada</option>
+                                        </select>
                                     </td>
                                 </tr>
                             )
@@ -926,8 +1102,8 @@ export default function AdminPanel({ usuarioSesion }) {
         if (modal?.type === 'createOrg' || modal?.type === 'editOrg') {
             return (
                 <AdminModal
-                    title={modal.type === 'editOrg' ? 'Editar organizacion' : 'Nueva organizacion'}
-                    description={modal.type === 'editOrg' ? 'Actualiza los datos de la organizacion.' : 'Crea una organizacion en la plataforma'}
+                    title={modal.type === 'editOrg' ? 'Editar organización' : 'Nueva organización'}
+                    description={modal.type === 'editOrg' ? 'Actualiza los datos de la organización.' : 'Crea una organización en la plataforma'}
                     onClose={closeModal}
                     footer={(
                         <>
@@ -937,7 +1113,7 @@ export default function AdminPanel({ usuarioSesion }) {
                             <button
                                 type="submit"
                                 form="org-form"
-                                className="btn-confirmar"
+                                className="btn-confirmar admin-submit-button"
                                 disabled={isSubmitting}
                             >
                                 {isSubmitting ? 'Guardando...' : 'Guardar'}
@@ -952,51 +1128,56 @@ export default function AdminPanel({ usuarioSesion }) {
                             <div className="form-field">
                                 <label className="form-label">Nombre</label>
                                 <input
-                                    className="form-input"
+                                    className={`form-input ${orgFormErrors.nombre ? 'form-input-invalid' : ''}`}
                                     name="nombre"
                                     value={orgForm.nombre}
                                     onChange={handleOrgChange}
                                 />
+                                {orgFormErrors.nombre && <span className="form-error-text org-field-error-text">{orgFormErrors.nombre}</span>}
                             </div>
 
                             <div className="form-field">
                                 <label className="form-label">Descripcion</label>
                                 <textarea
-                                    className="form-textarea"
+                                    className={`form-textarea ${orgFormErrors.descripcion ? 'form-input-invalid' : ''}`}
                                     name="descripcion"
                                     value={orgForm.descripcion}
                                     onChange={handleOrgChange}
                                 />
+                                {orgFormErrors.descripcion && <span className="form-error-text org-field-error-text">{orgFormErrors.descripcion}</span>}
                             </div>
 
                             <div className="form-field">
                                 <label className="form-label">Direccion</label>
                                 <input
-                                    className="form-input"
+                                    className={`form-input ${orgFormErrors.direccion ? 'form-input-invalid' : ''}`}
                                     name="direccion"
                                     value={orgForm.direccion}
                                     onChange={handleOrgChange}
                                 />
+                                {orgFormErrors.direccion && <span className="form-error-text org-field-error-text">{orgFormErrors.direccion}</span>}
                             </div>
 
                             <div className="form-field">
                                 <label className="form-label">Telefono</label>
                                 <input
-                                    className="form-input"
+                                    className={`form-input ${orgFormErrors.telefono ? 'form-input-invalid' : ''}`}
                                     name="telefono"
                                     value={orgForm.telefono}
                                     onChange={handleOrgChange}
                                 />
+                                {orgFormErrors.telefono && <span className="form-error-text org-field-error-text">{orgFormErrors.telefono}</span>}
                             </div>
 
                             <div className="form-field">
                                 <label className="form-label">Correo</label>
                                 <input
-                                    className="form-input"
+                                    className={`form-input ${orgFormErrors.correo ? 'form-input-invalid' : ''}`}
                                     name="correo"
                                     value={orgForm.correo}
                                     onChange={handleOrgChange}
                                 />
+                                {orgFormErrors.correo && <span className="form-error-text org-field-error-text">{orgFormErrors.correo}</span>}
                             </div>
 
                             <div className="form-field">
@@ -1011,6 +1192,7 @@ export default function AdminPanel({ usuarioSesion }) {
                                     <option value="verificada">Verificada</option>
                                     <option value="rechazada">Rechazada</option>
                                     <option value="inactiva">Inactiva</option>
+                                    <option value="archivada">Archivada</option>
                                 </select>
                             </div>
                         </div>
@@ -1019,7 +1201,7 @@ export default function AdminPanel({ usuarioSesion }) {
             )
         }
 
-        if (modal?.type === 'createOrg') {
+        if (modal?.type === 'deleteUser') {
             return (
                 <AdminModal
                     title="Eliminar usuario"
@@ -1041,6 +1223,45 @@ export default function AdminPanel({ usuarioSesion }) {
                         Vas a eliminar a <strong>{modal.usuario.nombre}</strong>. Si tiene donaciones o publicaciones,
                         el backend rechazara la operacion para proteger el historial.
                     </p>
+                </AdminModal>
+            )
+        }
+
+        if (modal?.type === 'tempPassword') {
+            const handleCopy = () => {
+                navigator.clipboard.writeText(modal.password)
+                setCopied(true)
+                setTimeout(() => setCopied(false), 2000)
+            }
+
+            return (
+                <AdminModal
+                    title="Contraseña Temporal Generada"
+                    description="Se ha creado el usuario con una contraseña temporal. Por favor, cópiala y compártela de forma segura."
+                    onClose={closeModal}
+                    footer={(
+                        <button type="button" className="btn-confirmar temp-password-close-btn" onClick={closeModal}>
+                            He guardado la contraseña
+                        </button>
+                    )}
+                >
+                    <div className="temp-password-box">
+                        <p className="temp-password-user-label">
+                            <strong>Usuario:</strong> {modal.email}
+                        </p>
+                        <div className="temp-password-value-container">
+                            <span className="temp-password-monospace">
+                                {modal.password}
+                            </span>
+                            <button
+                                type="button"
+                                className="profile-edit-button temp-password-copy-btn"
+                                onClick={handleCopy}
+                            >
+                                {copied ? 'Copiado' : 'Copiar Contraseña'}
+                            </button>
+                        </div>
+                    </div>
                 </AdminModal>
             )
         }
@@ -1124,12 +1345,12 @@ export default function AdminPanel({ usuarioSesion }) {
                         <>
                             <div className="admin-section-head">
                                 <div>
-                                    <h2>Gestion de organizaciones</h2>
+                                    <h2>Gestión de organizaciones</h2>
                                     <p>Administra organizaciones registradas en la plataforma.</p>
                                 </div>
                                 <button type="button" className="admin-primary-action" onClick={openCreateOrg}>
                                     <IconPlus />
-                                    <span>Nueva Organizacion</span>
+                                    <span>Nueva Organización</span>
                                 </button>
                             </div>
 
@@ -1140,12 +1361,12 @@ export default function AdminPanel({ usuarioSesion }) {
                             )}
                             {!orgLoading && !orgError && organizaciones.length > 0 && (
                                 <div className="admin-table-wrap">
-                                    <table className="admin-table">
+                                    <table className="admin-table admin-table-orgs">
                                         <thead>
                                             <tr>
-                                                <th>Organizacion</th>
+                                                <th>Organización</th>
                                                 <th>Estado</th>
-                                                <th>Direccion</th>
+                                                <th>Dirección</th>
                                                 <th>Telefono</th>
                                                 <th>Correo</th>
                                                 <th>Acciones</th>
@@ -1156,7 +1377,7 @@ export default function AdminPanel({ usuarioSesion }) {
                                                 <tr key={org.id_organizacion}>
                                                     <td>
                                                         <div className="admin-table-primary">{org.nombre}</div>
-                                                        <div className="admin-table-muted">{org.descripcion || 'Sin descripcion'}</div>
+                                                        <div className="admin-table-muted">{org.descripcion || 'Sin descripción'}</div>
                                                     </td>
                                                     <td>{org.estado_verificacion || 'Sin estado'}</td>
                                                     <td>{org.direccion || '-'}</td>
@@ -1168,6 +1389,7 @@ export default function AdminPanel({ usuarioSesion }) {
                                                                 type="button"
                                                                 className="admin-icon-button"
                                                                 onClick={() => openEditOrg(org)}
+                                                                title="Editar"
                                                                 aria-label={`Editar ${org.nombre}`}
                                                             >
                                                                 <IconEdit />
@@ -1175,9 +1397,10 @@ export default function AdminPanel({ usuarioSesion }) {
                                                             <button
                                                                 type="button"
                                                                 className="admin-icon-button admin-icon-button-danger"
-                                                                onClick={() => handleDeactivateOrg(org)}
+                                                                onClick={() => openArchivarOrg(org)}
                                                                 disabled={isSubmitting}
-                                                                aria-label={`Desactivar ${org.nombre}`}
+                                                                title="Archivar"
+                                                                aria-label={`Archivar ${org.nombre}`}
                                                             >
                                                                 <IconTrash />
                                                             </button>
@@ -1205,6 +1428,19 @@ export default function AdminPanel({ usuarioSesion }) {
             </div>
 
             {currentModal}
+            <ConfirmationModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onCancel={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+                onConfirm={async () => {
+                    if (confirmModal.onConfirm) {
+                        await confirmModal.onConfirm()
+                    }
+                    setConfirmModal((prev) => ({ ...prev, isOpen: false }))
+                }}
+                isSubmitting={isSubmitting}
+            />
         </section>
     )
 }

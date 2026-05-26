@@ -1,0 +1,349 @@
+/* ==========================================================================
+   Estilos del Panel de Administración (AdminPanel.jsx)
+   Consume variables y tokens globales de tokens.css
+   ========================================================================== */
+
+/* ---- Estructura y Estilos de Modales (Cabeceras, Pies y Botones) ---- */
+
+.confirm-modal-container {
+    max-width: 400px;
+    border-radius: var(--radius-md);
+    padding: var(--radius-lg);
+    box-sizing: border-box;
+}
+
+/* Elimina fondos de cabecera y pie en modales de confirmación para evitar recortes visuales */
+.confirm-modal-container .admin-modal-header {
+    border-bottom: none;
+    padding: 0 0 16px 0;
+    background: transparent !important;
+}
+
+.confirm-modal-container .admin-modal-footer {
+    border-top: none;
+    padding: 0;
+    margin-top: 0;
+    background: transparent !important;
+}
+
+/* Altura, relleno y animaciones para todos los botones de pie de modal */
+.admin-modal-footer button,
+.confirm-modal-footer-wrapper button {
+    height: 46px !important;
+    min-height: 46px !important;
+    padding: 0 24px !important;
+    border-radius: var(--radius-sm) !important;
+    font-family: var(--font-body) !important;
+    font-size: 0.92rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transform: translateY(0) !important;
+}
+
+.admin-modal-footer button:hover,
+.confirm-modal-footer-wrapper button:hover {
+    transform: translateY(-1.5px) !important;
+}
+
+.admin-modal-footer button:active,
+.confirm-modal-footer-wrapper button:active {
+    transform: translateY(0) !important;
+}
+
+.admin-modal-footer button:disabled,
+.confirm-modal-footer-wrapper button:disabled {
+    opacity: 0.65 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+/* Estilos para botones de Cancelar en todos los modales */
+.admin-modal-footer .profile-cancel-button,
+.confirm-modal-footer-wrapper .profile-cancel-button {
+    background: var(--surface) !important;
+    border: 1.5px solid var(--outline) !important;
+    color: var(--text-soft) !important;
+    box-shadow: none !important;
+    margin-top: 0 !important;
+}
+
+.admin-modal-footer .profile-cancel-button:hover,
+.confirm-modal-footer-wrapper .profile-cancel-button:hover {
+    border-color: var(--primary-muted) !important;
+    color: var(--primary-strong) !important;
+    background: var(--primary-soft) !important;
+}
+
+/* Estilos para botones principales de Guardar/Submit en todos los modales */
+.admin-modal-footer .admin-submit-button,
+.admin-modal-footer .btn-confirmar.admin-submit-button {
+    background: var(--primary) !important;
+    color: var(--surface) !important;
+    border: none !important;
+    min-width: 168px !important;
+    width: auto !important;
+    box-shadow: 0 4px 16px rgba(118, 171, 140, 0.25) !important;
+    margin-top: 0 !important;
+}
+
+.admin-modal-footer .admin-submit-button:hover,
+.admin-modal-footer .btn-confirmar.admin-submit-button:hover {
+    background: var(--primary-strong) !important;
+    box-shadow: 0 6px 20px rgba(95, 148, 119, 0.35) !important;
+}
+
+/* Estilos para botones de peligro o confirmación destructiva */
+.admin-modal-footer .admin-danger-button,
+.confirm-modal-footer-wrapper .confirm-modal-confirm-btn {
+    background: var(--danger) !important;
+    color: var(--surface) !important;
+    border: none !important;
+    min-width: 140px !important;
+    box-shadow: 0 4px 16px rgba(201, 110, 94, 0.25) !important;
+    margin-top: 0 !important;
+}
+
+.admin-modal-footer .admin-danger-button:hover,
+.confirm-modal-footer-wrapper .confirm-modal-confirm-btn:hover {
+    background: #b55d4d !important;
+    box-shadow: 0 6px 20px rgba(181, 93, 77, 0.35) !important;
+}
+
+/* Tipografía y alineaciones generales para las celdas de las tablas */
+.admin-table td {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    color: var(--text-soft);
+    vertical-align: middle;
+}
+
+.admin-table-primary {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+}
+
+.admin-table-muted {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* Estilos para el control de selección de estados de campañas */
+.campaign-select-status {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    padding: 6px 28px 6px 12px !important;
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    border-radius: 999px !important;
+    border: 1px solid var(--outline) !important;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235f776c' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 8px center !important;
+    background-size: 11px !important;
+    cursor: pointer !important;
+    font-family: var(--font-body) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: var(--shadow-sm) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+/* Colores y hover de estados de campaña */
+.campaign-select-status.status-active {
+    background-color: rgba(74, 140, 94, 0.08) !important; /* success */
+    color: var(--success) !important;
+    border-color: rgba(74, 140, 94, 0.2) !important;
+}
+
+.campaign-select-status.status-active:hover {
+    background-color: rgba(74, 140, 94, 0.16) !important;
+    border-color: var(--success) !important;
+}
+
+.campaign-select-status.status-finished {
+    background-color: rgba(64, 111, 143, 0.08) !important; /* secondary */
+    color: var(--secondary) !important;
+    border-color: rgba(64, 111, 143, 0.2) !important;
+}
+
+.campaign-select-status.status-finished:hover {
+    background-color: rgba(64, 111, 143, 0.16) !important;
+    border-color: var(--secondary) !important;
+}
+
+.campaign-select-status.status-canceled {
+    background-color: rgba(201, 110, 94, 0.08) !important; /* danger */
+    color: var(--danger) !important;
+    border-color: rgba(201, 110, 94, 0.2) !important;
+}
+
+.campaign-select-status.status-canceled:hover {
+    background-color: rgba(201, 110, 94, 0.16) !important;
+    border-color: var(--danger) !important;
+}
+
+/* Mensajes de error de validación de campos de formulario */
+.org-field-error-text {
+    color: var(--danger);
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* Estilos para el modal de contraseña temporal */
+.temp-password-box {
+    padding: 1.25rem;
+    background-color: var(--surface-soft);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-sm);
+    margin-bottom: 1.25rem;
+}
+
+.temp-password-user-label {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.875rem;
+    color: var(--text-soft);
+}
+
+.temp-password-value-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.temp-password-monospace {
+    font-family: var(--font-body);
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.05em;
+}
+
+.temp-password-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-sm);
+    background-color: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+}
+
+.temp-password-copy-btn:hover {
+    background-color: var(--surface-tinted);
+}
+
+.temp-password-close-btn {
+    background-color: var(--primary);
+    color: var(--surface);
+    border: 1px solid var(--primary-strong);
+    border-radius: var(--radius-sm);
+}
+
+.temp-password-close-btn:hover {
+    background-color: var(--primary-strong);
+    color: var(--surface);
+}
+
+/* ---- Distribución y Anchos de Columnas de las Tablas (table-layout: fixed) ---- */
+
+/* Ajuste de maquetación fija de tablas */
+.admin-table {
+    table-layout: fixed !important;
+    width: 100% !important;
+}
+
+/* Distribución de la tabla de usuarios (5 columnas) */
+.admin-table-users th:nth-child(1),
+.admin-table-users td:nth-child(1) {
+    width: 40% !important; /* Nombre y correo - expande flexiblemente */
+}
+.admin-table-users th:nth-child(2),
+.admin-table-users td:nth-child(2) {
+    width: 15% !important; /* Teléfono */
+}
+.admin-table-users th:nth-child(3),
+.admin-table-users td:nth-child(3) {
+    width: 15% !important; /* Rol */
+}
+.admin-table-users th:nth-child(4),
+.admin-table-users td:nth-child(4) {
+    width: 15% !important; /* Fecha de registro */
+}
+.admin-table-users th:nth-child(5),
+.admin-table-users td:nth-child(5) {
+    width: 15% !important; /* Acciones (ancho ajustado sin espacio vacío) */
+}
+
+/* Distribución de la tabla de organizaciones (6 columnas - correo extendido) */
+.admin-table-orgs th:nth-child(1),
+.admin-table-orgs td:nth-child(1) {
+    width: 26% !important; /* Nombre y descripción */
+}
+.admin-table-orgs th:nth-child(2),
+.admin-table-orgs td:nth-child(2) {
+    width: 10% !important; /* Estado */
+}
+.admin-table-orgs th:nth-child(3),
+.admin-table-orgs td:nth-child(3) {
+    width: 18% !important; /* Dirección */
+}
+.admin-table-orgs th:nth-child(4),
+.admin-table-orgs td:nth-child(4) {
+    width: 12% !important; /* Teléfono */
+}
+.admin-table-orgs th:nth-child(5),
+.admin-table-orgs td:nth-child(5) {
+    width: 22% !important; /* Correo (extendido para evitar desbordes) */
+}
+.admin-table-orgs th:nth-child(6),
+.admin-table-orgs td:nth-child(6) {
+    width: 12% !important; /* Acciones */
+}
+
+/* Distribución de la tabla de campañas (5 columnas) */
+.admin-table-campaigns th:nth-child(1),
+.admin-table-campaigns td:nth-child(1) {
+    width: 32% !important; /* Título de campaña */
+}
+.admin-table-campaigns th:nth-child(2),
+.admin-table-campaigns td:nth-child(2) {
+    width: 22% !important; /* Organización asociada */
+}
+.admin-table-campaigns th:nth-child(3),
+.admin-table-campaigns td:nth-child(3) {
+    width: 16% !important; /* Barra de progreso */
+}
+.admin-table-campaigns th:nth-child(4),
+.admin-table-campaigns td:nth-child(4) {
+    width: 16% !important; /* Fechas límite */
+}
+.admin-table-campaigns th:nth-child(5),
+.admin-table-campaigns td:nth-child(5) {
+    width: 14% !important; /* Selector de estado de campaña */
+}
+
+/* ---- Ajustes de Responsividad para la Barra de Progreso ---- */
+.admin-progress-cell {
+    min-width: 0 !important; /* Evita que la celda de progreso desborde en pantallas angostas */
+    width: 100% !important;
+}
+
+/* ---- Dimensionamiento para el Modal de Confirmación Unificado ---- */
+.admin-modal.modal-confirm {
+    width: min(520px, 100%) !important;
+}
