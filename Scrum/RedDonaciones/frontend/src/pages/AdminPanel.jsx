@@ -521,7 +521,7 @@ export default function AdminPanel({ usuarioSesion }) {
             const data = await apiGet('/api/publicaciones')
             setPublicaciones(Array.isArray(data) ? data : [])
         } catch (error) {
-            setCampaignsError(error.message || 'No se pudieron cargar las campanas')
+            setCampaignsError(error.message || 'No se pudieron cargar las campañas')
         } finally {
             if (!silent) {
                 setLoadingCampaigns(false)
@@ -916,7 +916,7 @@ export default function AdminPanel({ usuarioSesion }) {
         setConfirmModal({
             isOpen: true,
             title: 'Desactivar Usuario',
-            message: `¿Estás seguro de que deseas desactivar la cuenta del usuario "${usuario.nombre}"? No podra iniciar sesion temporalmente.`,
+            message: `¿Estás seguro de que deseas desactivar la cuenta del usuario "${usuario.nombre}"? No podrá iniciar sesión temporalmente.`,
             onConfirm: async () => {
                 setIsSubmitting(true)
                 setModalError('')
@@ -1012,7 +1012,7 @@ export default function AdminPanel({ usuarioSesion }) {
                 window.dispatchEvent(new Event('admin:campaigns-changed'))
                 setSuccessMessage(`Campana cambiada a "${campaignStatusLabel(nextStatus)}" con exito`)
             } catch (error) {
-                setCampaignsError(error.message || 'No se pudo cambiar el estado de la campana')
+                setCampaignsError(error.message || 'No se pudo cambiar el estado de la campaña')
             } finally {
                 setSavingCampaignId(null)
             }
@@ -1122,7 +1122,7 @@ export default function AdminPanel({ usuarioSesion }) {
 
     const renderCampaignsTable = () => {
         if (campaignsError) return <ErrorView message={campaignsError} onRetry={loadCampaigns} />
-        if (publicaciones.length === 0 && !loadingCampaigns) return <div className="empty-box">No hay campanas registradas.</div>
+        if (publicaciones.length === 0 && !loadingCampaigns) return <div className="empty-box">No hay campañas registradas.</div>
 
         return (
             <div className="admin-table-wrap">
@@ -1155,7 +1155,7 @@ export default function AdminPanel({ usuarioSesion }) {
                                 <tr key={publicacion.id_publicacion}>
                                     <td>
                                         <div className="admin-table-primary">{publicacion.titulo}</div>
-                                        <div className="admin-table-muted">{publicacion.categoria || 'Sin categoria'}</div>
+                                        <div className="admin-table-muted">{publicacion.categoria || 'Sin categoría'}</div>
                                     </td>
                                     <td>{publicacion.organizacion || 'Sin organización'}</td>
                                     <td>
@@ -1168,7 +1168,7 @@ export default function AdminPanel({ usuarioSesion }) {
                                     </td>
                                     <td>
                                         <div>{formatDate(publicacion.fecha_publicacion)}</div>
-                                        <div className="admin-table-muted">Limite: {formatDate(publicacion.fecha_limite)}</div>
+                                        <div className="admin-table-muted">Límite: {formatDate(publicacion.fecha_limite)}</div>
                                     </td>
                                     <td>
                                         <select
@@ -1513,7 +1513,7 @@ export default function AdminPanel({ usuarioSesion }) {
                     <p className="page-kicker">Administracion</p>
                     <h1 className="admin-title">Panel de Administrador</h1>
                     <p className="admin-subtitle">
-                        Gestiona usuarios y controla la visibilidad operativa de las campanas.
+                        Gestiona usuarios y controla la visibilidad operativa de las campañas.
                     </p>
                 </div>
                 <div className="admin-hero-stat">
@@ -1522,7 +1522,7 @@ export default function AdminPanel({ usuarioSesion }) {
                 </div>
                 <div className="admin-hero-stat">
                     <strong>{publicaciones.length}</strong>
-                    <span>campanas</span>
+                    <span>Campañas</span>
                 </div>
             </header>
 
@@ -1568,7 +1568,7 @@ export default function AdminPanel({ usuarioSesion }) {
                         <>
                             <div className="admin-section-head">
                                 <div>
-                                    <h2>Gestion de usuarios</h2>
+                                    <h2>Gestión de usuarios</h2>
                                     <p>Administra cuentas de donantes, intermediarios y administradores.</p>
                                 </div>
                                 <button type="button" className="admin-primary-action" onClick={openCreateUser}>
@@ -1654,8 +1654,8 @@ export default function AdminPanel({ usuarioSesion }) {
                         <>
                             <div className="admin-section-head">
                                 <div>
-                                    <h2>Gestion de campanas</h2>
-                                    <p>Activa o desactiva campanas publicadas en la plataforma.</p>
+                                    <h2>Gestión de campañas</h2>
+                                    <p>Activa o desactiva campañas publicadas en la plataforma.</p>
                                 </div>
                                 <button type="button" className="admin-primary-action" onClick={openCreateCampaign}>
                                     <IconPlus />

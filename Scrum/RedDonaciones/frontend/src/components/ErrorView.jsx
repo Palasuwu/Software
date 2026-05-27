@@ -10,7 +10,7 @@ export default function ErrorView({ message, onRetry }) {
           <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
       </div>
-      <p className="error-view-msg">{message || 'Ocurrio un error inesperado'}</p>
+      <p className="error-view-msg">{message || 'Ocurrió un error inesperado'}</p>
       {onRetry && (
         <button type="button" className="error-view-retry" onClick={onRetry}>
           Intentar de nuevo

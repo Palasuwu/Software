@@ -251,14 +251,14 @@ function HeaderNav({ isAuthenticated, usuarioSesion, onLogout }) {
       {!isAuthenticated && (
         <NavLink to="/login" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
           <IconUser />
-          <span>Iniciar sesion</span>
+          <span>Iniciar sesión</span>
         </NavLink>
       )}
 
 
       {isAuthenticated && (
         <button type="button" className="top-nav-link top-nav-button" onClick={onLogout}>
-          Cerrar sesion
+          Cerrar sesión
         </button>
       )}
     </nav>
@@ -340,9 +340,9 @@ function HomePage({ isAuthenticated }) {
           id: publicacion.id_publicacion,
           title: publicacion.titulo,
           description: publicacion.descripcion,
-          category: publicacion.categoria || 'Sin categoria',
+          category: publicacion.categoria || 'Sin categoría',
           location: publicacion.direccion,
-          organizacion: publicacion.organizacion || 'Sin organizacion',
+          organizacion: publicacion.organizacion || 'Sin organización',
           estado: publicacion.estado || 'activa',
           imagen: resolvePublicationImage(publicacion.id_publicacion, publicacion.imagen_url),
           progress: publicacion.cantidad_necesaria > 0
@@ -464,7 +464,7 @@ function HomePage({ isAuthenticated }) {
 
         <div className="filter-box">
           <select value={organizacion} onChange={(event) => setOrganizacion(event.target.value)}>
-            <option value="Todas">Organizacion: Todas</option>
+            <option value="Todas">Organización: Todas</option>
             {organizacionesDisponibles.map((item) => (
               <option key={item} value={item}>{item}</option>
             ))}
@@ -547,7 +547,7 @@ function validateProfileForm(form, rol) {
   }
 
   if (rol === 'intermediario') {
-    if (!form.id_organizacion) errors.id_organizacion = 'Selecciona una organizacion'
+    if (!form.id_organizacion) errors.id_organizacion = 'Selecciona una organización'
     if (!form.cargo.trim()) errors.cargo = 'El cargo es obligatorio'
   }
 
@@ -874,7 +874,7 @@ function PerfilPage({ usuarioSesion, onProfileUpdated }) {
               {perfil?.rol === 'intermediario' && (
                 <div className="form-row">
                   <div className="form-field">
-                    <label className="form-label" htmlFor="profile-organizacion">Organizacion</label>
+                    <label className="form-label" htmlFor="profile-organizacion">Organización</label>
                     <select
                       id="profile-organizacion"
                       className={`form-select ${formErrors.id_organizacion ? 'form-input-invalid' : ''}`}
@@ -883,7 +883,7 @@ function PerfilPage({ usuarioSesion, onProfileUpdated }) {
                       onChange={handleFormChange}
                       disabled={orgLoading}
                     >
-                      <option value="">Selecciona una organizacion</option>
+                      <option value="">Selecciona una organización</option>
                       {organizaciones.map((organizacion) => (
                         <option key={organizacion.id_organizacion} value={organizacion.id_organizacion}>
                           {organizacion.nombre}
@@ -962,7 +962,7 @@ function PerfilPage({ usuarioSesion, onProfileUpdated }) {
                     <IconLocation />
                   </div>
                   <div>
-                    <p className="profile-info-label">Organizacion</p>
+                    <p className="profile-info-label">Organización</p>
                     <p className="profile-info-value">{perfil?.perfil?.organizacion_nombre || 'No asignada'}</p>
                   </div>
                 </div>
@@ -1030,7 +1030,7 @@ function AppShell() {
   React.useEffect(() => {
     const handleUnauthorized = () => {
       setUsuarioSesion(null)
-      setAuthNotice('Tu sesion expiro. Inicia sesion nuevamente.')
+      setAuthNotice('Tu sesión expiró. Inicia sesión nuevamente.')
       navigate('/login', { replace: true, state: { from: location.pathname } })
     }
 
