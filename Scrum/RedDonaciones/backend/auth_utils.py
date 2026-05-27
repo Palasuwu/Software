@@ -15,13 +15,14 @@ def _get_secret_key():
     return secret_key
 
 
-def generate_token(id_usuario, rol):
+def generate_token(id_usuario, rol, id_organizacion=None):
     """Genera un JWT token valido por 7 dias."""
     secret_key = _get_secret_key()
 
     payload = {
         "id_usuario": id_usuario,
         "rol": rol,
+        "id_organizacion": id_organizacion,
         "exp": datetime.utcnow() + timedelta(days=7),
         "iat": datetime.utcnow()
     }
@@ -62,6 +63,7 @@ def _autenticar_request():
     try:
         request.usuario_id = payload["id_usuario"]
         request.usuario_rol = payload["rol"]
+        request.id_organizacion = payload.get("id_organizacion")
     except KeyError:
         return None, (jsonify({"error": "Token invalido"}), 401)
 

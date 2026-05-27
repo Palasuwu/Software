@@ -532,34 +532,64 @@ def login_usuario():
             password.encode("utf-8"),
             stored_password.encode("utf-8")
         )
+
         if not is_valid_password:
             return jsonify({"error": "Credenciales invalidas"}), 401
 
-        # NUEVO: Generar JWT token
-        token = generate_token(usuario["id_usuario"], usuario["rol"])
+        # Datos extra para intermediario
+        id_organizacion = None
+        cargo = None
+
+        if usuario["rol"] == "intermediario":
+            cursor.execute(
+                """
+                SELECT id_organizacion, cargo
+                FROM intermediario
+                WHERE id_usuario = %s
+                """,
+                (usuario["id_usuario"],)
+            )
+
+            datos_intermediario = cursor.fetchone()
+
+            if datos_intermediario:
+                id_organizacion = datos_intermediario["id_organizacion"]
+                cargo = datos_intermediario["cargo"]
+
+        # JWT
+        token = generate_token(
+            usuario["id_usuario"],
+            usuario["rol"],
+            id_organizacion
+        )
 
         return jsonify({
             "message": "Login exitoso",
-            "token": token,  # NUEVO: Devolver el token
+            "token": token,
             "usuario": {
                 "id_usuario": usuario["id_usuario"],
                 "nombre": usuario["nombre"],
                 "correo": usuario["correo"],
                 "telefono": usuario["telefono"],
-                "rol": usuario["rol"]
+                "rol": usuario["rol"],
+                "id_organizacion": id_organizacion,
+                "cargo": cargo
             }
         }), 200
 
     except ValueError:
         return jsonify({"error": "Credenciales invalidas"}), 401
+
     except Exception as e:
         return jsonify({
             "error": "Error al iniciar sesion",
             "detalle": str(e)
         }), 500
+
     finally:
         if cursor:
             cursor.close()
+
         if conn:
             conn.close()
 

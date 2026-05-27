@@ -20,6 +20,7 @@ import LandingPage from './pages/LandingPage'
 import OrganizacionesPage from './pages/OrganizacionesPage'
 import OrgaDetailPage from './pages/OrgaDetailPage'
 import AdminPanel from './pages/AdminPanel'
+import OrgaPanel from './pages/OrgaPanel'
 import HomePage from './pages/HomePage'
 import NavBar from './components/NavBar'
 import { apiGet, apiPut } from './utils/api'
@@ -113,6 +114,7 @@ function roleLabel(role) {
 
 function BottomNav({ isAuthenticated, usuarioSesion, onLogout }) {
   const isAdmin = usuarioSesion?.rol === 'administrador'
+  const isIntermediario = usuarioSesion?.rol === 'intermediario'
 
   return (
     <nav className="bottom-nav">
@@ -140,6 +142,13 @@ function BottomNav({ isAuthenticated, usuarioSesion, onLogout }) {
             <NavLink to="/admin" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
               <IconAdmin />
               <span>Admin</span>
+            </NavLink>
+          )}
+
+          {isIntermediario && (
+            <NavLink to="/intermediario" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+              <IconUsers />
+              <span>Mi Org</span>
             </NavLink>
           )}
           <button type="button" className="nav-item nav-item-button" onClick={onLogout}>
@@ -820,6 +829,15 @@ function AppShell() {
             element={(
               <ProtectedRoute usuarioSesion={usuarioSesion} requiredRole="administrador">
                 <AdminPanel usuarioSesion={usuarioSesion} />
+              </ProtectedRoute>
+            )}
+          />
+
+          <Route
+            path="/intermediario"
+            element={(
+              <ProtectedRoute usuarioSesion={usuarioSesion} requiredRole="intermediario" >
+                <OrgaPanel usuarioSesion={usuarioSesion} />
               </ProtectedRoute>
             )}
           />

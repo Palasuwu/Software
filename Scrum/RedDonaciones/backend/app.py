@@ -6,6 +6,7 @@ from routes.usuario import usuario_bp
 from routes.organizacion import organizacion_bp
 from routes.publicacion import publicacion_bp
 from routes.upload import upload_bp
+from routes.intermediario import intermediario_bp
 
 app = Flask(__name__)
 CORS(app)
@@ -25,6 +26,7 @@ app.register_blueprint(usuario_bp)
 app.register_blueprint(organizacion_bp)
 app.register_blueprint(publicacion_bp)
 app.register_blueprint(upload_bp)
+app.register_blueprint(intermediario_bp)
 
 @app.after_request
 def add_charset_to_json(response):
