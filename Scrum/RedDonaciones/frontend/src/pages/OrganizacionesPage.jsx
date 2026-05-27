@@ -3,6 +3,8 @@
 import React from 'react'
 import { apiGet } from '../utils/api'
 import { useNavigate } from 'react-router-dom'
+import Spinner from '../components/Spinner'
+import ErrorView from '../components/ErrorView'
 
 function estadoLabel(estado) {
   const labels = {
@@ -40,13 +42,13 @@ function OrganizacionesPage() {
       <header className="org-admin-header">
         <h1 className="page-title">Organizaciones</h1>
         <p className="page-subtitle">
-          Estas son las organizaciones que estan dentro de nuestra red de donaciones
+          Estas son las organizaciones que están dentro de nuestra red de donaciones
         </p>
       </header>
 
       <section className="org-directory-grid">
-        {loading && <div className="empty-box">Cargando organizaciones...</div>}
-        {error && <div className="error-box">{error}</div>}
+        {loading && <Spinner message="Cargando organizaciones..." />}
+        {error && <ErrorView message={error} />}
 
         {!loading && !error && organizaciones.length === 0 && (
           <div className="empty-box">No hay organizaciones registradas</div>

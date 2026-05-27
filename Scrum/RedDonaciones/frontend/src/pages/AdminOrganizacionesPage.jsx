@@ -1,5 +1,7 @@
 import React from 'react'
 import { apiDelete, apiGet, apiPost, apiPut } from '../utils/api'
+import Spinner from '../components/Spinner'
+import ErrorView from '../components/ErrorView'
 
 const EMPTY_FORM = {
   nombre: '',
@@ -131,12 +133,12 @@ function AdminOrganizacionesPage() {
       </header>
 
       {message && <div className="loading-box">{message}</div>}
-      {error && <div className="error-box">{error}</div>}
+      {error && <ErrorView message={error} />}
 
       <section className="org-admin-form-card">
           <div className="signup-card-head">
-            <h2>{editingId ? 'Editar organizacion' : 'Nueva organizacion'}</h2>
-            <p>Los campos se usan en publicaciones, perfiles de intermediarios y vistas publicas.</p>
+            <h2>{editingId ? 'Editar organización' : 'Nueva organización'}</h2>
+            <p>Los campos se usan en publicaciones, perfiles de intermediarios y vistas públicas.</p>
           </div>
 
           <form className="form-grid" onSubmit={handleSubmit}>
@@ -191,7 +193,7 @@ function AdminOrganizacionesPage() {
 
             <div className="org-admin-actions">
               <button type="submit" className="btn-confirmar" disabled={saving}>
-                {saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Crear organizacion'}
+                {saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Crear organización'}
               </button>
               {editingId && (
                 <button type="button" className="profile-cancel-button" onClick={handleCancel} disabled={saving}>
@@ -203,7 +205,7 @@ function AdminOrganizacionesPage() {
       </section>
 
       <section className="org-admin-list">
-        {loading && <div className="empty-box">Cargando organizaciones...</div>}
+        {loading && <Spinner message="Cargando organizaciones..." />}
         {!loading && !error && organizaciones.length === 0 && <div className="empty-box">No hay organizaciones</div>}
 
         {!loading && organizaciones.length > 0 && (

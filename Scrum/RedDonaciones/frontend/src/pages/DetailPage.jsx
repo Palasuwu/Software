@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { obtenerUsuarioSesion } from '../utils/session'
 import { apiGet, apiPost } from '../utils/api'
+import Spinner from '../components/Spinner'
+import ErrorView from '../components/ErrorView'
 
 const EASE_OUT_EXPO = [0.16, 1, 0.3, 1]
 
@@ -54,7 +56,7 @@ export default function DetailPage() {
   useEffect(() => {
     apiGet(`/api/publicaciones/${id}`)
       .then((body) => {
-        if (!Array.isArray(body)) throw new Error('Respuesta invalida del servidor')
+        if (!Array.isArray(body)) throw new Error('Respuesta inválida del servidor')
         return body
       })
       .then(res => { setData(res); setLoading(false) })
@@ -124,11 +126,14 @@ export default function DetailPage() {
       setSubmitSuccess(true)
       setTimeout(() => navigate('/donaciones'), 1400)
     } catch (err) {
-      setSubmitError(err.message || 'No se pudo registrar la donacion')
+      setSubmitError(err.message || 'No se pudo registrar la donación')
     } finally {
       setSubmitting(false)
     }
   }
+
+  if (loading) return <Spinner message="Cargando detalle..." />
+  if (error) return <ErrorView message={error} />
 
   const pct = info && info.cantidad_necesaria > 0
     ? Math.min(100, Math.round((info.cantidad_recibida / info.cantidad_necesaria) * 100))
@@ -141,11 +146,7 @@ export default function DetailPage() {
       initial="hidden"
       animate="visible"
     >
-      {loading ? (
-        <div className="empty-box">Cargando detalle...</div>
-      ) : error ? (
-        <div className="empty-box">{error}</div>
-      ) : !info ? (
+      {!info ? (
         <div className="empty-box">No encontrado</div>
       ) : (
         <>
@@ -174,7 +175,7 @@ export default function DetailPage() {
           {/* Stats */}
           <div className="dp-stats">
             <div className="dp-stat">
-              <span className="dp-stat-label">Organizacion</span>
+              <span className="dp-stat-label">Organización</span>
               <span className="dp-stat-value">{info.organizacion}</span>
             </div>
             <div className="dp-stat">
@@ -212,7 +213,7 @@ export default function DetailPage() {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
               </svg>
-              Articulos necesitados
+              Artículos necesitados
             </div>
             <div className="dp-items">
               {items.map((item, i) => (
@@ -232,7 +233,7 @@ export default function DetailPage() {
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                 <circle cx="12" cy="10" r="3" />
               </svg>
-              Ubicacion
+              Ubicación
             </div>
             <div className="dp-map">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -241,7 +242,7 @@ export default function DetailPage() {
               </svg>
               <span>Ver en mapa</span>
             </div>
-            <p className="dp-address">{info?.direccion || 'Direccion no disponible'}</p>
+            <p className="dp-address">{info?.direccion || 'Dirección no disponible'}</p>
           </div>
         </div>
 
@@ -256,14 +257,14 @@ export default function DetailPage() {
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 </div>
-                <h3>Donacion registrada</h3>
+                <h3>Donación registrada</h3>
                 <p>Te redirigimos a tu historial...</p>
               </div>
             ) : (
               <>
                 <div className="dp-form-header">
                   <h2>Agendar entrega</h2>
-                  <p>Completa los datos para coordinar tu donacion</p>
+                  <p>Completa los datos para coordinar tu donación</p>
                 </div>
 
                 <div className="dp-form-body">
@@ -284,7 +285,7 @@ export default function DetailPage() {
                       />
                     </div>
                     <div className="dp-field">
-                      <label className="dp-label">Telefono</label>
+                      <label className="dp-label">Teléfono</label>
                       <input
                         className="dp-input"
                         name="telefono"

@@ -1,6 +1,8 @@
 import React from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { apiGet } from '../utils/api'
+import Spinner from '../components/Spinner'
+import ErrorView from '../components/ErrorView'
 
 function estadoLabel(estado) {
   const labels = {
@@ -38,8 +40,8 @@ function OrgaDetailPage() {
       })
   }, [id])
 
-  if (loading) return <div className="empty-box">Cargando detalles...</div>
-  if (error) return <div className="empty-box">{error}</div>
+  if (loading) return <Spinner message="Cargando detalles..." />
+  if (error) return <ErrorView message={error} />
   if (!organizacion) return <div className="empty-box">Organización no encontrada</div>
 
   return (
