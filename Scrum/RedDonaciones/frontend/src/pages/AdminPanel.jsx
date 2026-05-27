@@ -1092,70 +1092,70 @@ export default function AdminPanel({ usuarioSesion }) {
                         {loadingUsers
                             ? <SkeletonRows cols={5} rows={4} />
                             : usuarios.map((usuario) => {
-                            const isSelf = usuarioSesion?.id_usuario === usuario.id_usuario
+                                const isSelf = usuarioSesion?.id_usuario === usuario.id_usuario
 
-                            return (
-                                <tr key={usuario.id_usuario}>
-                                    <td>
-                                        <div className="admin-table-primary">{usuario.nombre}</div>
-                                        <div className="admin-table-muted">{usuario.correo}</div>
-                                    </td>
-                                    <td>{usuario.telefono}</td>
-                                    <td>
-                                        <span className={`admin-status-pill admin-status-${usuario.rol}`}>
-                                            {roleLabel(usuario.rol)}
-                                        </span>
-                                    </td>
-                                    <td>{formatDate(usuario.fecha_registro)}</td>
-                                    <td>
-                                        <div className="admin-row-actions">
-                                            <button
-                                                type="button"
-                                                className="admin-icon-button"
-                                                onClick={() => openEditUser(usuario)}
-                                                aria-label={`Editar ${usuario.nombre}`}
-                                                title="Editar"
-                                            >
-                                                <IconEdit />
-                                            </button>
-                                            {usuario.activo !== 0 ? (
+                                return (
+                                    <tr key={usuario.id_usuario}>
+                                        <td>
+                                            <div className="admin-table-primary">{usuario.nombre}</div>
+                                            <div className="admin-table-muted">{usuario.correo}</div>
+                                        </td>
+                                        <td>{usuario.telefono}</td>
+                                        <td>
+                                            <span className={`admin-status-pill admin-status-${usuario.rol}`}>
+                                                {roleLabel(usuario.rol)}
+                                            </span>
+                                        </td>
+                                        <td>{formatDate(usuario.fecha_registro)}</td>
+                                        <td>
+                                            <div className="admin-row-actions">
                                                 <button
                                                     type="button"
                                                     className="admin-icon-button"
-                                                    onClick={() => openDesactivarUser(usuario)}
-                                                    disabled={isSelf}
-                                                    aria-label={`Desactivar ${usuario.nombre}`}
-                                                    title="Desactivar"
+                                                    onClick={() => openEditUser(usuario)}
+                                                    aria-label={`Editar ${usuario.nombre}`}
+                                                    title="Editar"
                                                 >
-                                                    <IconToggle checked={true} />
+                                                    <IconEdit />
                                                 </button>
-                                            ) : (
+                                                {usuario.activo !== 0 ? (
+                                                    <button
+                                                        type="button"
+                                                        className="admin-icon-button"
+                                                        onClick={() => openDesactivarUser(usuario)}
+                                                        disabled={isSelf}
+                                                        aria-label={`Desactivar ${usuario.nombre}`}
+                                                        title="Desactivar"
+                                                    >
+                                                        <IconToggle checked={true} />
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        className="admin-icon-button"
+                                                        onClick={() => openActivarUser(usuario)}
+                                                        disabled={isSelf}
+                                                        aria-label={`Activar ${usuario.nombre}`}
+                                                        title="Activar"
+                                                    >
+                                                        <IconToggle checked={false} />
+                                                    </button>
+                                                )}
                                                 <button
                                                     type="button"
-                                                    className="admin-icon-button"
-                                                    onClick={() => openActivarUser(usuario)}
-                                                    disabled={isSelf}
-                                                    aria-label={`Activar ${usuario.nombre}`}
-                                                    title="Activar"
+                                                    className="admin-icon-button admin-icon-button-danger"
+                                                    onClick={() => openAnonimizarUser(usuario)}
+                                                    disabled={isSelf || usuario.nombre === 'Usuario Anonimizado'}
+                                                    aria-label={`Anonimizar ${usuario.nombre}`}
+                                                    title="Anonimizar"
                                                 >
-                                                    <IconToggle checked={false} />
+                                                    <IconTrash />
                                                 </button>
-                                            )}
-                                            <button
-                                                type="button"
-                                                className="admin-icon-button admin-icon-button-danger"
-                                                onClick={() => openAnonimizarUser(usuario)}
-                                                disabled={isSelf || usuario.nombre === 'Usuario Anonimizado'}
-                                                aria-label={`Anonimizar ${usuario.nombre}`}
-                                                title="Anonimizar"
-                                            >
-                                                <IconTrash />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )
-                        })}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )
+                            })}
                     </tbody>
                 </table>
             </div>
@@ -1171,7 +1171,7 @@ export default function AdminPanel({ usuarioSesion }) {
                 <table className="admin-table admin-table-campaigns">
                     <thead>
                         <tr>
-                            <th>Campana</th>
+                            <th>Campaña</th>
                             <th>Organización</th>
                             <th>Progreso</th>
                             <th>Fechas</th>
@@ -1182,51 +1182,51 @@ export default function AdminPanel({ usuarioSesion }) {
                         {loadingCampaigns
                             ? <SkeletonRows cols={5} rows={4} />
                             : publicaciones.map((publicacion) => {
-                            const progress = getProgress(publicacion)
-                            const isSaving = savingCampaignId === publicacion.id_publicacion
-                            
-                            const statusClass = publicacion.estado === 'activa'
-                                ? 'status-active'
-                                : publicacion.estado === 'finalizada'
-                                ? 'status-finished'
-                                : publicacion.estado === 'cancelada'
-                                ? 'status-canceled'
-                                : ''
+                                const progress = getProgress(publicacion)
+                                const isSaving = savingCampaignId === publicacion.id_publicacion
 
-                            return (
-                                <tr key={publicacion.id_publicacion}>
-                                    <td>
-                                        <div className="admin-table-primary">{publicacion.titulo}</div>
-                                        <div className="admin-table-muted">{publicacion.categoria || 'Sin categoría'}</div>
-                                    </td>
-                                    <td>{publicacion.organizacion || 'Sin organización'}</td>
-                                    <td>
-                                        <div className="admin-progress-cell">
-                                            <span>{progress}%</span>
-                                            <div className="progress-track admin-progress-track">
-                                                <div className="progress-fill" style={{ width: `${progress}%` }} />
+                                const statusClass = publicacion.estado === 'activa'
+                                    ? 'status-active'
+                                    : publicacion.estado === 'finalizada'
+                                        ? 'status-finished'
+                                        : publicacion.estado === 'cancelada'
+                                            ? 'status-canceled'
+                                            : ''
+
+                                return (
+                                    <tr key={publicacion.id_publicacion}>
+                                        <td>
+                                            <div className="admin-table-primary">{publicacion.titulo}</div>
+                                            <div className="admin-table-muted">{publicacion.categoria || 'Sin categoría'}</div>
+                                        </td>
+                                        <td>{publicacion.organizacion || 'Sin organización'}</td>
+                                        <td>
+                                            <div className="admin-progress-cell">
+                                                <span>{progress}%</span>
+                                                <div className="progress-track admin-progress-track">
+                                                    <div className="progress-fill" style={{ width: `${progress}%` }} />
+                                                </div>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div>{formatDate(publicacion.fecha_publicacion)}</div>
-                                        <div className="admin-table-muted">Límite: {formatDate(publicacion.fecha_limite)}</div>
-                                    </td>
-                                    <td>
-                                        <select
-                                            className={`form-select admin-select-status campaign-select-status ${statusClass}`}
-                                            value={publicacion.estado}
-                                            onChange={(e) => handleChangeCampaignStatus(publicacion, e.target.value)}
-                                            disabled={isSaving}
-                                        >
-                                            <option value="activa">Activa</option>
-                                            <option value="finalizada">Finalizada</option>
-                                            <option value="cancelada">Cancelada</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                            )
-                        })}
+                                        </td>
+                                        <td>
+                                            <div>{formatDate(publicacion.fecha_publicacion)}</div>
+                                            <div className="admin-table-muted">Límite: {formatDate(publicacion.fecha_limite)}</div>
+                                        </td>
+                                        <td>
+                                            <select
+                                                className={`form-select admin-select-status campaign-select-status ${statusClass}`}
+                                                value={publicacion.estado}
+                                                onChange={(e) => handleChangeCampaignStatus(publicacion, e.target.value)}
+                                                disabled={isSaving}
+                                            >
+                                                <option value="activa">Activa</option>
+                                                <option value="finalizada">Finalizada</option>
+                                                <option value="cancelada">Cancelada</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                )
+                            })}
                     </tbody>
                 </table>
             </div>
@@ -1601,7 +1601,7 @@ export default function AdminPanel({ usuarioSesion }) {
                         onClick={() => setActiveTab('campanas')}
                     >
                         <IconCampaigns />
-                        <span>Campanas</span>
+                        <span>Campañas</span>
                     </button>
                 </aside>
 
