@@ -242,13 +242,17 @@ def actualizar_usuario(id_usuario):
                 return jsonify({"error": "id_organizacion debe ser un entero valido"}), 400
 
             cursor.execute(
-                "SELECT id_organizacion FROM organizacion WHERE id_organizacion = %s",
+                """
+                SELECT id_organizacion
+                FROM organizacion
+                WHERE id_organizacion = %s AND estado_verificacion = 'verificada'
+                """,
                 (id_organizacion,)
             )
             organizacion = cursor.fetchone()
             if not organizacion:
                 conn.rollback()
-                return jsonify({"error": "La organizacion seleccionada no existe"}), 400
+                return jsonify({"error": "La organizacion seleccionada no esta verificada o no existe"}), 400
 
             cursor.execute(
                 """
@@ -498,13 +502,17 @@ def crear_usuario():
 
         if rol == "intermediario":
             cursor.execute(
-                "SELECT id_organizacion FROM organizacion WHERE id_organizacion = %s",
+                """
+                SELECT id_organizacion
+                FROM organizacion
+                WHERE id_organizacion = %s AND estado_verificacion = 'verificada'
+                """,
                 (id_organizacion,)
             )
             organizacion = cursor.fetchone()
             if not organizacion:
                 conn.rollback()
-                return jsonify({"error": "La organizacion seleccionada no existe"}), 400
+                return jsonify({"error": "La organizacion seleccionada no esta verificada o no existe"}), 400
 
             sql_intermediario = """
             INSERT INTO intermediario (id_usuario, id_organizacion, cargo)

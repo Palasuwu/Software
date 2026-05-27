@@ -137,6 +137,28 @@ def crear_publicacion():
         conn = get_db_connection()
         cursor = conn.cursor()
 
+        cursor.execute(
+            """
+            SELECT id_organizacion
+            FROM organizacion
+            WHERE id_organizacion = %s AND estado_verificacion = 'verificada'
+            """,
+            (data.get("id_organizacion"),)
+        )
+        if not cursor.fetchone():
+            return jsonify({"error": "La organizacion seleccionada debe estar verificada"}), 400
+
+        cursor.execute(
+            """
+            SELECT id_usuario
+            FROM intermediario
+            WHERE id_usuario = %s AND id_organizacion = %s
+            """,
+            (data.get("id_intermediario"), data.get("id_organizacion"))
+        )
+        if not cursor.fetchone():
+            return jsonify({"error": "El intermediario no pertenece a la organizacion seleccionada"}), 400
+
         imagen_url = data.get("imagen_url") or None
         tiene_imagen_url = publicacion_tiene_imagen_url(cursor)
 

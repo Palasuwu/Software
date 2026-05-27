@@ -30,6 +30,42 @@ const CAMP_INITIAL_FORM = {
     id_articulo: '',
     imagen_url: ''
 }
+const ORG_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+const ORG_PHONE_REGEX = /^[0-9+\-()\s]{8,20}$/
+const ORG_STATUSES = ['pendiente', 'verificada', 'rechazada', 'inactiva', 'archivada']
+
+function cleanSpaces(value) {
+    return value.trim().replace(/\s+/g, ' ')
+}
+
+function countDigits(value) {
+    return (value.match(/\d/g) || []).length
+}
+
+function buildOrgPayload(form) {
+    return {
+        nombre: cleanSpaces(form.nombre),
+        descripcion: cleanSpaces(form.descripcion),
+        direccion: cleanSpaces(form.direccion),
+        telefono: form.telefono.trim(),
+        correo: form.correo.trim().toLowerCase(),
+        estado_verificacion: form.estado_verificacion
+    }
+}
+
+function validateOrgForm(form) {
+    const errors = {}
+    const payload = buildOrgPayload(form)
+
+    if (payload.nombre.length < 3) errors.nombre = 'Ingresa al menos 3 caracteres'
+    if (payload.descripcion.length < 10) errors.descripcion = 'Ingresa una descripcion mas completa'
+    if (payload.direccion.length < 8) errors.direccion = 'Ingresa una direccion mas especifica'
+    if (!ORG_PHONE_REGEX.test(payload.telefono) || countDigits(payload.telefono) < 8) errors.telefono = 'Ingresa un telefono valido'
+    if (!ORG_EMAIL_REGEX.test(payload.correo)) errors.correo = 'Ingresa un correo valido'
+    if (!ORG_STATUSES.includes(payload.estado_verificacion)) errors.estado_verificacion = 'Selecciona un estado valido'
+
+    return errors
+}
 
 function IconUsers() {
     return (
@@ -403,7 +439,7 @@ function UserFormFields({ form, errors, mode, organizaciones, orgLoading, orgErr
                             disabled={orgLoading}
                         >
                             <option value="">Selecciona una organización</option>
-                            {organizaciones.map((organizacion) => (
+                            {organizaciones.filter((organizacion) => organizacion.estado_verificacion === 'verificada').map((organizacion) => (
                                 <option key={organizacion.id_organizacion} value={organizacion.id_organizacion}>
                                     {organizacion.nombre}
                                 </option>
@@ -534,7 +570,7 @@ export default function AdminPanel({ usuarioSesion }) {
         setOrgError('')
 
         try {
-            const data = await apiGet('/api/organizaciones')
+            const data = await apiGet('/api/organizaciones?vista=admin')
             setOrganizaciones(Array.isArray(data) ? data : [])
         } catch (error) {
             setOrgError(error.message || 'No se pudieron cargar las organizaciones')
@@ -647,7 +683,6 @@ export default function AdminPanel({ usuarioSesion }) {
         clearFeedback()
         setFormErrors({})
         setModalError('')
-        setIsSubmitting(true)
         setModal({ type: 'editUser', usuario })
 
         try {
@@ -827,25 +862,32 @@ export default function AdminPanel({ usuarioSesion }) {
         event.preventDefault()
 
         setModalError('')
+        const errors = validateOrgForm(orgForm)
+        setOrgFormErrors(errors)
+        if (Object.keys(errors).length > 0) {
+            return
+        }
+
         setIsSubmitting(true)
+        const payload = buildOrgPayload(orgForm)
 
         try {
             if (modal?.type === 'editOrg') {
-                await apiPut(`/api/organizaciones/${modal.org.id_organizacion}`, orgForm)
+                await apiPut(`/api/organizaciones/${modal.org.id_organizacion}`, payload)
                 setSuccessMessage('Organización actualizada')
             } else {
-                await apiPost('/api/organizaciones', orgForm)
+                await apiPost('/api/organizaciones', payload)
                 setSuccessMessage('Organización creada')
             }
 
             await loadOrganizations()
             closeModal()
         } catch (error) {
-            const errMsg = error.message || ''
-            if (errMsg.startsWith("Falta el campo ")) {
-                const fieldName = errMsg.replace("Falta el campo ", "").trim()
-                setOrgFormErrors({ [fieldName]: errMsg })
+            const fieldErrors = error.body?.campos
+            if (fieldErrors && typeof fieldErrors === 'object') {
+                setOrgFormErrors(fieldErrors)
             } else {
+                const errMsg = error.message || ''
                 setModalError(errMsg || 'Error guardando organización')
             }
         } finally {
@@ -1303,7 +1345,7 @@ export default function AdminPanel({ usuarioSesion }) {
                                 <label className="form-label">Organización</label>
                                 <select className={`form-select ${campFormErrors.id_organizacion ? 'form-input-invalid' : ''}`} name="id_organizacion" value={campForm.id_organizacion} onChange={handleCampChange}>
                                     <option value="">Selecciona una organización</option>
-                                    {organizaciones.map((o) => (
+                                    {organizaciones.filter((o) => o.estado_verificacion === 'verificada').map((o) => (
                                         <option key={o.id_organizacion} value={o.id_organizacion}>{o.nombre}</option>
                                     ))}
                                 </select>

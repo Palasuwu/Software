@@ -11,6 +11,42 @@ const EMPTY_FORM = {
   correo: '',
   estado_verificacion: 'pendiente'
 }
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+const PHONE_REGEX = /^[0-9+\-()\s]{8,20}$/
+const ESTADOS_VALIDOS = ['pendiente', 'verificada', 'rechazada', 'inactiva', 'archivada']
+
+function cleanSpaces(value) {
+  return value.trim().replace(/\s+/g, ' ')
+}
+
+function countDigits(value) {
+  return (value.match(/\d/g) || []).length
+}
+
+function buildPayload(form) {
+  return {
+    nombre: cleanSpaces(form.nombre),
+    descripcion: cleanSpaces(form.descripcion),
+    direccion: cleanSpaces(form.direccion),
+    telefono: form.telefono.trim(),
+    correo: form.correo.trim().toLowerCase(),
+    estado_verificacion: form.estado_verificacion
+  }
+}
+
+function validateForm(form) {
+  const payload = buildPayload(form)
+  const errors = {}
+
+  if (payload.nombre.length < 3) errors.nombre = 'Ingresa al menos 3 caracteres'
+  if (payload.descripcion.length < 10) errors.descripcion = 'Ingresa una descripcion mas completa'
+  if (payload.direccion.length < 8) errors.direccion = 'Ingresa una direccion mas especifica'
+  if (!PHONE_REGEX.test(payload.telefono) || countDigits(payload.telefono) < 8) errors.telefono = 'Ingresa un telefono valido'
+  if (!EMAIL_REGEX.test(payload.correo)) errors.correo = 'Ingresa un correo valido'
+  if (!ESTADOS_VALIDOS.includes(payload.estado_verificacion)) errors.estado_verificacion = 'Selecciona un estado valido'
+
+  return errors
+}
 
 function estadoLabel(estado) {
   const labels = {
@@ -31,12 +67,13 @@ function AdminOrganizacionesPage() {
   const [editingId, setEditingId] = React.useState(null)
   const [saving, setSaving] = React.useState(false)
   const [message, setMessage] = React.useState('')
+  const [fieldErrors, setFieldErrors] = React.useState({})
 
   const cargarOrganizaciones = React.useCallback(() => {
     setLoading(true)
     setError(null)
 
-    apiGet('/api/organizaciones')
+    apiGet('/api/organizaciones?vista=admin')
       .then((data) => {
         setOrganizaciones(data)
         setLoading(false)
@@ -56,6 +93,12 @@ function AdminOrganizacionesPage() {
     setForm((previous) => ({ ...previous, [name]: value }))
     setMessage('')
     setError(null)
+    setFieldErrors((previous) => {
+      if (!previous[name]) return previous
+      const next = { ...previous }
+      delete next[name]
+      return next
+    })
   }
 
   const handleEdit = (org) => {
@@ -70,6 +113,7 @@ function AdminOrganizacionesPage() {
     })
     setMessage('')
     setError(null)
+    setFieldErrors({})
   }
 
   const handleCancel = () => {
@@ -77,6 +121,7 @@ function AdminOrganizacionesPage() {
     setForm(EMPTY_FORM)
     setMessage('')
     setError(null)
+    setFieldErrors({})
   }
 
   const handleSubmit = async (event) => {
@@ -86,11 +131,16 @@ function AdminOrganizacionesPage() {
     setError(null)
 
     try {
+      const errors = validateForm(form)
+      setFieldErrors(errors)
+      if (Object.keys(errors).length > 0) return
+
+      const payload = buildPayload(form)
       const url = editingId ? `/api/organizaciones/${editingId}` : '/api/organizaciones'
       if (editingId) {
-        await apiPut(url, form)
+        await apiPut(url, payload)
       } else {
-        await apiPost(url, form)
+        await apiPost(url, payload)
       }
 
       setMessage(editingId ? 'Organizacion actualizada' : 'Organizacion creada')
@@ -98,7 +148,11 @@ function AdminOrganizacionesPage() {
       setForm(EMPTY_FORM)
       cargarOrganizaciones()
     } catch (err) {
-      setError(err.message)
+      if (err.body?.campos) {
+        setFieldErrors(err.body.campos)
+      } else {
+        setError(err.message)
+      }
     } finally {
       setSaving(false)
     }
@@ -145,13 +199,14 @@ function AdminOrganizacionesPage() {
             <div className="form-row">
               <div className="form-field">
                 <label className="form-label" htmlFor="org-nombre">Nombre</label>
-                <input id="org-nombre" className="form-input" name="nombre" value={form.nombre} onChange={handleChange} />
+                <input id="org-nombre" className={`form-input ${fieldErrors.nombre ? 'form-input-invalid' : ''}`} name="nombre" value={form.nombre} onChange={handleChange} />
+                {fieldErrors.nombre && <span className="form-error-text">{fieldErrors.nombre}</span>}
               </div>
               <div className="form-field">
                 <label className="form-label" htmlFor="org-estado">Estado</label>
                 <select
                   id="org-estado"
-                  className="form-select"
+                  className={`form-select ${fieldErrors.estado_verificacion ? 'form-input-invalid' : ''}`}
                   name="estado_verificacion"
                   value={form.estado_verificacion}
                   onChange={handleChange}
@@ -160,7 +215,9 @@ function AdminOrganizacionesPage() {
                   <option value="verificada">Verificada</option>
                   <option value="rechazada">Rechazada</option>
                   <option value="inactiva">Inactiva</option>
+                  <option value="archivada">Archivada</option>
                 </select>
+                {fieldErrors.estado_verificacion && <span className="form-error-text">{fieldErrors.estado_verificacion}</span>}
               </div>
             </div>
 
@@ -168,27 +225,31 @@ function AdminOrganizacionesPage() {
               <label className="form-label" htmlFor="org-descripcion">Descripcion</label>
               <textarea
                 id="org-descripcion"
-                className="form-textarea"
+                className={`form-textarea ${fieldErrors.descripcion ? 'form-input-invalid' : ''}`}
                 name="descripcion"
                 value={form.descripcion}
                 onChange={handleChange}
               />
+              {fieldErrors.descripcion && <span className="form-error-text">{fieldErrors.descripcion}</span>}
             </div>
 
             <div className="form-row">
               <div className="form-field">
                 <label className="form-label" htmlFor="org-direccion">Direccion</label>
-                <input id="org-direccion" className="form-input" name="direccion" value={form.direccion} onChange={handleChange} />
+                <input id="org-direccion" className={`form-input ${fieldErrors.direccion ? 'form-input-invalid' : ''}`} name="direccion" value={form.direccion} onChange={handleChange} />
+                {fieldErrors.direccion && <span className="form-error-text">{fieldErrors.direccion}</span>}
               </div>
               <div className="form-field">
                 <label className="form-label" htmlFor="org-telefono">Telefono</label>
-                <input id="org-telefono" className="form-input" name="telefono" value={form.telefono} onChange={handleChange} />
+                <input id="org-telefono" className={`form-input ${fieldErrors.telefono ? 'form-input-invalid' : ''}`} name="telefono" value={form.telefono} onChange={handleChange} />
+                {fieldErrors.telefono && <span className="form-error-text">{fieldErrors.telefono}</span>}
               </div>
             </div>
 
             <div className="form-field">
               <label className="form-label" htmlFor="org-correo">Correo</label>
-              <input id="org-correo" className="form-input" name="correo" value={form.correo} onChange={handleChange} />
+              <input id="org-correo" className={`form-input ${fieldErrors.correo ? 'form-input-invalid' : ''}`} name="correo" value={form.correo} onChange={handleChange} />
+              {fieldErrors.correo && <span className="form-error-text">{fieldErrors.correo}</span>}
             </div>
 
             <div className="org-admin-actions">

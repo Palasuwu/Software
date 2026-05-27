@@ -1,20 +1,38 @@
 # Rutas relacionadas con organizaciones
 import logging
+import re
 
 from flask import Blueprint, jsonify, request
 
 from db.connection import get_db_connection
-from auth_utils import admin_required
+from auth_utils import admin_required, verify_token
 
 logging.basicConfig(level=logging.INFO)
 
 organizacion_bp = Blueprint("organizacion", __name__)
+EMAIL_REGEX = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$")
+PHONE_REGEX = re.compile(r"^[0-9+\-()\s]{8,20}$")
+ESTADOS_VALIDOS = ("pendiente", "verificada", "rechazada", "inactiva", "archivada")
+
+
+def limpiar_espacios(value):
+    return re.sub(r"\s+", " ", (value or "").strip())
+
+
+def request_es_admin():
+    auth_header = request.headers.get("Authorization", "")
+    parts = auth_header.split()
+    if len(parts) != 2 or parts[0] != "Bearer":
+        return False
+
+    payload = verify_token(parts[1])
+    return payload and payload.get("rol") == "administrador"
 
 
 def normalizar_organizacion_payload(data):
-    nombre = (data.get("nombre") or "").strip()
-    descripcion = (data.get("descripcion") or "").strip()
-    direccion = (data.get("direccion") or "").strip()
+    nombre = limpiar_espacios(data.get("nombre"))
+    descripcion = limpiar_espacios(data.get("descripcion"))
+    direccion = limpiar_espacios(data.get("direccion"))
     telefono = (data.get("telefono") or "").strip()
     correo = (data.get("correo") or "").strip().lower()
     estado_verificacion = (data.get("estado_verificacion") or "pendiente").strip().lower()
@@ -24,32 +42,13 @@ def normalizar_organizacion_payload(data):
         errores["nombre"] = "El nombre debe tener al menos 3 caracteres"
     if len(descripcion) < 10:
         errores["descripcion"] = "La descripcion debe tener al menos 10 caracteres"
-
-logging.basicConfig(level=logging.INFO)
-
-organizacion_bp = Blueprint("organizacion", __name__)
-
-
-def normalizar_organizacion_payload(data):
-    nombre = (data.get("nombre") or "").strip()
-    descripcion = (data.get("descripcion") or "").strip()
-    direccion = (data.get("direccion") or "").strip()
-    telefono = (data.get("telefono") or "").strip()
-    correo = (data.get("correo") or "").strip().lower()
-    estado_verificacion = (data.get("estado_verificacion") or "pendiente").strip().lower()
-
-    errores = {}
-    if len(nombre) < 3:
-        errores["nombre"] = "El nombre debe tener al menos 3 caracteres"
-    if len(descripcion) < 10:
-        errores["descripcion"] = "La descripcion debe tener al menos 10 caracteres"
-    if not direccion:
-        errores["direccion"] = "La direccion es obligatoria"
-    if not telefono:
-        errores["telefono"] = "El telefono es obligatorio"
-    if not correo or "@" not in correo:
+    if len(direccion) < 8:
+        errores["direccion"] = "La direccion debe ser mas especifica"
+    if not PHONE_REGEX.match(telefono) or len(re.findall(r"\d", telefono)) < 8:
+        errores["telefono"] = "El telefono debe ser valido"
+    if not EMAIL_REGEX.match(correo):
         errores["correo"] = "El correo debe ser valido"
-    if estado_verificacion not in ("pendiente", "verificada", "rechazada", "inactiva", "archivada"):
+    if estado_verificacion not in ESTADOS_VALIDOS:
         errores["estado_verificacion"] = "Estado de verificacion no valido"
 
     return {
@@ -82,10 +81,17 @@ def listar_organizaciones():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
+        incluir_todas = request.args.get("vista") == "admin"
+        if incluir_todas and not request_es_admin():
+            return jsonify({"error": "Acceso denegado: requiere rol administrador"}), 403
+
+        where_sql = "" if incluir_todas else "WHERE estado_verificacion = 'verificada'"
+
         cursor.execute(
-            """
+            f"""
             SELECT id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion
             FROM organizacion
+            {where_sql}
             ORDER BY FIELD(estado_verificacion, 'pendiente', 'verificada', 'rechazada', 'inactiva', 'archivada'), nombre
             """
         )
@@ -116,7 +122,7 @@ def obtener_detalle_organizacion(id_organizacion):
             """
             SELECT id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion
             FROM organizacion
-            WHERE id_organizacion = %s
+            WHERE id_organizacion = %s AND estado_verificacion = 'verificada'
             """,
             (id_organizacion,),
         )
@@ -160,11 +166,6 @@ def crear_organizacion():
 
     try:
         data = request.get_json() or {}
-        campos_obligatorios = ["nombre", "descripcion", "direccion", "telefono", "correo"]
-        for campo in campos_obligatorios:
-            if not data.get(campo) or not str(data.get(campo)).strip():
-                return jsonify({"error": f"Falta el campo {campo}"}), 400
-
         payload, errores = normalizar_organizacion_payload(data)
         if errores:
             return jsonify({"error": "Datos invalidos", "campos": errores}), 400
@@ -193,9 +194,11 @@ def crear_organizacion():
             "organizacion": obtener_organizacion(cursor, id_organizacion),
         }), 201
 
-    except Exception:
+    except Exception as error:
         if conn:
             conn.rollback()
+        if getattr(error, "errno", None) == 1062:
+            return jsonify({"error": "Ya existe una organizacion con ese correo o telefono"}), 409
         logging.exception("Error al crear organizacion")
         return jsonify({"error": "No se pudo crear la organizacion"}), 500
     finally:
@@ -250,9 +253,11 @@ def actualizar_organizacion(id_organizacion):
             "organizacion": obtener_organizacion(cursor, id_organizacion),
         }), 200
 
-    except Exception:
+    except Exception as error:
         if conn:
             conn.rollback()
+        if getattr(error, "errno", None) == 1062:
+            return jsonify({"error": "Ya existe una organizacion con ese correo o telefono"}), 409
         logging.exception("Error al actualizar organizacion")
         return jsonify({"error": "No se pudo actualizar la organizacion"}), 500
     finally:
