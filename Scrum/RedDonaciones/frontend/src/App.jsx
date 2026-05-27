@@ -134,7 +134,7 @@ function isValidImageUrl(url) {
 }
 
 function resolvePublicationImage(id, urlFromDb) {
-  if (isValidImageUrl(urlFromDb)) return urlFromDb
+  if (urlFromDb && urlFromDb.startsWith('/api/uploads/')) return urlFromDb
   if (PUBLICATION_IMAGES[id]) return PUBLICATION_IMAGES[id]
   return DEFAULT_IMAGE
 }
