@@ -1,5 +1,5 @@
 import React from 'react'
-import { apiDelete, apiGet, apiPost, apiPut } from '../utils/api'
+import { apiDelete, apiGet, apiPost, apiPut, apiUpload } from '../utils/api'
 import Spinner from '../components/Spinner'
 import ErrorView from '../components/ErrorView'
 import './AdminPanel.css'
@@ -16,6 +16,19 @@ const USER_INITIAL_FORM = {
     direccion_detalle: '',
     id_organizacion: '',
     cargo: ''
+}
+
+const CAMP_INITIAL_FORM = {
+    titulo: '',
+    descripcion: '',
+    cantidad_necesaria: '',
+    fecha_publicacion: '',
+    fecha_limite: '',
+    estado: 'activa',
+    id_intermediario: '',
+    id_organizacion: '',
+    id_articulo: '',
+    imagen_url: ''
 }
 
 function IconUsers() {
@@ -441,12 +454,17 @@ export default function AdminPanel({ usuarioSesion }) {
     const [usuarios, setUsuarios] = React.useState([])
     const [publicaciones, setPublicaciones] = React.useState([])
     const [organizaciones, setOrganizaciones] = React.useState([])
+    const [articulos, setArticulos] = React.useState([])
     const [loadingUsers, setLoadingUsers] = React.useState(true)
     const [loadingCampaigns, setLoadingCampaigns] = React.useState(true)
     const [orgLoading, setOrgLoading] = React.useState(false)
     const [usersError, setUsersError] = React.useState('')
     const [campaignsError, setCampaignsError] = React.useState('')
     const [orgError, setOrgError] = React.useState('')
+    const [campForm, setCampForm] = React.useState(CAMP_INITIAL_FORM)
+    const [campFormErrors, setCampFormErrors] = React.useState({})
+    const [imagePreview, setImagePreview] = React.useState(null)
+    const [uploadingImage, setUploadingImage] = React.useState(false)
     const [orgForm, setOrgForm] = React.useState({
         nombre: '',
         descripcion: '',
@@ -530,10 +548,20 @@ export default function AdminPanel({ usuarioSesion }) {
         await loadOrganizations()
     }, [organizaciones.length, orgLoading, loadOrganizations])
 
+    const loadArticulos = React.useCallback(async () => {
+        try {
+            const data = await apiGet('/api/articulos')
+            setArticulos(Array.isArray(data) ? data : [])
+        } catch {
+            // no bloqueante
+        }
+    }, [])
+
     React.useEffect(() => {
         loadUsers()
         loadCampaigns()
-    }, [loadUsers, loadCampaigns])
+        loadArticulos()
+    }, [loadUsers, loadCampaigns, loadArticulos])
 
     React.useEffect(() => {
         if (activeTab === 'organizaciones') {
@@ -663,6 +691,107 @@ export default function AdminPanel({ usuarioSesion }) {
         })
         setOrgFormErrors({})
         setModal({ type: 'createOrg' })
+    }
+
+    const openCreateCampaign = () => {
+        clearFeedback()
+        setCampForm(CAMP_INITIAL_FORM)
+        setCampFormErrors({})
+        setImagePreview(null)
+        ensureOrganizations()
+        setModal({ type: 'createCampaign' })
+    }
+
+    const handleCampChange = (event) => {
+        const { name, value } = event.target
+        setCampForm((prev) => ({ ...prev, [name]: value }))
+        setCampFormErrors((prev) => {
+            if (!prev[name]) return prev
+            const next = { ...prev }
+            delete next[name]
+            return next
+        })
+        setModalError(null)
+    }
+
+    const handleImageChange = async (event) => {
+        const file = event.target.files[0]
+        if (!file) return
+
+        const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+        const MAX_SIZE = 5 * 1024 * 1024
+
+        if (!ALLOWED_TYPES.includes(file.type)) {
+            setCampFormErrors((prev) => ({ ...prev, imagen_url: 'Formato no permitido. Solo JPG, PNG, GIF o WEBP' }))
+            event.target.value = ''
+            return
+        }
+
+        if (file.size > MAX_SIZE) {
+            setCampFormErrors((prev) => ({ ...prev, imagen_url: `El archivo pesa ${(file.size / 1024 / 1024).toFixed(1)} MB. El máximo es 5 MB` }))
+            event.target.value = ''
+            return
+        }
+
+        setCampFormErrors((prev) => { const next = { ...prev }; delete next.imagen_url; return next })
+        setImagePreview(URL.createObjectURL(file))
+        setUploadingImage(true)
+        setModalError(null)
+
+        try {
+            const result = await apiUpload(file)
+            setCampForm((prev) => ({ ...prev, imagen_url: result.url }))
+        } catch (error) {
+            setModalError(error.message || 'No se pudo subir la imagen')
+            setImagePreview(null)
+            setCampForm((prev) => ({ ...prev, imagen_url: '' }))
+        } finally {
+            setUploadingImage(false)
+        }
+    }
+
+    const submitCampForm = async (event) => {
+        event.preventDefault()
+        const errors = {}
+        if (!campForm.titulo.trim()) errors.titulo = 'El título es obligatorio'
+        if (!campForm.descripcion.trim()) errors.descripcion = 'La descripción es obligatoria'
+        if (!campForm.cantidad_necesaria || Number(campForm.cantidad_necesaria) <= 0) errors.cantidad_necesaria = 'Ingresa una cantidad válida'
+        if (!campForm.fecha_publicacion) errors.fecha_publicacion = 'La fecha de publicación es obligatoria'
+        if (!campForm.fecha_limite) errors.fecha_limite = 'La fecha límite es obligatoria'
+        if (!campForm.id_intermediario) errors.id_intermediario = 'Selecciona un intermediario'
+        if (!campForm.id_organizacion) errors.id_organizacion = 'Selecciona una organización'
+        if (!campForm.id_articulo) errors.id_articulo = 'Selecciona un artículo'
+        if (!campForm.imagen_url) errors.imagen_url = 'La imagen es obligatoria'
+
+        if (Object.keys(errors).length > 0) {
+            setCampFormErrors(errors)
+            return
+        }
+
+        setIsSubmitting(true)
+        setModalError('')
+
+        try {
+            await apiPost('/api/publicaciones', {
+                titulo: campForm.titulo.trim(),
+                descripcion: campForm.descripcion.trim(),
+                cantidad_necesaria: Number(campForm.cantidad_necesaria),
+                fecha_publicacion: campForm.fecha_publicacion,
+                fecha_limite: campForm.fecha_limite,
+                estado: campForm.estado,
+                id_intermediario: Number(campForm.id_intermediario),
+                id_organizacion: Number(campForm.id_organizacion),
+                id_articulo: Number(campForm.id_articulo),
+                imagen_url: campForm.imagen_url || null
+            })
+            setSuccessMessage('Campaña creada con éxito')
+            await loadCampaigns()
+            closeModal()
+        } catch (error) {
+            setModalError(error.message || 'No se pudo crear la campaña')
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     const openEditOrg = (org) => {
@@ -1099,6 +1228,114 @@ export default function AdminPanel({ usuarioSesion }) {
             )
         }
 
+        if (modal?.type === 'createCampaign') {
+            const intermediarios = usuarios.filter((u) => u.rol === 'intermediario')
+            return (
+                <AdminModal
+                    title="Nueva campaña"
+                    description="Crea una campaña de recolección de donaciones."
+                    onClose={closeModal}
+                    footer={(
+                        <>
+                            <button type="button" className="profile-cancel-button" onClick={closeModal} disabled={isSubmitting}>
+                                Cancelar
+                            </button>
+                            <button type="submit" form="camp-form" className="btn-confirmar admin-submit-button" disabled={isSubmitting || uploadingImage}>
+                                {isSubmitting ? 'Guardando...' : 'Crear campaña'}
+                            </button>
+                        </>
+                    )}
+                >
+                    {modalError && <div className="error-box">{modalError}</div>}
+                    <form id="camp-form" onSubmit={submitCampForm} noValidate>
+                        <div className="form-grid">
+                            <div className="form-field">
+                                <label className="form-label">Título</label>
+                                <input className={`form-input ${campFormErrors.titulo ? 'form-input-invalid' : ''}`} name="titulo" value={campForm.titulo} onChange={handleCampChange} />
+                                {campFormErrors.titulo && <span className="form-error-text">{campFormErrors.titulo}</span>}
+                            </div>
+
+                            <div className="form-field">
+                                <label className="form-label">Descripción</label>
+                                <textarea className={`form-textarea ${campFormErrors.descripcion ? 'form-input-invalid' : ''}`} name="descripcion" value={campForm.descripcion} onChange={handleCampChange} />
+                                {campFormErrors.descripcion && <span className="form-error-text">{campFormErrors.descripcion}</span>}
+                            </div>
+
+                            <div className="form-field">
+                                <label className="form-label">Cantidad necesaria</label>
+                                <input className={`form-input ${campFormErrors.cantidad_necesaria ? 'form-input-invalid' : ''}`} name="cantidad_necesaria" type="number" min="1" value={campForm.cantidad_necesaria} onChange={handleCampChange} />
+                                {campFormErrors.cantidad_necesaria && <span className="form-error-text">{campFormErrors.cantidad_necesaria}</span>}
+                            </div>
+
+                            <div className="form-field">
+                                <label className="form-label">Fecha de publicación</label>
+                                <input className={`form-input ${campFormErrors.fecha_publicacion ? 'form-input-invalid' : ''}`} name="fecha_publicacion" type="date" value={campForm.fecha_publicacion} onChange={handleCampChange} />
+                                {campFormErrors.fecha_publicacion && <span className="form-error-text">{campFormErrors.fecha_publicacion}</span>}
+                            </div>
+
+                            <div className="form-field">
+                                <label className="form-label">Fecha límite</label>
+                                <input className={`form-input ${campFormErrors.fecha_limite ? 'form-input-invalid' : ''}`} name="fecha_limite" type="date" value={campForm.fecha_limite} onChange={handleCampChange} />
+                                {campFormErrors.fecha_limite && <span className="form-error-text">{campFormErrors.fecha_limite}</span>}
+                            </div>
+
+                            <div className="form-field">
+                                <label className="form-label">Estado</label>
+                                <select className="form-select" name="estado" value={campForm.estado} onChange={handleCampChange}>
+                                    <option value="activa">Activa</option>
+                                    <option value="finalizada">Finalizada</option>
+                                    <option value="cancelada">Cancelada</option>
+                                </select>
+                            </div>
+
+                            <div className="form-field">
+                                <label className="form-label">Intermediario</label>
+                                <select className={`form-select ${campFormErrors.id_intermediario ? 'form-input-invalid' : ''}`} name="id_intermediario" value={campForm.id_intermediario} onChange={handleCampChange}>
+                                    <option value="">Selecciona un intermediario</option>
+                                    {intermediarios.map((u) => (
+                                        <option key={u.id_usuario} value={u.id_usuario}>{u.nombre}</option>
+                                    ))}
+                                </select>
+                                {campFormErrors.id_intermediario && <span className="form-error-text">{campFormErrors.id_intermediario}</span>}
+                            </div>
+
+                            <div className="form-field">
+                                <label className="form-label">Organización</label>
+                                <select className={`form-select ${campFormErrors.id_organizacion ? 'form-input-invalid' : ''}`} name="id_organizacion" value={campForm.id_organizacion} onChange={handleCampChange}>
+                                    <option value="">Selecciona una organización</option>
+                                    {organizaciones.map((o) => (
+                                        <option key={o.id_organizacion} value={o.id_organizacion}>{o.nombre}</option>
+                                    ))}
+                                </select>
+                                {campFormErrors.id_organizacion && <span className="form-error-text">{campFormErrors.id_organizacion}</span>}
+                            </div>
+
+                            <div className="form-field">
+                                <label className="form-label">Artículo</label>
+                                <select className={`form-select ${campFormErrors.id_articulo ? 'form-input-invalid' : ''}`} name="id_articulo" value={campForm.id_articulo} onChange={handleCampChange}>
+                                    <option value="">Selecciona un artículo</option>
+                                    {articulos.map((a) => (
+                                        <option key={a.id_articulo} value={a.id_articulo}>{a.nombre}</option>
+                                    ))}
+                                </select>
+                                {campFormErrors.id_articulo && <span className="form-error-text">{campFormErrors.id_articulo}</span>}
+                            </div>
+
+                            <div className="form-field">
+                                <label className="form-label">Imagen</label>
+                                <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={handleImageChange} disabled={uploadingImage} className={`form-input ${campFormErrors.imagen_url ? 'form-input-invalid' : ''}`} />
+                                {uploadingImage && <span className="form-error-text" style={{ color: 'var(--primary)' }}>Subiendo imagen...</span>}
+                                {campFormErrors.imagen_url && <span className="form-error-text">{campFormErrors.imagen_url}</span>}
+                                {imagePreview && !uploadingImage && (
+                                    <img src={imagePreview} alt="Vista previa" style={{ marginTop: '8px', maxHeight: '120px', borderRadius: '6px', objectFit: 'cover' }} />
+                                )}
+                            </div>
+                        </div>
+                    </form>
+                </AdminModal>
+            )
+        }
+
         if (modal?.type === 'createOrg' || modal?.type === 'editOrg') {
             return (
                 <AdminModal
@@ -1420,6 +1657,10 @@ export default function AdminPanel({ usuarioSesion }) {
                                     <h2>Gestion de campanas</h2>
                                     <p>Activa o desactiva campanas publicadas en la plataforma.</p>
                                 </div>
+                                <button type="button" className="admin-primary-action" onClick={openCreateCampaign}>
+                                    <IconPlus />
+                                    <span>Nueva Campaña</span>
+                                </button>
                             </div>
                             {renderCampaignsTable()}
                         </>

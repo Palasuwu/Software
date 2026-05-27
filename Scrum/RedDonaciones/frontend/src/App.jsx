@@ -124,6 +124,7 @@ const PUBLICATION_IMAGES = {
 
 function isValidImageUrl(url) {
   if (!url || typeof url !== 'string') return false
+  if (url.startsWith('/api/uploads/')) return true
   try {
     const u = new URL(url)
     return u.protocol === 'http:' || u.protocol === 'https:'
@@ -133,8 +134,8 @@ function isValidImageUrl(url) {
 }
 
 function resolvePublicationImage(id, urlFromDb) {
-  if (PUBLICATION_IMAGES[id]) return PUBLICATION_IMAGES[id]
   if (isValidImageUrl(urlFromDb)) return urlFromDb
+  if (PUBLICATION_IMAGES[id]) return PUBLICATION_IMAGES[id]
   return DEFAULT_IMAGE
 }
 
