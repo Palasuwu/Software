@@ -30,6 +30,29 @@ def publicacion_tiene_imagen_url(cursor):
     return bool(row and row[0] > 0)
 
 
+@publicacion_bp.route("/articulos", methods=["GET"])
+def listar_articulos():
+    conn = None
+    cursor = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT a.id_articulo, a.nombre, a.descripcion, c.nombre AS categoria
+            FROM articulo a
+            LEFT JOIN categoria_articulo c ON a.id_categoria = c.id_categoria
+            ORDER BY a.nombre
+        """)
+        return jsonify(cursor.fetchall()), 200
+    except Exception as e:
+        return jsonify({"error": "Error al obtener artículos", "detalle": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
 # Ruta para obtener la lista de publicaciones
 @publicacion_bp.route("/publicaciones", methods=["GET"])
 def listar_publicaciones():

@@ -96,3 +96,16 @@ export async function apiDelete(url, init = {}) {
 
     return parseApiResponse(response)
 }
+
+export async function apiUpload(file) {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    // No ponemos Content-Type: el browser lo fija automáticamente con el boundary correcto
+    const response = await apiFetch('/api/upload', {
+        method: 'POST',
+        body: formData
+    })
+
+    return parseApiResponse(response)
+}
