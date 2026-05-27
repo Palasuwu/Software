@@ -79,7 +79,7 @@ export default function LoginPage({ onAuthSuccess }) {
                 onAuthSuccess(body.usuario)
             }
 
-            navigate('/perfil', { state: { flash: 'Sesion iniciada con exito' } })
+            navigate('/HomePage', { state: { flash: 'Sesion iniciada con exito' } })
         } catch (error) {
             setApiError(error.message || 'No se pudo iniciar sesion')
         } finally {

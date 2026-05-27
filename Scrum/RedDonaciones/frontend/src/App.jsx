@@ -10,9 +10,6 @@ import {
   useLocation,
   useNavigate
 } from 'react-router-dom'
-import defaultImg from './assets/Defult.jpg'
-import card1Img from './assets/Card1.jpg'
-
 import MisDonacionesPage from './pages/MisDonacionesPage'
 import Spinner from './components/Spinner'
 import ErrorView from './components/ErrorView'
@@ -23,6 +20,8 @@ import LandingPage from './pages/LandingPage'
 import OrganizacionesPage from './pages/OrganizacionesPage'
 import OrgaDetailPage from './pages/OrgaDetailPage'
 import AdminPanel from './pages/AdminPanel'
+import HomePage from './pages/HomePage'
+import NavBar from './components/NavBar'
 import { apiGet, apiPut } from './utils/api'
 import { obtenerTokenSesion, obtenerUsuarioSesion, limpiarUsuarioSesion, limpiarTokenSesion, guardarUsuarioSesion } from './utils/session'
 
@@ -83,16 +82,6 @@ function IconAdmin() {
   )
 }
 
-function IconSearch() {
-  return (
-    <svg className="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-      fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-  )
-}
-
 function IconLocation() {
   return (
     <svg className="meta-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
@@ -115,154 +104,11 @@ function IconUsers() {
   )
 }
 
-const DEFAULT_IMAGE = defaultImg
-
-const PUBLICATION_IMAGES = {
-  1: card1Img,
-  2: defaultImg,
-}
-
-function isValidImageUrl(url) {
-  if (!url || typeof url !== 'string') return false
-  if (url.startsWith('/api/uploads/')) return true
-  try {
-    const u = new URL(url)
-    return u.protocol === 'http:' || u.protocol === 'https:'
-  } catch {
-    return false
-  }
-}
-
-function resolvePublicationImage(id, urlFromDb) {
-  if (urlFromDb && urlFromDb.startsWith('/api/uploads/')) return urlFromDb
-  if (PUBLICATION_IMAGES[id]) return PUBLICATION_IMAGES[id]
-  return DEFAULT_IMAGE
-}
-
-function formatAmount(value) {
-  return new Intl.NumberFormat('es-GT').format(value)
-}
-
 function roleLabel(role) {
   if (!role) return 'Sin rol'
   if (role === 'donante') return 'Donante'
   if (role === 'intermediario') return 'Intermediario'
   return role
-}
-
-function DonationCard({ org, index = 0 }) {
-  const navigate = useNavigate()
-  const groupPos = index % 6
-  const isFeatured = groupPos === 0 || groupPos === 5
-
-  return (
-    <motion.article
-      className={`campaign-card${isFeatured ? ' campaign-card--featured' : ''}`}
-      whileTap={{ scale: 0.985 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-      onClick={() => navigate(`/detalle/${org.id}`)}
-    >
-      <div className="campaign-image-wrap">
-        <img
-          className="campaign-image"
-          src={org.imagen}
-          alt={org.title}
-          loading="lazy"
-          onError={(e) => { e.currentTarget.src = DEFAULT_IMAGE }}
-        />
-        <span className="campaign-tag">{org.category}</span>
-      </div>
-
-      <div className="campaign-body">
-        <h3 className="campaign-title">{org.title}</h3>
-        <p className="campaign-org">{org.organizacion}</p>
-
-        <div className="campaign-location">
-          <IconLocation />
-          <span>{org.location || 'Ubicacion no disponible'}</span>
-        </div>
-
-        <p className="campaign-description">{org.description}</p>
-
-        <div className="campaign-stats-head">
-          <span>Progreso</span>
-          <strong>{org.progress}%</strong>
-        </div>
-
-        <div className="progress-track progress-track-home">
-          <div className="progress-fill" style={{ width: `${org.progress}%` }} />
-        </div>
-
-        <div className="campaign-supporters">
-          <IconUsers />
-          <span>{formatAmount(org.supporters)} unidades registradas</span>
-        </div>
-
-        <button
-          className="campaign-button"
-          onClick={(event) => {
-            event.stopPropagation()
-            navigate(`/detalle/${org.id}`)
-          }}
-        >
-          Ver detalle
-        </button>
-      </div>
-    </motion.article>
-  )
-}
-
-function HeaderNav({ isAuthenticated, usuarioSesion, onLogout }) {
-  const isAdmin = usuarioSesion?.rol === 'administrador'
-
-  return (
-    <nav className="top-nav">
-      <NavLink to="/home" end className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
-        <IconHome />
-        <span>Inicio</span>
-      </NavLink>
-
-      {isAuthenticated && (
-        <NavLink to="/donaciones" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
-          <IconDonation />
-          <span>Mis Donaciones</span>
-        </NavLink>
-      )}
-
-      {isAuthenticated && (
-        <NavLink to="/perfil" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
-          <IconUser />
-          <span>Perfil</span>
-        </NavLink>
-      )}
-
-      {isAuthenticated && isAdmin && (
-        <NavLink to="/admin" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
-          <IconAdmin />
-          <span>Panel Admin</span>
-        </NavLink>
-      )}
-
-      <NavLink to="/organizaciones" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
-        <IconUsers />
-        <span>Organizaciones</span>
-      </NavLink>
-
-      {!isAuthenticated && (
-        <NavLink to="/login" className={({ isActive }) => `top-nav-link ${isActive ? 'active' : ''}`}>
-          <IconUser />
-          <span>Iniciar sesión</span>
-        </NavLink>
-      )}
-
-
-      {isAuthenticated && (
-        <button type="button" className="top-nav-link top-nav-button" onClick={onLogout}>
-          Cerrar sesión
-        </button>
-      )}
-    </nav>
-  )
 }
 
 function BottomNav({ isAuthenticated, usuarioSesion, onLogout }) {
@@ -310,195 +156,6 @@ function BottomNav({ isAuthenticated, usuarioSesion, onLogout }) {
         </>
       )}
     </nav>
-  )
-}
-
-function HomePage({ isAuthenticated }) {
-  const [query, setQuery] = React.useState('')
-  const [category, setCategory] = React.useState('Todas')
-  const [estado, setEstado] = React.useState('Todos')
-  const [organizacion, setOrganizacion] = React.useState('Todas')
-  const [progressRange, setProgressRange] = React.useState('Todos')
-  const [publicaciones, setPublicaciones] = React.useState([])
-  const [loading, setLoading] = React.useState(true)
-  const [error, setError] = React.useState(null)
-
-  const loadPublicaciones = React.useCallback((options = {}) => {
-    const { silent = false } = options
-
-    if (!silent) {
-      setLoading(true)
-    }
-
-    return apiGet('/api/publicaciones')
-      .then((data) => {
-        if (!Array.isArray(data)) {
-          throw new Error('Respuesta invalida del servidor')
-        }
-
-        const adaptadas = data.map((publicacion) => ({
-          id: publicacion.id_publicacion,
-          title: publicacion.titulo,
-          description: publicacion.descripcion,
-          category: publicacion.categoria || 'Sin categoría',
-          location: publicacion.direccion,
-          organizacion: publicacion.organizacion || 'Sin organización',
-          estado: publicacion.estado || 'activa',
-          imagen: resolvePublicationImage(publicacion.id_publicacion, publicacion.imagen_url),
-          progress: publicacion.cantidad_necesaria > 0
-            ? Math.min(100, Math.round((publicacion.cantidad_recibida / publicacion.cantidad_necesaria) * 100))
-            : 0,
-          supporters: publicacion.cantidad_recibida || 0
-        }))
-
-        setPublicaciones(adaptadas.filter((publicacion) => publicacion.estado !== 'cancelada'))
-        setError(null)
-        setLoading(false)
-      })
-      .catch((fetchError) => {
-        setError(fetchError.message || 'No se pudieron cargar las publicaciones')
-        setLoading(false)
-      })
-  }, [])
-
-  React.useEffect(() => {
-    loadPublicaciones()
-
-    const intervalId = window.setInterval(() => {
-      loadPublicaciones({ silent: true })
-    }, 8000)
-
-    const handleCampaignsChanged = () => {
-      loadPublicaciones({ silent: true })
-    }
-
-    window.addEventListener('admin:campaigns-changed', handleCampaignsChanged)
-    window.addEventListener('storage', handleCampaignsChanged)
-
-    return () => {
-      window.clearInterval(intervalId)
-      window.removeEventListener('admin:campaigns-changed', handleCampaignsChanged)
-      window.removeEventListener('storage', handleCampaignsChanged)
-    }
-  }, [loadPublicaciones])
-
-  const categoriasDisponibles = React.useMemo(() => {
-    return Array.from(new Set(publicaciones.map((item) => item.category))).sort((a, b) => a.localeCompare(b))
-  }, [publicaciones])
-
-  const organizacionesDisponibles = React.useMemo(() => {
-    return Array.from(new Set(publicaciones.map((item) => item.organizacion))).sort((a, b) => a.localeCompare(b))
-  }, [publicaciones])
-
-  const hasActiveFilters = query.trim() || category !== 'Todas' || estado !== 'Todos' || organizacion !== 'Todas' || progressRange !== 'Todos'
-
-  const filtered = React.useMemo(() => {
-    return publicaciones.filter((item) => {
-      const text = query.trim().toLowerCase()
-      const matchesQuery = !text || (
-        item.title.toLowerCase().includes(text)
-        || item.description.toLowerCase().includes(text)
-        || item.category.toLowerCase().includes(text)
-      )
-
-      const matchesCategory = category === 'Todas' || item.category === category
-      const matchesEstado = estado === 'Todos' || item.estado === estado
-      const matchesOrganizacion = organizacion === 'Todas' || item.organizacion === organizacion
-
-      const matchesProgress = (() => {
-        if (progressRange === 'Todos') return true
-        if (progressRange === 'Bajo') return item.progress < 50
-        if (progressRange === 'Medio') return item.progress >= 50 && item.progress < 100
-        if (progressRange === 'Completo') return item.progress >= 100
-        return true
-      })()
-
-      return matchesQuery && matchesCategory && matchesEstado && matchesOrganizacion && matchesProgress
-    })
-  }, [publicaciones, query, category, estado, organizacion, progressRange])
-
-  const resetFilters = () => {
-    setQuery('')
-    setCategory('Todas')
-    setEstado('Todos')
-    setOrganizacion('Todas')
-    setProgressRange('Todos')
-  }
-
-  return (
-    <div className="fade-in">
-      <section className="home-hero home-hero-figma">
-        <h1 className="home-title home-title-figma">Transforma vidas con tu ayuda</h1>
-        <p className="home-subtitle home-subtitle-figma">
-          Encuentra organizaciones y causas que necesitan tu apoyo. Cada donacion cuenta para crear un mundo mejor.
-        </p>
-      </section>
-
-      <section className="search-panel search-panel-extended">
-        <div className="search-box">
-          <IconSearch />
-          <input
-            type="text"
-            placeholder="Buscar organizaciones o causas..."
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-        </div>
-
-        <div className="filter-box">
-          <select value={category} onChange={(event) => setCategory(event.target.value)}>
-            <option value="Todas">Categoria: Todas</option>
-            {categoriasDisponibles.map((item) => (
-              <option key={item} value={item}>{item}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="filter-box">
-          <select value={estado} onChange={(event) => setEstado(event.target.value)}>
-            <option value="Todos">Estado: Todos</option>
-            <option value="activa">Activa</option>
-            <option value="finalizada">Finalizada</option>
-          </select>
-        </div>
-
-        <div className="filter-box">
-          <select value={organizacion} onChange={(event) => setOrganizacion(event.target.value)}>
-            <option value="Todas">Organización: Todas</option>
-            {organizacionesDisponibles.map((item) => (
-              <option key={item} value={item}>{item}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="filter-box">
-          <select value={progressRange} onChange={(event) => setProgressRange(event.target.value)}>
-            <option value="Todos">Progreso: Todos</option>
-            <option value="Bajo">0% - 49%</option>
-            <option value="Medio">50% - 99%</option>
-            <option value="Completo">100%</option>
-          </select>
-        </div>
-
-        <button type="button" className="btn-filter-reset" onClick={resetFilters}>
-          Limpiar filtros
-        </button>
-      </section>
-
-      {hasActiveFilters && (
-        <p className="active-filters-text">Filtros activos aplicados</p>
-      )}
-
-      <section className="campaign-grid">
-        {loading && <Spinner message="Cargando publicaciones..." />}
-        {error && <ErrorView message={error} onRetry={loadPublicaciones} />}
-        {!loading && !error && (
-          filtered.length > 0
-            ? filtered.map((item, i) => <DonationCard key={item.id} org={item} index={i} />)
-            : <div className="empty-box">No hay publicaciones para los filtros seleccionados.</div>
-        )}
-      </section>
-    </div>
   )
 }
 
@@ -1018,6 +675,7 @@ function AppShell() {
   const navigate = useNavigate()
   const [usuarioSesion, setUsuarioSesion] = React.useState(() => obtenerUsuarioSesion())
   const [authNotice, setAuthNotice] = React.useState('')
+  const [navExpanded, setNavExpanded] = React.useState(false)
 
   React.useEffect(() => {
     setUsuarioSesion(obtenerUsuarioSesion())
@@ -1062,17 +720,43 @@ function AppShell() {
 
   return (
     <div className="app-shell">
-      <header className="app-header">
-        <div className="header-inner">
+      <header
+        className="app-header"
+        onMouseEnter={() => setNavExpanded(true)}
+        onMouseLeave={() => setNavExpanded(false)}
+      >
+        <motion.div
+          className="header-inner"
+          initial={{ paddingTop: 6, paddingBottom: 6 }}
+          animate={navExpanded
+            ? { paddingTop: 15, paddingBottom: 15 }
+            : { paddingTop: 6,  paddingBottom: 6  }}
+          transition={{ type: 'spring', stiffness: 320, damping: 32, mass: 0.7 }}
+        >
           <div className="brand-block">
             <div className="brand-mark">
               <IconBrand />
             </div>
-            <h1 className="header-title">Red de Donaciones</h1>
+            <motion.h1
+              className="header-title"
+              initial={{ opacity: 0, width: 0, marginLeft: 0 }}
+              animate={navExpanded
+                ? { opacity: 1, width: 'auto', marginLeft: 14 }
+                : { opacity: 0, width: 0,      marginLeft: 0  }}
+              transition={{ type: 'spring', stiffness: 320, damping: 32, mass: 0.7 }}
+              style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}
+            >
+              Red de Donaciones
+            </motion.h1>
           </div>
 
-          <HeaderNav isAuthenticated={isAuthenticated} usuarioSesion={usuarioSesion} onLogout={handleLogout} />
-        </div>
+          <NavBar
+            isAuthenticated={isAuthenticated}
+            usuarioSesion={usuarioSesion}
+            onLogout={handleLogout}
+            isExpanded={navExpanded}
+          />
+        </motion.div>
       </header>
 
       <main className="main-content">
@@ -1146,7 +830,6 @@ function AppShell() {
       </main>
 
       <BottomNav isAuthenticated={isAuthenticated} usuarioSesion={usuarioSesion} onLogout={handleLogout} />
-      <button className="fab-help">?</button>
     </div>
   )
 }

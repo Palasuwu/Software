@@ -78,7 +78,7 @@ a {
 .header-inner {
   width: min(1440px, calc(100% - 48px));
   margin: 0 auto;
-  min-height: 84px;
+  /* padding-top/bottom animados por Framer Motion */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -88,7 +88,7 @@ a {
 .brand-block {
   display: flex;
   align-items: center;
-  gap: 14px;
+  /* gap animado via marginLeft en header-title */
   min-width: 0;
 }
 
@@ -121,36 +121,62 @@ a {
 .top-nav {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(23, 52, 45, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  /* border-radius animado por Framer Motion */
 }
 
-.top-nav-link {
-  height: 50px;
-  padding: 0 18px;
-  border-radius: 16px;
+/* ── NavBar items (nb-*) — height y padding controlados por Framer Motion ── */
+.nb-item {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  color: var(--text);
-  font-size: 0.95rem;
+  /* height: controlado por Framer Motion */
+  /* padding: controlado por Framer Motion */
+  border-radius: var(--radius-sm);
+  color: var(--text-soft);
+  font-size: 0.93rem;
   font-weight: 500;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.top-nav-link:hover {
-  background: var(--secondary-soft);
-  color: var(--secondary);
-}
-
-.top-nav-button {
-  border: 1px solid var(--outline);
-  background: var(--surface);
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background 0.18s, color 0.18s;
   cursor: pointer;
 }
 
-.top-nav-link.active {
+.nb-item:hover {
+  background: var(--surface-tinted);
+  color: var(--text);
+}
+
+.nb-item--active {
   background: var(--text);
-  color: white;
+  color: var(--surface);
+}
+
+.nb-item--active:hover {
+  background: var(--text);
+  color: var(--surface);
+  opacity: 0.92;
+}
+
+.nb-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.nb-label {
+  font-size: 0.93rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.nb-logout {
+  border: none;
+  background: transparent;
+  font-family: var(--font-body);
 }
 
 .nav-icon {
@@ -238,13 +264,7 @@ a {
   overflow: hidden;
 }
 
-.search-panel::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  height: 4px;
-  background: linear-gradient(90deg, var(--primary), var(--gold), var(--secondary));
-}
+/* .search-panel::before removed — gradient decorativo de 3 colores reemplazado por sidebar */
 
 .search-panel-extended {
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -561,25 +581,6 @@ a {
   margin-top: 14px;
   margin-bottom: 20px;
   font-size: 0.92rem;
-}
-
-.campaign-button {
-  width: 100%;
-  height: 56px;
-  border: none;
-  border-radius: 14px;
-  background: linear-gradient(135deg, var(--primary), var(--primary-strong));
-  color: #fff;
-  font-weight: 700;
-  font-size: 0.98rem;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
-}
-
-.campaign-button:hover {
-  background: linear-gradient(135deg, var(--primary-strong), var(--secondary));
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(61, 107, 84, 0.22);
 }
 
 /* LEGACY CARD */
@@ -1375,29 +1376,6 @@ a {
   border-radius: 50%;
 }
 
-/* FAB */
-.fab-help {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  width: 46px;
-  height: 46px;
-  border: none;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--secondary), var(--text));
-  color: white;
-  font-size: 1.05rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 8px 20px rgba(42, 51, 40, 0.2);
-  z-index: 101;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.fab-help:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(42, 51, 40, 0.28);
-}
 
 /* ANIMATIONS */
 .fade-in {
@@ -1539,9 +1517,6 @@ a {
     grid-template-columns: 1fr;
   }
 
-  .fab-help {
-    bottom: 82px;
-  }
 
   .detail-hero,
   .page-intro,

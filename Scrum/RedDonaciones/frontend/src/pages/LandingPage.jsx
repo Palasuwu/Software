@@ -36,7 +36,7 @@ function LandingNav() {
 
         <div className="ld-nav-links">
           <Link to="/home" className="ld-nav-link">Explorar campañas</Link>
-          <Link to="/login" className="ld-nav-cta">
+          <Link to={usuario ? '/home' : '/login'} className="ld-nav-cta">
             {usuario ? `Hola, ${usuario.nombre?.split(' ')[0]}` : 'Iniciar Sesión'}
           </Link>
         </div>
