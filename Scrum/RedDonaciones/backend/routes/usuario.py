@@ -1,12 +1,50 @@
 from flask import Blueprint, jsonify, request
 import bcrypt
 import mysql.connector
+import re
 import secrets
 import string
 from db.connection import get_db_connection
 from auth_utils import generate_token, token_required, admin_required
 
 usuario_bp = Blueprint("usuario", __name__)
+EMAIL_REGEX = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$")
+PHONE_REGEX = re.compile(r"^[0-9+\-()\s]{8,20}$")
+NAME_REGEX = re.compile(r"^[A-Za-zÀ-ÿ' -]+$")
+
+
+def limpiar_espacios(value):
+    return re.sub(r"\s+", " ", (value or "").strip())
+
+
+def telefono_valido(value):
+    telefono = (value or "").strip()
+    return bool(PHONE_REGEX.match(telefono)) and len(re.findall(r"\d", telefono)) >= 8
+
+
+def validar_usuario_base(nombre, correo, telefono):
+    errores = {}
+
+    if len(nombre) < 3:
+        errores["nombre"] = "El nombre debe tener al menos 3 caracteres"
+    elif not NAME_REGEX.match(nombre):
+        errores["nombre"] = "El nombre solo debe contener letras y espacios"
+
+    if not EMAIL_REGEX.match(correo):
+        errores["correo"] = "El correo debe ser valido"
+
+    if not telefono_valido(telefono):
+        errores["telefono"] = "El telefono debe ser valido"
+
+    return errores
+
+
+def validar_password_registro(password):
+    if len(password) < 8:
+        return "El password debe tener al menos 8 caracteres"
+    if not re.search(r"[A-Za-z]", password) or not re.search(r"\d", password):
+        return "El password debe incluir letras y numeros"
+    return None
 
 
 def usuario_autorizado_para_id(id_usuario):
@@ -127,15 +165,13 @@ def actualizar_usuario(id_usuario):
         if not data:
             return jsonify({"error": "No se enviaron datos"}), 400
 
-        nombre = (data.get("nombre") or "").strip()
+        nombre = limpiar_espacios(data.get("nombre"))
         correo = (data.get("correo") or "").strip().lower()
         telefono = (data.get("telefono") or "").strip()
 
-        if not nombre or not correo or not telefono:
-            return jsonify({"error": "Nombre, correo y telefono son obligatorios"}), 400
-
-        if len(nombre) < 3:
-            return jsonify({"error": "El nombre debe tener al menos 3 caracteres"}), 400
+        errores_base = validar_usuario_base(nombre, correo, telefono)
+        if errores_base:
+            return jsonify({"error": "Datos invalidos", "campos": errores_base}), 400
 
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -161,14 +197,20 @@ def actualizar_usuario(id_usuario):
         )
 
         if rol == "donante":
-            departamento = (data.get("departamento") or "").strip()
-            municipio = (data.get("municipio") or "").strip()
+            departamento = limpiar_espacios(data.get("departamento"))
+            municipio = limpiar_espacios(data.get("municipio"))
             zona = (data.get("zona") or "").strip()
-            direccion_detalle = (data.get("direccion_detalle") or "").strip()
+            direccion_detalle = limpiar_espacios(data.get("direccion_detalle"))
 
             if not departamento or not municipio or not zona or not direccion_detalle:
                 conn.rollback()
                 return jsonify({"error": "Faltan datos obligatorios para donante"}), 400
+            if not zona.isdigit() or len(zona) > 2:
+                conn.rollback()
+                return jsonify({"error": "La zona debe ser un numero valido"}), 400
+            if len(direccion_detalle) < 8:
+                conn.rollback()
+                return jsonify({"error": "La direccion debe ser mas especifica"}), 400
 
             cursor.execute(
                 """
@@ -184,11 +226,14 @@ def actualizar_usuario(id_usuario):
 
         elif rol == "intermediario":
             id_organizacion = data.get("id_organizacion")
-            cargo = (data.get("cargo") or "").strip()
+            cargo = limpiar_espacios(data.get("cargo"))
 
             if not id_organizacion or not cargo:
                 conn.rollback()
                 return jsonify({"error": "Faltan datos obligatorios para intermediario"}), 400
+            if len(cargo) < 3:
+                conn.rollback()
+                return jsonify({"error": "El cargo debe tener al menos 3 caracteres"}), 400
 
             try:
                 id_organizacion = int(id_organizacion)
@@ -360,15 +405,19 @@ def crear_usuario():
         if not data:
             return jsonify({"error": "No se enviaron datos"}), 400
 
-        nombre = data.get("nombre")
-        correo = data.get("correo")
+        nombre = limpiar_espacios(data.get("nombre"))
+        correo = (data.get("correo") or "").strip().lower()
         password = data.get("password")
-        telefono = data.get("telefono")
+        telefono = (data.get("telefono") or "").strip()
         rol = data.get("rol")
 
         # El password ya no es estrictamente obligatorio en la entrada si se genera temporalmente
         if not nombre or not correo or not telefono or not rol:
             return jsonify({"error": "Faltan campos obligatorios"}), 400
+
+        errores_base = validar_usuario_base(nombre, correo, telefono)
+        if errores_base:
+            return jsonify({"error": "Datos invalidos", "campos": errores_base}), 400
 
         rol = rol.strip().lower()
         if rol not in ("donante", "intermediario", "administrador"):
@@ -383,27 +432,38 @@ def crear_usuario():
         temp_password = None
         if not password:
             alphabet = string.ascii_letters + string.digits
-            temp_password = ''.join(secrets.choice(alphabet) for _ in range(12))
+            temp_password = (
+                secrets.choice(string.ascii_letters)
+                + secrets.choice(string.digits)
+                + ''.join(secrets.choice(alphabet) for _ in range(10))
+            )
             password = temp_password
 
-        if len(password) < 8:
-            return jsonify({"error": "El password debe tener al menos 8 caracteres"}), 400
+        password_error = validar_password_registro(password)
+        if password_error:
+            return jsonify({"error": password_error}), 400
 
-        departamento = data.get("departamento")
-        municipio = data.get("municipio")
-        zona = data.get("zona")
-        direccion_detalle = data.get("direccion_detalle")
+        departamento = limpiar_espacios(data.get("departamento"))
+        municipio = limpiar_espacios(data.get("municipio"))
+        zona = (data.get("zona") or "").strip()
+        direccion_detalle = limpiar_espacios(data.get("direccion_detalle"))
 
         id_organizacion = data.get("id_organizacion")
-        cargo = data.get("cargo")
+        cargo = limpiar_espacios(data.get("cargo"))
 
         if rol == "donante":
             if not departamento or not municipio or not zona or not direccion_detalle:
                 return jsonify({"error": "Faltan datos obligatorios para donante"}), 400
+            if not zona.isdigit() or len(zona) > 2:
+                return jsonify({"error": "La zona debe ser un numero valido"}), 400
+            if len(direccion_detalle) < 8:
+                return jsonify({"error": "La direccion debe ser mas especifica"}), 400
 
         if rol == "intermediario":
             if not id_organizacion or not cargo:
                 return jsonify({"error": "Faltan datos obligatorios para intermediario"}), 400
+            if len(cargo) < 3:
+                return jsonify({"error": "El cargo debe tener al menos 3 caracteres"}), 400
 
             try:
                 id_organizacion = int(id_organizacion)
