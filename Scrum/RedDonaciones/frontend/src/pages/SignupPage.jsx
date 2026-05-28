@@ -16,28 +16,41 @@ const INITIAL_FORM = {
     id_organizacion: '',
     cargo: ''
 }
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+const PHONE_REGEX = /^[0-9+\-()\s]{8,20}$/
+const NAME_REGEX = /^[A-Za-zÀ-ÿ' -]+$/
+
+function cleanSpaces(value) {
+    return value.trim().replace(/\s+/g, ' ')
+}
+
+function countDigits(value) {
+    return (value.match(/\d/g) || []).length
+}
 
 function validateForm(form) {
     const errors = {}
 
-    const nombre = form.nombre.trim()
+    const nombre = cleanSpaces(form.nombre)
     if (!nombre) {
         errors.nombre = 'El nombre es obligatorio'
     } else if (nombre.length < 3) {
         errors.nombre = 'Ingresa al menos 3 caracteres'
+    } else if (!NAME_REGEX.test(nombre)) {
+        errors.nombre = 'El nombre solo debe contener letras y espacios'
     }
 
     const correo = form.correo.trim()
     if (!correo) {
         errors.correo = 'El correo es obligatorio'
-    } else if (!/^\S+@\S+\.\S+$/.test(correo)) {
+    } else if (!EMAIL_REGEX.test(correo)) {
         errors.correo = 'Ingresa un correo valido'
     }
 
     const telefono = form.telefono.trim()
     if (!telefono) {
         errors.telefono = 'El telefono es obligatorio'
-    } else if (!/^[0-9\-+()\s]{8,20}$/.test(telefono)) {
+    } else if (!PHONE_REGEX.test(telefono) || countDigits(telefono) < 8) {
         errors.telefono = 'Ingresa un telefono valido'
     }
 
@@ -45,6 +58,8 @@ function validateForm(form) {
         errors.password = 'La contrasena es obligatoria'
     } else if (form.password.length < 8) {
         errors.password = 'La contrasena debe tener al menos 8 caracteres'
+    } else if (!/[A-Za-z]/.test(form.password) || !/\d/.test(form.password)) {
+        errors.password = 'Incluye letras y numeros'
     }
 
     if (!form.confirmPassword) {
@@ -58,17 +73,19 @@ function validateForm(form) {
     }
 
     if (form.rol === 'donante') {
-        if (!form.departamento.trim()) {
+        if (!cleanSpaces(form.departamento)) {
             errors.departamento = 'El departamento es obligatorio'
         }
-        if (!form.municipio.trim()) {
+        if (!cleanSpaces(form.municipio)) {
             errors.municipio = 'El municipio es obligatorio'
         }
         if (!form.zona.trim()) {
             errors.zona = 'La zona es obligatoria'
+        } else if (!/^\d{1,2}$/.test(form.zona.trim())) {
+            errors.zona = 'Ingresa una zona valida'
         }
-        if (!form.direccion_detalle.trim()) {
-            errors.direccion_detalle = 'La direccion es obligatoria'
+        if (cleanSpaces(form.direccion_detalle).length < 8) {
+            errors.direccion_detalle = 'Ingresa una direccion mas especifica'
         }
     }
 
@@ -76,8 +93,8 @@ function validateForm(form) {
         if (!form.id_organizacion) {
             errors.id_organizacion = 'Selecciona una organizacion'
         }
-        if (!form.cargo.trim()) {
-            errors.cargo = 'El cargo es obligatorio'
+        if (cleanSpaces(form.cargo).length < 3) {
+            errors.cargo = 'Ingresa un cargo valido'
         }
     }
 
@@ -86,7 +103,7 @@ function validateForm(form) {
 
 function buildPayload(form) {
     const base = {
-        nombre: form.nombre.trim(),
+        nombre: cleanSpaces(form.nombre),
         correo: form.correo.trim().toLowerCase(),
         password: form.password,
         telefono: form.telefono.trim(),
@@ -96,17 +113,17 @@ function buildPayload(form) {
     if (form.rol === 'donante') {
         return {
             ...base,
-            departamento: form.departamento.trim(),
-            municipio: form.municipio.trim(),
+            departamento: cleanSpaces(form.departamento),
+            municipio: cleanSpaces(form.municipio),
             zona: form.zona.trim(),
-            direccion_detalle: form.direccion_detalle.trim()
+            direccion_detalle: cleanSpaces(form.direccion_detalle)
         }
     }
 
     return {
         ...base,
         id_organizacion: Number(form.id_organizacion),
-        cargo: form.cargo.trim()
+        cargo: cleanSpaces(form.cargo)
     }
 }
 

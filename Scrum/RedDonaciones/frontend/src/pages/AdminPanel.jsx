@@ -30,6 +30,42 @@ const CAMP_INITIAL_FORM = {
     id_articulo: '',
     imagen_url: ''
 }
+const ORG_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+const ORG_PHONE_REGEX = /^[0-9+\-()\s]{8,20}$/
+const ORG_STATUSES = ['pendiente', 'verificada', 'rechazada', 'inactiva', 'archivada']
+
+function cleanSpaces(value) {
+    return value.trim().replace(/\s+/g, ' ')
+}
+
+function countDigits(value) {
+    return (value.match(/\d/g) || []).length
+}
+
+function buildOrgPayload(form) {
+    return {
+        nombre: cleanSpaces(form.nombre),
+        descripcion: cleanSpaces(form.descripcion),
+        direccion: cleanSpaces(form.direccion),
+        telefono: form.telefono.trim(),
+        correo: form.correo.trim().toLowerCase(),
+        estado_verificacion: form.estado_verificacion
+    }
+}
+
+function validateOrgForm(form) {
+    const errors = {}
+    const payload = buildOrgPayload(form)
+
+    if (payload.nombre.length < 3) errors.nombre = 'Ingresa al menos 3 caracteres'
+    if (payload.descripcion.length < 10) errors.descripcion = 'Ingresa una descripcion mas completa'
+    if (payload.direccion.length < 8) errors.direccion = 'Ingresa una direccion mas especifica'
+    if (!ORG_PHONE_REGEX.test(payload.telefono) || countDigits(payload.telefono) < 8) errors.telefono = 'Ingresa un telefono valido'
+    if (!ORG_EMAIL_REGEX.test(payload.correo)) errors.correo = 'Ingresa un correo valido'
+    if (!ORG_STATUSES.includes(payload.estado_verificacion)) errors.estado_verificacion = 'Selecciona un estado valido'
+
+    return errors
+}
 
 function IconUsers() {
     return (
@@ -403,7 +439,7 @@ function UserFormFields({ form, errors, mode, organizaciones, orgLoading, orgErr
                             disabled={orgLoading}
                         >
                             <option value="">Selecciona una organización</option>
-                            {organizaciones.map((organizacion) => (
+                            {organizaciones.filter((organizacion) => organizacion.estado_verificacion === 'verificada').map((organizacion) => (
                                 <option key={organizacion.id_organizacion} value={organizacion.id_organizacion}>
                                     {organizacion.nombre}
                                 </option>
@@ -534,7 +570,7 @@ export default function AdminPanel({ usuarioSesion }) {
         setOrgError('')
 
         try {
-            const data = await apiGet('/api/organizaciones')
+            const data = await apiGet('/api/organizaciones?vista=admin')
             setOrganizaciones(Array.isArray(data) ? data : [])
         } catch (error) {
             setOrgError(error.message || 'No se pudieron cargar las organizaciones')
@@ -647,7 +683,6 @@ export default function AdminPanel({ usuarioSesion }) {
         clearFeedback()
         setFormErrors({})
         setModalError('')
-        setIsSubmitting(true)
         setModal({ type: 'editUser', usuario })
 
         try {
@@ -827,25 +862,32 @@ export default function AdminPanel({ usuarioSesion }) {
         event.preventDefault()
 
         setModalError('')
+        const errors = validateOrgForm(orgForm)
+        setOrgFormErrors(errors)
+        if (Object.keys(errors).length > 0) {
+            return
+        }
+
         setIsSubmitting(true)
+        const payload = buildOrgPayload(orgForm)
 
         try {
             if (modal?.type === 'editOrg') {
-                await apiPut(`/api/organizaciones/${modal.org.id_organizacion}`, orgForm)
+                await apiPut(`/api/organizaciones/${modal.org.id_organizacion}`, payload)
                 setSuccessMessage('Organización actualizada')
             } else {
-                await apiPost('/api/organizaciones', orgForm)
+                await apiPost('/api/organizaciones', payload)
                 setSuccessMessage('Organización creada')
             }
 
             await loadOrganizations()
             closeModal()
         } catch (error) {
-            const errMsg = error.message || ''
-            if (errMsg.startsWith("Falta el campo ")) {
-                const fieldName = errMsg.replace("Falta el campo ", "").trim()
-                setOrgFormErrors({ [fieldName]: errMsg })
+            const fieldErrors = error.body?.campos
+            if (fieldErrors && typeof fieldErrors === 'object') {
+                setOrgFormErrors(fieldErrors)
             } else {
+                const errMsg = error.message || ''
                 setModalError(errMsg || 'Error guardando organización')
             }
         } finally {
@@ -1050,70 +1092,70 @@ export default function AdminPanel({ usuarioSesion }) {
                         {loadingUsers
                             ? <SkeletonRows cols={5} rows={4} />
                             : usuarios.map((usuario) => {
-                            const isSelf = usuarioSesion?.id_usuario === usuario.id_usuario
+                                const isSelf = usuarioSesion?.id_usuario === usuario.id_usuario
 
-                            return (
-                                <tr key={usuario.id_usuario}>
-                                    <td>
-                                        <div className="admin-table-primary">{usuario.nombre}</div>
-                                        <div className="admin-table-muted">{usuario.correo}</div>
-                                    </td>
-                                    <td>{usuario.telefono}</td>
-                                    <td>
-                                        <span className={`admin-status-pill admin-status-${usuario.rol}`}>
-                                            {roleLabel(usuario.rol)}
-                                        </span>
-                                    </td>
-                                    <td>{formatDate(usuario.fecha_registro)}</td>
-                                    <td>
-                                        <div className="admin-row-actions">
-                                            <button
-                                                type="button"
-                                                className="admin-icon-button"
-                                                onClick={() => openEditUser(usuario)}
-                                                aria-label={`Editar ${usuario.nombre}`}
-                                                title="Editar"
-                                            >
-                                                <IconEdit />
-                                            </button>
-                                            {usuario.activo !== 0 ? (
+                                return (
+                                    <tr key={usuario.id_usuario}>
+                                        <td>
+                                            <div className="admin-table-primary">{usuario.nombre}</div>
+                                            <div className="admin-table-muted">{usuario.correo}</div>
+                                        </td>
+                                        <td>{usuario.telefono}</td>
+                                        <td>
+                                            <span className={`admin-status-pill admin-status-${usuario.rol}`}>
+                                                {roleLabel(usuario.rol)}
+                                            </span>
+                                        </td>
+                                        <td>{formatDate(usuario.fecha_registro)}</td>
+                                        <td>
+                                            <div className="admin-row-actions">
                                                 <button
                                                     type="button"
                                                     className="admin-icon-button"
-                                                    onClick={() => openDesactivarUser(usuario)}
-                                                    disabled={isSelf}
-                                                    aria-label={`Desactivar ${usuario.nombre}`}
-                                                    title="Desactivar"
+                                                    onClick={() => openEditUser(usuario)}
+                                                    aria-label={`Editar ${usuario.nombre}`}
+                                                    title="Editar"
                                                 >
-                                                    <IconToggle checked={true} />
+                                                    <IconEdit />
                                                 </button>
-                                            ) : (
+                                                {usuario.activo !== 0 ? (
+                                                    <button
+                                                        type="button"
+                                                        className="admin-icon-button"
+                                                        onClick={() => openDesactivarUser(usuario)}
+                                                        disabled={isSelf}
+                                                        aria-label={`Desactivar ${usuario.nombre}`}
+                                                        title="Desactivar"
+                                                    >
+                                                        <IconToggle checked={true} />
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        className="admin-icon-button"
+                                                        onClick={() => openActivarUser(usuario)}
+                                                        disabled={isSelf}
+                                                        aria-label={`Activar ${usuario.nombre}`}
+                                                        title="Activar"
+                                                    >
+                                                        <IconToggle checked={false} />
+                                                    </button>
+                                                )}
                                                 <button
                                                     type="button"
-                                                    className="admin-icon-button"
-                                                    onClick={() => openActivarUser(usuario)}
-                                                    disabled={isSelf}
-                                                    aria-label={`Activar ${usuario.nombre}`}
-                                                    title="Activar"
+                                                    className="admin-icon-button admin-icon-button-danger"
+                                                    onClick={() => openAnonimizarUser(usuario)}
+                                                    disabled={isSelf || usuario.nombre === 'Usuario Anonimizado'}
+                                                    aria-label={`Anonimizar ${usuario.nombre}`}
+                                                    title="Anonimizar"
                                                 >
-                                                    <IconToggle checked={false} />
+                                                    <IconTrash />
                                                 </button>
-                                            )}
-                                            <button
-                                                type="button"
-                                                className="admin-icon-button admin-icon-button-danger"
-                                                onClick={() => openAnonimizarUser(usuario)}
-                                                disabled={isSelf || usuario.nombre === 'Usuario Anonimizado'}
-                                                aria-label={`Anonimizar ${usuario.nombre}`}
-                                                title="Anonimizar"
-                                            >
-                                                <IconTrash />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )
-                        })}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )
+                            })}
                     </tbody>
                 </table>
             </div>
@@ -1129,7 +1171,7 @@ export default function AdminPanel({ usuarioSesion }) {
                 <table className="admin-table admin-table-campaigns">
                     <thead>
                         <tr>
-                            <th>Campana</th>
+                            <th>Campaña</th>
                             <th>Organización</th>
                             <th>Progreso</th>
                             <th>Fechas</th>
@@ -1140,51 +1182,51 @@ export default function AdminPanel({ usuarioSesion }) {
                         {loadingCampaigns
                             ? <SkeletonRows cols={5} rows={4} />
                             : publicaciones.map((publicacion) => {
-                            const progress = getProgress(publicacion)
-                            const isSaving = savingCampaignId === publicacion.id_publicacion
-                            
-                            const statusClass = publicacion.estado === 'activa'
-                                ? 'status-active'
-                                : publicacion.estado === 'finalizada'
-                                ? 'status-finished'
-                                : publicacion.estado === 'cancelada'
-                                ? 'status-canceled'
-                                : ''
+                                const progress = getProgress(publicacion)
+                                const isSaving = savingCampaignId === publicacion.id_publicacion
 
-                            return (
-                                <tr key={publicacion.id_publicacion}>
-                                    <td>
-                                        <div className="admin-table-primary">{publicacion.titulo}</div>
-                                        <div className="admin-table-muted">{publicacion.categoria || 'Sin categoría'}</div>
-                                    </td>
-                                    <td>{publicacion.organizacion || 'Sin organización'}</td>
-                                    <td>
-                                        <div className="admin-progress-cell">
-                                            <span>{progress}%</span>
-                                            <div className="progress-track admin-progress-track">
-                                                <div className="progress-fill" style={{ width: `${progress}%` }} />
+                                const statusClass = publicacion.estado === 'activa'
+                                    ? 'status-active'
+                                    : publicacion.estado === 'finalizada'
+                                        ? 'status-finished'
+                                        : publicacion.estado === 'cancelada'
+                                            ? 'status-canceled'
+                                            : ''
+
+                                return (
+                                    <tr key={publicacion.id_publicacion}>
+                                        <td>
+                                            <div className="admin-table-primary">{publicacion.titulo}</div>
+                                            <div className="admin-table-muted">{publicacion.categoria || 'Sin categoría'}</div>
+                                        </td>
+                                        <td>{publicacion.organizacion || 'Sin organización'}</td>
+                                        <td>
+                                            <div className="admin-progress-cell">
+                                                <span>{progress}%</span>
+                                                <div className="progress-track admin-progress-track">
+                                                    <div className="progress-fill" style={{ width: `${progress}%` }} />
+                                                </div>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div>{formatDate(publicacion.fecha_publicacion)}</div>
-                                        <div className="admin-table-muted">Límite: {formatDate(publicacion.fecha_limite)}</div>
-                                    </td>
-                                    <td>
-                                        <select
-                                            className={`form-select admin-select-status campaign-select-status ${statusClass}`}
-                                            value={publicacion.estado}
-                                            onChange={(e) => handleChangeCampaignStatus(publicacion, e.target.value)}
-                                            disabled={isSaving}
-                                        >
-                                            <option value="activa">Activa</option>
-                                            <option value="finalizada">Finalizada</option>
-                                            <option value="cancelada">Cancelada</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                            )
-                        })}
+                                        </td>
+                                        <td>
+                                            <div>{formatDate(publicacion.fecha_publicacion)}</div>
+                                            <div className="admin-table-muted">Límite: {formatDate(publicacion.fecha_limite)}</div>
+                                        </td>
+                                        <td>
+                                            <select
+                                                className={`form-select admin-select-status campaign-select-status ${statusClass}`}
+                                                value={publicacion.estado}
+                                                onChange={(e) => handleChangeCampaignStatus(publicacion, e.target.value)}
+                                                disabled={isSaving}
+                                            >
+                                                <option value="activa">Activa</option>
+                                                <option value="finalizada">Finalizada</option>
+                                                <option value="cancelada">Cancelada</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                )
+                            })}
                     </tbody>
                 </table>
             </div>
@@ -1303,7 +1345,7 @@ export default function AdminPanel({ usuarioSesion }) {
                                 <label className="form-label">Organización</label>
                                 <select className={`form-select ${campFormErrors.id_organizacion ? 'form-input-invalid' : ''}`} name="id_organizacion" value={campForm.id_organizacion} onChange={handleCampChange}>
                                     <option value="">Selecciona una organización</option>
-                                    {organizaciones.map((o) => (
+                                    {organizaciones.filter((o) => o.estado_verificacion === 'verificada').map((o) => (
                                         <option key={o.id_organizacion} value={o.id_organizacion}>{o.nombre}</option>
                                     ))}
                                 </select>
@@ -1559,7 +1601,7 @@ export default function AdminPanel({ usuarioSesion }) {
                         onClick={() => setActiveTab('campanas')}
                     >
                         <IconCampaigns />
-                        <span>Campanas</span>
+                        <span>Campañas</span>
                     </button>
                 </aside>
 

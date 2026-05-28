@@ -117,6 +117,8 @@ export default function NavBar({ isAuthenticated, usuarioSesion, onLogout, isExp
   const expanded = isExpanded ?? false
   const state = expanded ? 'expanded' : 'collapsed'
   const isAdmin = usuarioSesion?.rol === 'administrador'
+  const isIntermediario = usuarioSesion?.rol === 'intermediario'
+  
 
   return (
     <motion.div
@@ -138,6 +140,15 @@ export default function NavBar({ isAuthenticated, usuarioSesion, onLogout, isExp
 
       {isAuthenticated && isAdmin && (
         <NavItem to="/admin" icon={<IconAdmin />} label="Panel Admin" isExpanded={expanded} />
+      )}
+
+      {isAuthenticated && isIntermediario && (
+        <NavItem
+          to="/intermediario"
+          icon={<IconUsers />}
+          label="Mi Organización"
+          isExpanded={expanded}
+        />
       )}
 
       <NavItem to="/organizaciones" icon={<IconUsers />} label="Organizaciones" isExpanded={expanded} />
