@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Documento Integrador — Red de Donaciones</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 11.5pt;
+  line-height: 1.65;
+  color: #111;
+  background: #fff;
+}
+.wrap { max-width: 21cm; margin: 0 auto; padding: 2.5cm 2.5cm 2cm 3cm; }
+
+/* ── Headings ── */
+h1 { font-size: 19pt; color: #1B4332; border-bottom: 2.5pt solid #1B4332; padding-bottom: 5pt; margin: 26pt 0 14pt; page-break-after: avoid; }
+h2 { font-size: 14pt; color: #2D6A4F; margin: 20pt 0 8pt; page-break-after: avoid; }
+h3 { font-size: 12pt; color: #40916C; margin: 14pt 0 6pt; page-break-after: avoid; }
+h4 { font-size: 11pt; color: #52B788; font-style: italic; margin: 10pt 0 4pt; page-break-after: avoid; }
+p  { margin: 6pt 0; text-align: justify; }
+
+/* ── Cover ── */
+.cover {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; min-height: 260mm; justify-content: center;
+  page-break-after: always;
+}
+.cover .univ { font-size: 11.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: .8px; }
+.cover .dept { font-size: 10pt; font-style: italic; color: #444; margin: 4pt 0 8pt; }
+.uvg { width: 100px; height: 100px; margin: 18pt auto; }
+.cover h1 { font-size: 22pt; color: #1B4332; border: none; margin: 20pt 0 8pt; }
+.cover h2 { font-size: 15pt; color: #333; font-weight: normal; }
+.cover .team { margin-top: 30pt; font-size: 10pt; line-height: 2; }
+.cover .prof { margin-top: 16pt; font-size: 10pt; color: #555; }
+.cover .fecha { font-size: 10pt; color: #555; margin-top: 8pt; }
+
+/* ── TOC ── */
+.toc { page-break-after: always; }
+.toc ul { list-style: none; }
+.toc li { display: flex; justify-content: space-between; padding: 3pt 0; border-bottom: 1px dotted #bbb; font-size: 11pt; }
+.toc li.l2 { padding-left: 14pt; font-size: 10.5pt; }
+.toc li.l3 { padding-left: 28pt; font-size: 10pt; }
+.toc-num { font-weight: bold; margin-right: 6pt; }
+
+/* ── Tables ── */
+table { width: 100%; border-collapse: collapse; margin: 8pt 0; font-size: 10pt; page-break-inside: auto; }
+th { background: #1B4332; color: white; padding: 6pt 8pt; text-align: left; }
+td { padding: 5pt 8pt; border: 1px solid #ccc; vertical-align: top; }
+tr:nth-child(even) td { background: #f5faf5; }
+.td-center { text-align: center; }
+
+/* ── Lists ── */
+ul, ol { margin: 6pt 0 6pt 18pt; }
+li { margin-bottom: 3pt; }
+
+/* ── Boxes ── */
+.box { border-left: 4pt solid #1B4332; padding: 10pt 14pt; margin: 10pt 0; background: #f0fff4; }
+.box-title { font-weight: bold; color: #1B4332; margin-bottom: 4pt; font-size: 10.5pt; }
+.callout { border: 1px solid #40916C; border-radius: 4pt; padding: 10pt 12pt; margin: 8pt 0; background: #f9fffe; }
+.insight { background: #fffde7; border: 1px solid #f0c040; border-radius: 4pt; padding: 8pt 12pt; margin: 6pt 0; }
+.insight-title { font-weight: bold; color: #92400e; }
+
+/* ── Badges ── */
+.b { display: inline-block; padding: 1pt 7pt; border-radius: 10pt; font-size: 9pt; font-weight: bold; }
+.b-hi  { background: #fee2e2; color: #991b1b; }
+.b-med { background: #fef9c3; color: #854d0e; }
+.b-lo  { background: #dbeafe; color: #1e40af; }
+.b-ok  { background: #dcfce7; color: #166534; }
+.b-par { background: #fef3c7; color: #92400e; }
+.b-no  { background: #fee2e2; color: #991b1b; }
+
+/* ── Sprint cards ── */
+.sprint { border: 2px solid #2D6A4F; border-radius: 6pt; padding: 12pt 16pt; margin: 12pt 0; page-break-inside: avoid; }
+.sprint-hdr { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #ccc; padding-bottom: 7pt; margin-bottom: 8pt; }
+.sprint-name { font-size: 13pt; font-weight: bold; color: #1B4332; }
+.sprint-dates { font-size: 9.5pt; color: #666; }
+.sprint-stats { display: flex; gap: 18pt; margin: 8pt 0; }
+.stat { text-align: center; }
+.stat-v { font-size: 20pt; font-weight: bold; color: #2D6A4F; }
+.stat-l { font-size: 8.5pt; color: #666; }
+
+/* ── Progress ── */
+.pgbar { height: 18pt; background: #e5e7eb; border-radius: 9pt; overflow: hidden; margin: 4pt 0; }
+.pgfill { height: 100%; background: linear-gradient(90deg,#1B4332,#52B788); border-radius: 9pt; display: flex; align-items: center; justify-content: flex-end; padding-right: 7pt; color: white; font-size: 9pt; font-weight: bold; }
+
+/* ── Lean UX Canvas ── */
+.lux { display: grid; grid-template-columns: repeat(4, 1fr); border: 2px solid #1B4332; font-size: 9.5pt; margin: 10pt 0; }
+.lux-cell { border: 1px solid #1B4332; }
+.lux-hdr { background: #1B4332; color: white; font-weight: bold; font-size: 8.5pt; text-transform: uppercase; padding: 4pt 6pt; }
+.lux-body { padding: 7pt 8pt; min-height: 80pt; font-size: 9pt; }
+.lux-body ul { margin-left: 12pt; }
+
+/* ── Page breaks ── */
+.pb { page-break-after: always; }
+.no-break { page-break-inside: avoid; }
+
+/* ── Print ── */
+@media print {
+  body { font-size: 10.5pt; }
+  .wrap { padding: 2cm 2cm 1.5cm 2.5cm; }
+  a { color: inherit; text-decoration: none; }
+}
+
+/* ── Appendix / SVG note ── */
+.svgref { background: #f0f4f8; border: 1px dashed #aaa; border-radius: 4pt; padding: 7pt 12pt; text-align: center; font-size: 10pt; color: #444; margin: 6pt 0; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ════════════════════════════════════════════════════════ PORTADA -->
+<div class="cover">
+  <div class="univ">Universidad del Valle de Guatemala</div>
+  <div class="dept">Departamento de Ingeniería en Ciencias de la Computación y Tecnologías de la Información</div>
+
+  <!-- UVG logo placeholder -->
+  <svg class="uvg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="none" stroke="#1B4332" stroke-width="3"/>
+    <text x="50" y="43" font-family="Arial" font-size="22" font-weight="bold" fill="#1B4332" text-anchor="middle">UVG</text>
+    <text x="50" y="62" font-family="Arial" font-size="8" fill="#1B4332" text-anchor="middle">DEL VALLE</text>
+    <text x="50" y="73" font-family="Arial" font-size="7" fill="#555" text-anchor="middle">Excelencia que trasciende</text>
+  </svg>
+
+  <h1>Documento Integrador del Proyecto</h1>
+  <h2>Sistema para Optimizar Donaciones<br><em>Red de Donaciones</em></h2>
+
+  <div class="team">
+    <strong>Integrantes:</strong><br>
+    Adriana Martínez — 24086<br>
+    Marcela Castillo — 24952<br>
+    Rodrigo Ramírez — 23993<br>
+    Jorge Palacios — 231385<br>
+    Jorge Chupina — 22213
+  </div>
+  <div class="prof">Catedrática: Ing. Lynette García Pérez</div>
+  <div class="fecha">Guatemala, mayo 2026 · Semestre I</div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ TOC -->
+<div class="toc">
+  <h1 style="border:none;margin-bottom:16pt">Tabla de Contenidos</h1>
+  <ul>
+    <li><span><span class="toc-num">1.</span> Resumen Ejecutivo</span><span>3</span></li>
+    <li><span><span class="toc-num">2.</span> Introducción</span><span>3</span></li>
+    <li class="l2"><span>2.1 Contexto y problemática</span><span>3</span></li>
+    <li><span><span class="toc-num">3.</span> Design Thinking</span><span>4</span></li>
+    <li class="l2"><span>3.1 Definición del Brief</span><span>4</span></li>
+    <li class="l2"><span>3.2 Fase Empatizar</span><span>4</span></li>
+    <li class="l2"><span>3.3 Fase Definir — Insights y HMW</span><span>6</span></li>
+    <li class="l2"><span>3.4 Fase Idear — Design Studio</span><span>7</span></li>
+    <li class="l2"><span>3.5 Fase Prototipar y Testear</span><span>7</span></li>
+    <li><span><span class="toc-num">4.</span> Historias de Usuario</span><span>9</span></li>
+    <li class="l2"><span>4.1 Actores del sistema</span><span>9</span></li>
+    <li class="l2"><span>4.2 Listado de historias por actor</span><span>9</span></li>
+    <li class="l2"><span>4.3 Priorización</span><span>11</span></li>
+    <li class="l2"><span>4.4 Requisitos no funcionales</span><span>12</span></li>
+    <li><span><span class="toc-num">5.</span> Mapa de Historias de Usuario</span><span>13</span></li>
+    <li><span><span class="toc-num">6.</span> Lean UX Canvas</span><span>14</span></li>
+    <li><span><span class="toc-num">7.</span> Análisis y Diseño del Sistema</span><span>15</span></li>
+    <li class="l2"><span>7.1 Requisitos funcionales</span><span>15</span></li>
+    <li class="l2"><span>7.2 Clases preliminares</span><span>17</span></li>
+    <li class="l2"><span>7.3 Diagrama de paquetes</span><span>18</span></li>
+    <li class="l2"><span>7.4 Modelo Entidad-Relación</span><span>18</span></li>
+    <li class="l2"><span>7.5 Tecnología seleccionada</span><span>19</span></li>
+    <li><span><span class="toc-num">8.</span> Gestión Ágil — Sprints</span><span>20</span></li>
+    <li class="l2"><span>8.1 Sprint 1 — MVP y autenticación</span><span>20</span></li>
+    <li class="l2"><span>8.2 Sprint 2 — Publicaciones y donaciones</span><span>21</span></li>
+    <li class="l2"><span>8.3 Sprint 3 — UX/UI y refinamientos (actual)</span><span>22</span></li>
+    <li class="l2"><span>8.4 Gráficas Burn-Down</span><span>23</span></li>
+    <li class="l2"><span>8.5 Gráfica de Velocidad</span><span>24</span></li>
+    <li class="l2"><span>8.6 Porcentaje de avance</span><span>25</span></li>
+    <li><span><span class="toc-num">9.</span> Conclusiones</span><span>26</span></li>
+    <li><span><span class="toc-num">10.</span> Referencias</span><span>27</span></li>
+  </ul>
+  <p style="margin-top:14pt;font-size:9.5pt;color:#555;font-style:italic;">
+    Archivos SVG adjuntos: LeanUXCanvas.svg · UserStoryMap.svg · DiagramaClases.svg · DiagramaBD.svg
+  </p>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ 1. RESUMEN -->
+<h1>1. Resumen Ejecutivo</h1>
+<p>El presente documento integra la documentación completa del proyecto <strong>Red de Donaciones</strong>, desarrollado durante el Semestre I 2026 en la Universidad del Valle de Guatemala. El proyecto tiene como objetivo centralizar y optimizar el proceso de donación de artículos en buen estado, conectando a donantes con organizaciones sociales a través de una plataforma web.</p>
+<p>El documento consolida las etapas de investigación con usuarios (Design Thinking), la especificación de requisitos mediante historias de usuario, el User Story Mapping, el Lean UX Canvas, el análisis y diseño del sistema, y la implementación progresiva mediante la metodología Scrum a lo largo de tres sprints.</p>
+<p>Al corte del tercer sprint, el sistema cuenta con <strong>16 de 26 requisitos funcionales implementados completamente</strong>, representando un avance del <strong>65%</strong> del sistema diseñado.</p>
+
+<!-- ════════════════════════════════════════════════════════ 2. INTRODUCCIÓN -->
+<h1>2. Introducción</h1>
+<h2>2.1 Contexto y problemática</h2>
+<p>La donación de ropa y objetos en buen estado refleja la solidaridad de muchas personas y organizaciones. Sin embargo, el proceso presenta múltiples dificultades: falta de organización, escasa información, dificultades logísticas y una débil conexión entre donantes, intermediarios y beneficiarios. Como resultado, muchas donaciones no llegan adecuadamente a quienes más las necesitan.</p>
+<p>Este proyecto surge del análisis de estas problemáticas mediante entrevistas a donantes, intermediarios y beneficiarios reales. A través de la metodología Design Thinking se identificaron los puntos de dolor clave, y mediante Scrum se propone una solución incremental que facilite la coordinación, optimice el proceso y garantice transparencia en las donaciones.</p>
+
+<div class="box no-break">
+  <div class="box-title">North Star Statement</div>
+  <p>Facilitar y optimizar la donación de artículos varios en buen estado, conectando de forma directa a personas solidarias con organizaciones no gubernamentales que apoyan a niños, adolescentes y adultos mayores, generando un impacto social positivo y sostenible.</p>
+</div>
+
+<div class="pb"></div>
+
+<!-- ════════════════════════════════════════════════════════ 3. DESIGN THINKING -->
+<h1>3. Design Thinking</h1>
+
+<h2>3.1 Definición del Brief</h2>
+<table class="no-break">
+  <tr><th style="width:25%">Elemento</th><th>Descripción</th></tr>
+  <tr><td><strong>Tema de interés</strong></td><td>Gestión y optimización del proceso de donación de diversos bienes mediante una plataforma que centralice a donadores y organizaciones sociales, permitiendo que los objetos lleguen a quienes más lo necesitan.</td></tr>
+  <tr><td><strong>Reto</strong></td><td>¿Cómo podemos facilitar y organizar el proceso de donación para que más personas participen activamente y los intermediarios reciban los recursos adecuados de forma eficiente?</td></tr>
+  <tr><td><strong>Problema</strong></td><td>El proceso de donación es desorganizado, poco visible y complicado. Los donantes no saben a qué organización acudir ni qué artículos se necesitan. Las organizaciones tienen dificultades para clasificar y conectar con donadores de manera constante.</td></tr>
+  <tr><td><strong>Objetivo del producto</strong></td><td>Permitir que los usuarios donen artículos de manera rápida y organizada, seleccionando organizaciones según el grupo beneficiado (niños, adolescentes o adultos mayores), promoviendo la cultura de solidaridad y reutilización.</td></tr>
+</table>
+
+<h2>3.2 Fase Empatizar</h2>
+
+<h3>3.2.1 Perfiles de usuario</h3>
+<table>
+  <tr><th>Perfil</th><th>Descripción</th><th>Meta principal</th><th>Puntos de dolor</th></tr>
+  <tr>
+    <td><strong>Donante</strong></td>
+    <td>Personas con artículos en buen estado que desean darles una segunda vida. Buscan un proceso sencillo y confiable.</td>
+    <td>Proceso fácil, ágil y confiable. Sentir satisfacción de ayudar.</td>
+    <td>Se desaniman por procesos largos. Desconfían si la ayuda llega. No saben si sus artículos serán aceptados.</td>
+  </tr>
+  <tr>
+    <td><strong>Intermediario</strong></td>
+    <td>Colaboradores activos de ONGs, iglesias o colectivos. Actúan como puente logístico entre donantes y beneficiarios.</td>
+    <td>Maximizar el impacto de las donaciones recibidas, clasificándolas y entregándolas a tiempo.</td>
+    <td>Exceso de donaciones no solicitadas. Clasificación manual y agotadora. Artículos difíciles de asignar.</td>
+  </tr>
+  <tr>
+    <td><strong>Donatario</strong></td>
+    <td>Personas o familias en situación de vulnerabilidad económica que necesitan apoyos externos.</td>
+    <td>Acceder a recursos dignos que se ajusten a su realidad (talla, clima, necesidad específica).</td>
+    <td>Recibe ropa de talla incorrecta o materiales inadecuados. Pocas veces puede expresar sus necesidades.</td>
+  </tr>
+</table>
+
+<h3>3.2.2 Usuarios extremos (selección)</h3>
+<p>Para ampliar el espectro del problema se identificaron usuarios extremos en ambos lados del espectro de donación: <em>personas con exceso de donaciones</em> vs. <em>personas en extrema pobreza</em>; donantes con <em>procesos largos</em> vs. donantes con <em>día específico de disposición</em>; donatarios con <em>discapacidades</em> o <em>alergias</em> a materiales, y <em>tallas no comunes</em>.</p>
+
+<h3>3.2.3 Framework AEIOU</h3>
+<table>
+  <tr><th>Activities</th><th>Environments</th><th>Interactions</th><th>Objects</th><th>Users</th></tr>
+  <tr>
+    <td>Donantes separan artículos en casa sin saber si son útiles. Voluntarios clasifican donaciones manualmente.</td>
+    <td>Casas, iglesias, centros comunitarios. Comunidades beneficiadas.</td>
+    <td>Donatarios no interactúan directamente con donantes. Coordinación entre voluntarios y donatarios en la entrega.</td>
+    <td>Ropa usada (camisas, pantalones, zapatos, abrigos). Bolsas y cajas. Teléfonos móviles.</td>
+    <td>Donantes, Voluntarios, Donatarios</td>
+  </tr>
+</table>
+
+<h3>3.2.4 Síntesis de entrevistas</h3>
+<p>Se realizaron <strong>7 entrevistas</strong> con usuarios reales: 4 donantes (Diego Rivas, Marian Rojas, Mario Sierra, Erika de Palacios), 2 intermediarios (Manfredo Fuentes, Isis Lemus) y 1 beneficiario (Carlos López). Las citas más relevantes:</p>
+
+<div class="insight no-break">
+  <div class="insight-title">Donante — Diego Rivas:</div>
+  <p><em>"Realmente no he tenido muchos inconvenientes, pero usualmente siempre se presentan problemas como de organización o al momento de entregar los víveres."</em> — Identifica fallas de organización logística.</p>
+  <p><em>"Sí, me gustaría saber a dónde va mi donación."</em> — Deseo de transparencia y seguimiento.</p>
+</div>
+<div class="insight no-break">
+  <div class="insight-title">Donante — Mario Sierra (universitario):</div>
+  <p><em>"Si hubiera una app o una página que me dijera 'aquí reciben hoy' o mejor aún, si alguien pudiera pasar por las cosas a la U."</em> — Solicita soluciones digitales y servicio de recolección.</p>
+  <p><em>"El mayor problema fue que una vez llegué y estaba cerrado, y en otro no aceptaban ropa de hombre."</em> — Falta de información actualizada como principal punto de dolor.</p>
+</div>
+<div class="insight no-break">
+  <div class="insight-title">Intermediario — Isis Lemus (logística):</div>
+  <p><em>"La cantidad de artículos que había se tenían que clasificar en un tiempo determinado y había muy poco tiempo para hacerlo."</em> — Limitación de tiempo en clasificación.</p>
+  <p><em>"A veces se tenían más ropa de mujer que de hombre y la mayoría de donatarios fueron hombres."</em> — Desajuste entre oferta y demanda real.</p>
+</div>
+<div class="insight no-break">
+  <div class="insight-title">Beneficiario — Carlos López:</div>
+  <p><em>"Que sea algo que realmente nos sirva y que no nos hagan sentir menos por recibir ayuda."</em> — Dignidad y adecuación como valores fundamentales.</p>
+</div>
+
+<h2>3.3 Fase Definir — Insights y How Might We</h2>
+
+<table>
+  <tr><th>Insight</th><th>Preguntas How Might We (HMW)</th></tr>
+  <tr>
+    <td><strong>Ins. 1:</strong> Los donantes quieren ayudar, pero el proceso les resulta desordenado, lento o confuso.</td>
+    <td>¿Cómo podríamos simplificar el proceso para que no requiera mucho tiempo?<br>¿Cómo podríamos mostrar de forma clara y actualizada dónde, cuándo y qué se puede donar?</td>
+  </tr>
+  <tr>
+    <td><strong>Ins. 2:</strong> Los donantes sienten inseguridad sobre si su donación realmente llega a quien la necesita.</td>
+    <td>¿Cómo podríamos brindar al donante confirmación de que su donación fue entregada?</td>
+  </tr>
+  <tr>
+    <td><strong>Ins. 3:</strong> Los intermediarios reciben donaciones que no siempre son útiles o solicitadas.</td>
+    <td>¿Cómo podríamos guiar al donante para que done solo lo que realmente se necesita?</td>
+  </tr>
+  <tr>
+    <td><strong>Ins. 4:</strong> La clasificación y logística consumen mucho tiempo y recursos de los intermediarios.</td>
+    <td>¿Cómo podríamos optimizar la clasificación de donaciones antes de que lleguen al centro?<br>¿Cómo podríamos apoyar la coordinación de voluntarios?</td>
+  </tr>
+  <tr>
+    <td><strong>Ins. 5:</strong> Los donatarios reciben ayuda que no siempre se ajusta a sus necesidades reales.</td>
+    <td>¿Cómo podríamos asegurar que las donaciones sean dignas y útiles?<br>¿Cómo adaptarlas al contexto (clima, edad, género)?</td>
+  </tr>
+</table>
+
+<h2>3.4 Fase Idear — Design Studio</h2>
+<p>Se aplicó la metodología Design Studio con todos los integrantes del equipo. Se generaron sketches individuales (cada integrante produjo múltiples bocetos con propuestas de solución), se realizó una puesta en común y se votaron las ideas más impactantes.</p>
+
+<h3>Ideas más votadas e incluidas en el producto:</h3>
+<ol>
+  <li><strong>Plataforma digital de conexión</strong> — sistema web que permita publicación de artículos por donantes y publicación de necesidades específicas por intermediarios, con visualización de coincidencias.</li>
+  <li><strong>Sistema de necesidades específicas</strong> — formulario estructurado donde el intermediario indica tipo de artículo, cantidad, categoría y contexto.</li>
+  <li><strong>Información clara y centralizada</strong> — calendario de colectas, ubicaciones, horarios y listado de artículos no aceptados.</li>
+  <li><strong>Sistema de confirmación y seguimiento</strong> — notificaciones del estado de la donación y confirmación de recibido para generar confianza.</li>
+</ol>
+
+<h2>3.5 Fase Prototipar y Testear</h2>
+<p>Se desarrollaron dos prototipos de alta fidelidad (diseñados en Figma) para las vistas principales del sistema:</p>
+<ul>
+  <li><strong>Prototipo 1 (Vista donante)</strong>: listado de necesidades urgentes, sección "Mis Donaciones" con estado, y perfil del usuario con estadísticas.</li>
+  <li><strong>Prototipo 2 (Vista intermediario)</strong>: dashboard con métricas (total donantes, donaciones, monto estimado), tabla de donaciones con filtros y detalle de donante.</li>
+</ul>
+
+<h3>Feedback de usuarios sobre los prototipos:</h3>
+<table class="no-break">
+  <tr><th>Usuario</th><th>Feedback clave</th></tr>
+  <tr>
+    <td>Diego Rivas (Donante)</td>
+    <td>Interfaz clara y ordenada, pero necesita más información en cada solicitud para generar confianza. Paleta de colores muy simple, debe ser más atractiva y moderna.</td>
+  </tr>
+  <tr>
+    <td>Isis Lemus (Intermediario)</td>
+    <td>Las estadísticas deben presentarse de forma más visual y destacada. La interfaz se percibe académica; debe ser más emocional. Se recomienda incluir imágenes de fondo, filtros por categoría y sección de anuncios.</td>
+  </tr>
+</table>
+
+<h3>Cambios aplicados al diseño:</h3>
+<ol>
+  <li>Rediseño visual: paleta de colores cálida (verde oscuro #17342d, verde acento #76ab8c) con elementos glassmorphism.</li>
+  <li>Incorporación de imágenes y video de fondo en hero section.</li>
+  <li>Estadísticas destacadas con animaciones de contadores.</li>
+  <li>Mayor información en solicitudes: descripción, contexto, fechas, cantidades.</li>
+  <li>Sistema de filtros por categoría y tipo de donación.</li>
+  <li>Simplificación del formulario de donación a datos esenciales.</li>
+</ol>
+
+<div class="pb"></div>
+
+<!-- ════════════════════════════════════════════════════════ 4. HISTORIAS DE USUARIO -->
+<h1>4. Historias de Usuario</h1>
+
+<h2>4.1 Actores del sistema</h2>
+<table>
+  <tr><th>Actor</th><th>Descripción</th></tr>
+  <tr>
+    <td><strong>Donante</strong></td>
+    <td>Persona que interactúa con el sistema para ofrecer artículos. Puede visualizar listados de necesidades, horarios y ubicaciones. Tiene derecho a seguimiento de su aporte.</td>
+  </tr>
+  <tr>
+    <td><strong>Intermediario (Organizador/Voluntario)</strong></td>
+    <td>Usuario encargado de la gestión logística de una organización. Puede publicar necesidades, registrar donaciones, actualizar estados y coordinar entregas.</td>
+  </tr>
+  <tr>
+    <td><strong>Administrador del sistema</strong></td>
+    <td>Usuario con acceso total a la plataforma. Gestiona usuarios, organizaciones, catálogos del sistema y genera reportes generales.</td>
+  </tr>
+</table>
+
+<h2>4.2 Listado completo de historias de usuario</h2>
+
+<h3>Actor: Donante (9 historias)</h3>
+<table>
+  <tr><th>#</th><th>Historia de usuario</th><th>Prioridad</th><th>Estado</th></tr>
+  <tr><td>D-H1</td><td>Quiero consultar un listado de organizaciones registradas con su nombre, ubicación y contacto para elegir dónde realizar mi donación.</td><td><span class="b b-hi">Alta</span></td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>D-H2</td><td>Quiero consultar el listado actualizado de artículos necesarios por organización para donar artículos que realmente sean útiles.</td><td><span class="b b-med">Media</span></td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>D-H3</td><td>Quiero registrar una donación indicando los artículos, cantidades y estado para facilitar la clasificación y organización.</td><td><span class="b b-hi">Alta</span></td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>D-H4</td><td>Quiero consultar los horarios y lugares disponibles para entregar donaciones para planificar mi visita sin perder tiempo.</td><td><span class="b b-hi">Alta</span></td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>D-H5</td><td>Quiero consultar el estado de mi donación (recibida, en proceso o entregada) para tener confianza en el destino de mis donaciones.</td><td><span class="b b-hi">Alta</span></td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>D-H6</td><td>Quiero consultar los requisitos y artículos no aceptados antes de donar para evitar llevar artículos inútiles.</td><td><span class="b b-lo">Baja</span></td><td><span class="b b-no">Pendiente</span></td></tr>
+  <tr><td>D-H7</td><td>Quiero consultar organizaciones cercanas a mi ubicación para elegir el lugar más conveniente para donar.</td><td><span class="b b-med">Media</span></td><td><span class="b b-no">Pendiente</span></td></tr>
+  <tr><td>D-H8</td><td>Quiero modificar la información de una donación registrada para corregir errores antes de entregarla.</td><td><span class="b b-med">Media</span></td><td><span class="b b-no">Pendiente</span></td></tr>
+  <tr><td>D-H9</td><td>Quiero cancelar o eliminar una donación registrada si ya no puedo realizarla.</td><td><span class="b b-lo">Baja</span></td><td><span class="b b-no">Pendiente</span></td></tr>
+</table>
+
+<h3>Actor: Intermediario (8 historias)</h3>
+<table>
+  <tr><th>#</th><th>Historia de usuario</th><th>Prioridad</th><th>Estado</th></tr>
+  <tr><td>I-H1</td><td>Quiero registrar y publicar las necesidades específicas de cada convocatoria para orientar a los donantes.</td><td><span class="b b-med">Media</span></td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>I-H2</td><td>Quiero registrar donaciones por lotes con fecha y descripción para mantener el orden de los registros.</td><td><span class="b b-med">Media</span></td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>I-H3</td><td>Quiero actualizar el estado de cada donación (recibida, en proceso o entregada) para llevar control e informar a los donantes.</td><td><span class="b b-hi">Alta</span></td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>I-H4</td><td>Quiero registrar la clasificación de las donaciones según tipo de artículo y necesidad para facilitar su distribución.</td><td><span class="b b-hi">Alta</span></td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>I-H5</td><td>Quiero registrar voluntarios y asignarles tareas de entrega para coordinar mejor las actividades.</td><td><span class="b b-lo">Baja</span></td><td><span class="b b-no">Pendiente</span></td></tr>
+  <tr><td>I-H6</td><td>Quiero consultar reportes de donaciones recibidas y entregadas para optimizar el uso de recursos.</td><td><span class="b b-med">Media</span></td><td><span class="b b-par">Parcial</span></td></tr>
+  <tr><td>I-H7</td><td>Quiero modificar las necesidades registradas para mantener la información actualizada.</td><td><span class="b b-med">Media</span></td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>I-H8</td><td>Quiero marcar artículos como aceptados o rechazados para evitar que se distribuyan donaciones en mal estado.</td><td><span class="b b-lo">Baja</span></td><td><span class="b b-par">Parcial</span></td></tr>
+</table>
+
+<h3>Actor: Administrador (selección de las 16 historias)</h3>
+<table>
+  <tr><th>#</th><th>Historia de usuario</th><th>Prioridad</th><th>Estado</th></tr>
+  <tr><td>A-H1</td><td>Quiero crear usuarios del sistema para permitir el acceso según el rol asignado.</td><td><span class="b b-hi">Alta</span></td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>A-H2</td><td>Quiero editar usuarios del sistema para mantener actualizada la información de las cuentas.</td><td><span class="b b-med">Media</span></td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>A-H3</td><td>Quiero desactivar usuarios del sistema para impedir accesos no autorizados.</td><td><span class="b b-lo">Baja</span></td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>A-H4</td><td>Quiero asignar roles a los usuarios (Donante, Intermediario o Administrador).</td><td><span class="b b-hi">Alta</span></td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>A-H5</td><td>Quiero registrar organizaciones en el sistema para que puedan recibir donaciones.</td><td><span class="b b-hi">Alta</span></td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>A-H6</td><td>Quiero aprobar organizaciones registradas para verificar su autenticidad.</td><td><span class="b b-hi">Alta</span></td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>A-H7</td><td>Quiero editar los datos de las organizaciones para mantener la información actualizada.</td><td><span class="b b-med">Media</span></td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>A-H8</td><td>Quiero bloquear organizaciones que incumplan las normas del sistema.</td><td><span class="b b-lo">Baja</span></td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>A-H9</td><td>Quiero registrar puntos de entrega para definir los lugares donde se reciben donaciones.</td><td><span class="b b-hi">Alta</span></td><td><span class="b b-no">Pendiente</span></td></tr>
+  <tr><td>A-H10</td><td>Quiero editar puntos de entrega para mantener actualizada la información.</td><td><span class="b b-med">Media</span></td><td><span class="b b-no">Pendiente</span></td></tr>
+  <tr><td>A-H11</td><td>Quiero configurar horarios por punto de entrega para definir cuándo se reciben donaciones.</td><td><span class="b b-hi">Alta</span></td><td><span class="b b-no">Pendiente</span></td></tr>
+  <tr><td>A-H12</td><td>Quiero configurar el catálogo de categorías de artículos para organizar las donaciones.</td><td><span class="b b-med">Media</span></td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>A-H13</td><td>Quiero configurar el catálogo de estados de donación.</td><td><span class="b b-med">Media</span></td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>A-H14</td><td>Quiero configurar el catálogo de motivos de rechazo.</td><td><span class="b b-med">Media</span></td><td><span class="b b-no">Pendiente</span></td></tr>
+  <tr><td>A-H15</td><td>Quiero generar reportes de donaciones y entregas para supervisar el funcionamiento.</td><td><span class="b b-med">Media</span></td><td><span class="b b-par">Parcial</span></td></tr>
+  <tr><td>A-H16</td><td>Quiero gestionar tickets de soporte para atender problemas reportados.</td><td><span class="b b-lo">Baja</span></td><td><span class="b b-no">Pendiente</span></td></tr>
+</table>
+
+<h2>4.3 Priorización</h2>
+<table>
+  <tr><th>Nivel</th><th>Criterio</th><th>Historias incluidas</th></tr>
+  <tr>
+    <td><span class="b b-hi">Alta</span></td>
+    <td>Funcionalidades core del MVP. Sin estas, el sistema no cumple su propósito básico.</td>
+    <td>D-H1, D-H3, D-H4, D-H5; I-H3, I-H4; A-H1, A-H4, A-H5, A-H6, A-H9, A-H11</td>
+  </tr>
+  <tr>
+    <td><span class="b b-med">Media</span></td>
+    <td>Mejoran significativamente la experiencia. Deben completarse en releases 2 y 3.</td>
+    <td>D-H2, D-H7, D-H8; I-H1, I-H2, I-H6, I-H7; A-H2, A-H7, A-H10, A-H12–A-H15</td>
+  </tr>
+  <tr>
+    <td><span class="b b-lo">Baja</span></td>
+    <td>Deseables pero no críticas para el funcionamiento esencial del sistema.</td>
+    <td>D-H6, D-H9; I-H5, I-H8; A-H3, A-H8, A-H16</td>
+  </tr>
+</table>
+
+<h2>4.4 Requisitos no funcionales (selección)</h2>
+<table>
+  <tr><th>Requisito</th><th>Categoría</th><th>Criterio de medición</th></tr>
+  <tr><td>Interfaz limpia con colores suaves que generen confianza.</td><td>Apariencia</td><td>≥ 4/5 usuarios califican diseño como "confiable" en encuesta.</td></tr>
+  <tr><td>Donante encuentra punto/horario de donación en &lt; 60 s.</td><td>Usabilidad</td><td>80% lo logra en prueba sin ayuda (4/5 usuarios).</td></tr>
+  <tr><td>Formulario de donación completable en &lt; 2 min.</td><td>Usabilidad</td><td>80% lo completa sin errores críticos.</td></tr>
+  <tr><td>El sistema responde en ≤ 2 s en el 95% de solicitudes.</td><td>Rendimiento</td><td>Prueba de carga con 100 solicitudes consecutivas.</td></tr>
+  <tr><td>Lista de bienes refleja cambios en &lt; 3 s tras guardar.</td><td>Rendimiento</td><td>Medición entre guardar y visualizar en interfaz.</td></tr>
+  <tr><td>Datos sensibles (teléfono/dirección) ocultos para roles no autorizados.</td><td>Seguridad</td><td>100% de intentos de acceso no autorizado bloqueados.</td></tr>
+  <tr><td>Interfaz responsive en móvil (≥ 3 modelos probados).</td><td>Portabilidad</td><td>0 desbordes ni botones inaccesibles.</td></tr>
+  <tr><td>Disponibilidad mensual mínima del 99.5%.</td><td>Confiabilidad</td><td>Registro de uptime mensual.</td></tr>
+  <tr><td>Lenguaje respetuoso y digno hacia los beneficiarios.</td><td>Político-cultural</td><td>0 términos prohibidos en revisión manual.</td></tr>
+</table>
+
+<div class="pb"></div>
+
+<!-- ════════════════════════════════════════════════════════ 5. USM -->
+<h1>5. Mapa de Historias de Usuario</h1>
+<p>El User Story Map organiza las historias de usuario en seis actividades principales del sistema, priorizadas en tres niveles de release. Las actividades forman el <em>backbone</em> horizontal, y debajo de cada una se ordenan las historias de usuario y sus tareas correspondientes.</p>
+
+<div class="svgref">📎 Ver archivo adjunto: <strong>UserStoryMap.svg</strong> — Mapa completo con actividades, backbone, tareas por release y capa de administración transversal.</div>
+
+<table>
+  <tr>
+    <th style="background:#1B4332">Actividad</th>
+    <th style="background:#1B4332">Backbone (historia principal)</th>
+    <th style="background:#1B4332">Release 1 (MVP)</th>
+    <th style="background:#1B4332">Release 2</th>
+  </tr>
+  <tr>
+    <td><strong>Definir necesidades</strong></td>
+    <td>Registrar necesidades de donación</td>
+    <td>Registrar tipo/cantidad, publicar necesidades</td>
+    <td>Modificar necesidades, cerrar al cubrir meta</td>
+  </tr>
+  <tr>
+    <td><strong>Consultar información</strong></td>
+    <td>Consultar organizaciones</td>
+    <td>Ver listado, consultar artículos necesarios</td>
+    <td>Ver contacto, ver artículos no aceptados</td>
+  </tr>
+  <tr>
+    <td><strong>Registrar donaciones</strong></td>
+    <td>Registrar donación</td>
+    <td>Seleccionar org/artículo, indicar cantidad</td>
+    <td>Editar donación, eliminar registro</td>
+  </tr>
+  <tr>
+    <td><strong>Gestionar donaciones</strong></td>
+    <td>Gestionar donaciones recibidas</td>
+    <td>Registrar recibida, actualizar estado</td>
+    <td>Clasificar, marcar aceptado/rechazado</td>
+  </tr>
+  <tr>
+    <td><strong>Distribuir a donatarios</strong></td>
+    <td>Distribuir donaciones</td>
+    <td>Asignar a necesidad, confirmar asignación</td>
+    <td>Verificar artículos, consultar asignadas</td>
+  </tr>
+  <tr>
+    <td><strong>Seguimiento</strong></td>
+    <td>Seguimiento de donaciones</td>
+    <td>Consultar estado actual, ver historial</td>
+    <td>Ver fecha actualización, ver entregadas</td>
+  </tr>
+</table>
+
+<div class="pb"></div>
+
+<!-- ════════════════════════════════════════════════════════ 6. LEAN UX CANVAS -->
+<h1>6. Lean UX Canvas</h1>
+<p>El Lean UX Canvas integra el problema de negocio, los usuarios, los beneficios esperados, las soluciones propuestas y las hipótesis validables del sistema, siguiendo la metodología de Jeff Gothelf.</p>
+
+<div class="svgref">📎 Ver archivo adjunto: <strong>LeanUXCanvas.svg</strong> — Canvas completo en formato visual con las 8 celdas.</div>
+
+<div class="lux">
+  <!-- Row 1 -->
+  <div class="lux-cell">
+    <div class="lux-hdr">1. Problema de negocio</div>
+    <div class="lux-body">
+      El proceso de donación en Guatemala es desorganizado y poco transparente. Los donantes no saben qué ni dónde donar. Los intermediarios clasifican donaciones manualmente sin información previa. Existe desconexión total entre los actores involucrados.
+      <br><em style="font-size:8.5pt;color:#555">Reto: ¿Cómo organizar el proceso para que más personas participen?</em>
+    </div>
+  </div>
+  <div class="lux-cell">
+    <div class="lux-hdr">2. Resultados de negocio</div>
+    <div class="lux-body">
+      <ul>
+        <li>↑ Donaciones mensuales completadas</li>
+        <li>↓ Tasa de artículos rechazados</li>
+        <li>↑ Satisfacción del donante ≥ 4/5</li>
+        <li>↑ Necesidades de org. cubiertas</li>
+        <li>Tiempo registro donación &lt; 2 min</li>
+        <li>Disponibilidad sistema ≥ 99.5%</li>
+      </ul>
+    </div>
+  </div>
+  <div class="lux-cell">
+    <div class="lux-hdr">3. Usuarios y clientes</div>
+    <div class="lux-body">
+      <strong>Donante:</strong> persona con artículos en buen estado. Quiere proceso fácil y transparente.<br><br>
+      <strong>Intermediario:</strong> voluntario de ONG. Gestiona logística de donaciones.<br><br>
+      <strong>Administrador:</strong> supervisa la plataforma.<br><br>
+      <em style="font-size:8.5pt">Donatarios: beneficiarios finales, no usan la plataforma.</em>
+    </div>
+  </div>
+  <div class="lux-cell">
+    <div class="lux-hdr">4. Beneficios al usuario</div>
+    <div class="lux-body">
+      <strong>Donante:</strong> claridad sobre qué/dónde donar, confirmación de entrega, satisfacción de impacto real.<br><br>
+      <strong>Intermediario:</strong> donaciones pre-clasificadas, control de cantidades en tiempo real.<br><br>
+      <strong>Administrador:</strong> visibilidad total, control centralizado.
+    </div>
+  </div>
+  <!-- Row 2 -->
+  <div class="lux-cell">
+    <div class="lux-hdr">5. Soluciones</div>
+    <div class="lux-body">
+      <ul>
+        <li>Registro y autenticación por roles</li>
+        <li>Publicación de necesidades por artículo</li>
+        <li>Control de cantidades con progreso visual</li>
+        <li>Registro y seguimiento de donaciones</li>
+        <li>Panel de administración centralizado</li>
+        <li>Landing page + hero con video</li>
+        <li>Upload de imágenes con validación</li>
+      </ul>
+    </div>
+  </div>
+  <div class="lux-cell">
+    <div class="lux-hdr">6. Hipótesis</div>
+    <div class="lux-body">
+      <em>"Creemos que si..."</em>
+      <ul>
+        <li>Los donantes ven necesidades específicas → donarán artículos más útiles.</li>
+        <li>El proceso es &lt; 2 min → más personas completarán donaciones.</li>
+        <li>Mostramos progreso visual → mayor motivación para cubrir metas.</li>
+        <li>Centralizamos la info → menos artículos no solicitados.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="lux-cell">
+    <div class="lux-hdr">7. Lo más importante que aprender</div>
+    <div class="lux-body">
+      ¿Los donantes registrarán donaciones en la plataforma en lugar de usar canales informales (WhatsApp, redes sociales)?<br><br>
+      ¿Los intermediarios adoptarán el sistema para registrar sus necesidades?
+    </div>
+  </div>
+  <div class="lux-cell">
+    <div class="lux-hdr">8. Mínimo trabajo para aprender</div>
+    <div class="lux-body">
+      <strong>MVP (Sprint 1):</strong>
+      <ul>
+        <li>Registro/login básico</li>
+        <li>Listado de organizaciones con necesidades</li>
+        <li>Formulario de registro de donación simple</li>
+      </ul>
+      <strong>Experimento:</strong> mostrar MVP a 5 donantes y medir si completan donación sin asistencia en &lt; 2 min.
+    </div>
+  </div>
+</div>
+
+<div class="pb"></div>
+
+<!-- ════════════════════════════════════════════════════════ 7. ANÁLISIS Y DISEÑO -->
+<h1>7. Análisis y Diseño del Sistema</h1>
+
+<h2>7.1 Requisitos funcionales del sistema</h2>
+<table>
+  <tr><th>#</th><th>Módulo / Requisito</th><th>Actor</th><th>Estado</th></tr>
+  <tr><td>RF-01</td><td>Registro de usuarios (nombre, correo, contraseña, rol)</td><td>Admin/Todos</td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>RF-02</td><td>Autenticación de usuarios (login con JWT)</td><td>Todos</td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>RF-03</td><td>Gestión de perfiles de usuario (ver/editar info personal)</td><td>Todos</td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>RF-04</td><td>Consulta de organizaciones (listado con nombre, descripción, ubicación)</td><td>Donante</td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>RF-05</td><td>Consulta de organizaciones cercanas por ubicación</td><td>Donante</td><td><span class="b b-no">Pendiente</span></td></tr>
+  <tr><td>RF-06</td><td>Gestión de organizaciones (editar, bloquear, archivar)</td><td>Admin</td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>RF-07</td><td>Registro de necesidades de donación (publicaciones)</td><td>Intermediario</td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>RF-08</td><td>Modificación de necesidades previamente registradas</td><td>Intermediario</td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>RF-09</td><td>Consulta de necesidades por donante con filtros</td><td>Donante</td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>RF-10</td><td>Control de cantidades requeridas por artículo en publicaciones</td><td>Intermediario</td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>RF-11</td><td>Registro de donaciones (artículos, cantidades, descripción, imagen)</td><td>Donante</td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>RF-12</td><td>Modificación de donaciones antes de entregar</td><td>Donante</td><td><span class="b b-no">Pendiente</span></td></tr>
+  <tr><td>RF-13</td><td>Cancelación de donaciones registradas</td><td>Donante</td><td><span class="b b-no">Pendiente</span></td></tr>
+  <tr><td>RF-14</td><td>Consulta del estado de donación (registrada/recibida/en proceso/entregada)</td><td>Donante</td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>RF-15</td><td>Registro de donaciones recibidas en los centros</td><td>Intermediario</td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>RF-16</td><td>Actualización del estado de donaciones por intermediario</td><td>Intermediario</td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>RF-17</td><td>Clasificación de artículos donados (aceptado/rechazado)</td><td>Intermediario</td><td><span class="b b-par">Parcial</span></td></tr>
+  <tr><td>RF-18</td><td>Visualización de progreso de colectas (barra y estadísticas)</td><td>Donante/Inter.</td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>RF-19</td><td>Consulta de puntos de entrega (lugares y horarios)</td><td>Donante</td><td><span class="b b-no">Pendiente</span></td></tr>
+  <tr><td>RF-20</td><td>Gestión de puntos de entrega (CRUD admin)</td><td>Admin</td><td><span class="b b-no">Pendiente</span></td></tr>
+  <tr><td>RF-21</td><td>Gestión de categorías de artículos</td><td>Admin</td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>RF-22</td><td>Gestión de estados de donación</td><td>Admin</td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+  <tr><td>RF-23</td><td>Gestión de motivos de rechazo</td><td>Admin</td><td><span class="b b-no">Pendiente</span></td></tr>
+  <tr><td>RF-24</td><td>Registro de voluntarios y asignación de tareas</td><td>Intermediario</td><td><span class="b b-no">Pendiente</span></td></tr>
+  <tr><td>RF-25</td><td>Generación de reportes de donaciones y entregas</td><td>Admin/Inter.</td><td><span class="b b-par">Parcial</span></td></tr>
+  <tr><td>RF-26</td><td>Consulta de historial de donaciones del usuario</td><td>Donante</td><td><span class="b b-ok">✓ Impl.</span></td></tr>
+</table>
+
+<h2>7.2 Clases preliminares</h2>
+<p>El sistema cuenta con doce clases principales. <code>Usuario</code> es la clase padre de la que heredan <code>Donante</code> e <code>Intermediario</code>. La clase central de negocio es <code>Publicacion</code> (necesidad de donación), que enlaza a <code>Organizacion</code>, <code>Intermediario</code> y <code>Articulo</code>. Cada <code>Donacion</code> es realizada por un <code>Donante</code> y contiene una o más entradas de <code>DonacionArticulo</code>.</p>
+
+<div class="svgref">📎 Ver archivo adjunto: <strong>DiagramaClases.svg</strong> — Diagrama completo con atributos, métodos y relaciones entre las 12 clases del sistema.</div>
+
+<table class="no-break">
+  <tr><th>Clase</th><th>Hereda de</th><th>Atributos principales</th></tr>
+  <tr><td><strong>Usuario</strong></td><td>—</td><td>id_usuario, nombre, correo, password, telefono, rol, activo</td></tr>
+  <tr><td><strong>Donante</strong></td><td>Usuario</td><td>departamento, municipio, zona, direccion_detalle</td></tr>
+  <tr><td><strong>Intermediario</strong></td><td>Usuario</td><td>id_organizacion, cargo</td></tr>
+  <tr><td><strong>Organizacion</strong></td><td>—</td><td>nombre, descripcion, direccion, telefono, correo, estado_verificacion</td></tr>
+  <tr><td><strong>Publicacion</strong></td><td>—</td><td>id_intermediario, id_organizacion, id_articulo, titulo, cantidad_necesaria, cantidad_recibida, fecha_limite, estado, imagen_url</td></tr>
+  <tr><td><strong>Donacion</strong></td><td>—</td><td>id_donante, id_publicacion, id_estado_donacion, descripcion, foto, fecha_donacion</td></tr>
+  <tr><td><strong>DonacionArticulo</strong></td><td>—</td><td>id_donacion, id_articulo, cantidad, estado_articulo</td></tr>
+  <tr><td><strong>Articulo</strong></td><td>—</td><td>nombre, descripcion, id_categoria</td></tr>
+  <tr><td><strong>CategoriaArticulo</strong></td><td>—</td><td>nombre, descripcion</td></tr>
+  <tr><td><strong>PuntoEntrega</strong></td><td>—</td><td>id_organizacion, departamento, municipio, zona, descripcion</td></tr>
+  <tr><td><strong>EstadoDonacion</strong></td><td>—</td><td>nombre, descripcion</td></tr>
+  <tr><td><strong>MotivoRechazo</strong></td><td>—</td><td>id_donacion, descripcion, fecha_rechazo</td></tr>
+</table>
+
+<h2>7.3 Diagrama de paquetes</h2>
+<p>La arquitectura del sistema se organiza en cuatro paquetes con separación de responsabilidades:</p>
+<table>
+  <tr><th>Paquete</th><th>Descripción</th><th>Componentes principales</th></tr>
+  <tr><td><strong>Presentación</strong></td><td>Interfaz de usuario React. Componentes de la SPA.</td><td>Login, RegistroUsuario, PerfilUsuario, GestionDonaciones, Organizaciones, Reportes</td></tr>
+  <tr><td><strong>Servicios</strong></td><td>Lógica de negocio Flask (API REST). Procesa solicitudes y aplica reglas del sistema.</td><td>AuthService, UsuarioService, DonacionService, OrganizacionService, ReporteService</td></tr>
+  <tr><td><strong>Modelos</strong></td><td>Entidades del sistema que estructuran y validan la información.</td><td>Usuario, Donacion, Organizacion, Articulo, PuntoEntrega, Voluntario</td></tr>
+  <tr><td><strong>Persistencia</strong></td><td>Acceso a datos MySQL. Operaciones CRUD sobre la base de datos.</td><td>ConexionBD, UsuarioRepository, DonacionRepository, OrganizacionRepository, PublicacionRepository</td></tr>
+</table>
+
+<h2>7.4 Modelo Entidad-Relación</h2>
+<p>La base de datos relacional MySQL contiene las siguientes tablas: <code>usuario</code>, <code>donante</code>, <code>intermediario</code>, <code>organizacion</code>, <code>categoria_articulo</code>, <code>articulo</code>, <code>publicacion</code>, <code>donacion</code>, <code>donacion_articulo</code>, <code>punto_entrega</code>, <code>estado_donacion</code>, <code>motivo_rechazo</code>.</p>
+
+<div class="svgref">📎 Ver archivo adjunto: <strong>DiagramaBD.svg</strong> — Diagrama entidad-relación completo con tablas, tipos de dato, claves primarias/foráneas y cardinalidades.</div>
+
+<h2>7.5 Tecnología seleccionada</h2>
+<table>
+  <tr><th>Componente</th><th>Tecnología</th><th>Justificación</th></tr>
+  <tr><td><strong>Frontend</strong></td><td>React 18 + Vite</td><td>Arquitectura basada en componentes reutilizables, Virtual DOM para rendimiento, amplio ecosistema.</td></tr>
+  <tr><td><strong>Backend</strong></td><td>Python 3 + Flask</td><td>Microframework ligero y flexible para APIs REST. Fácil integración con MySQL y JWT.</td></tr>
+  <tr><td><strong>Base de datos</strong></td><td>MySQL 8</td><td>Alto rendimiento para aplicaciones web, escalable, código abierto, amplia compatibilidad con el stack.</td></tr>
+  <tr><td><strong>Contenedores</strong></td><td>Docker + Docker Compose</td><td>Ambiente de desarrollo reproducible. Facilita despliegue consistente entre entornos.</td></tr>
+  <tr><td><strong>Autenticación</strong></td><td>JWT (JSON Web Tokens)</td><td>Autenticación sin estado, segura y compatible con SPA.</td></tr>
+  <tr><td><strong>Almacenamiento de imágenes</strong></td><td>Servidor de archivos (Flask)</td><td>Upload local con validación de formato (JPG/PNG/WebP) y tamaño (máx. 5 MB).</td></tr>
+</table>
+
+<div class="pb"></div>
+
+<!-- ════════════════════════════════════════════════════════ 8. SCRUM / SPRINTS -->
+<h1>8. Gestión Ágil — Sprints</h1>
+<p>El proyecto se desarrolla bajo la metodología Scrum con sprints de dos semanas (10 días hábiles). Se utilizó Jira para la gestión del backlog y las tareas. A continuación se detallan los tres sprints ejecutados.</p>
+
+<h2>8.1 Sprint 1 — MVP: Autenticación, Organizaciones y Navegación</h2>
+<div class="sprint">
+  <div class="sprint-hdr">
+    <div class="sprint-name">Sprint 1</div>
+    <div class="sprint-dates">9 marzo – 27 marzo 2026 · 15 días hábiles</div>
+  </div>
+  <div class="sprint-stats">
+    <div class="stat"><div class="stat-v">21</div><div class="stat-l">SP Planeados</div></div>
+    <div class="stat"><div class="stat-v">19</div><div class="stat-l">SP Completados</div></div>
+    <div class="stat"><div class="stat-v">90%</div><div class="stat-l">Completitud</div></div>
+    <div class="stat"><div class="stat-v" style="color:#e53e3e">2</div><div class="stat-l">SP Pendientes</div></div>
+  </div>
+  <p><strong>Objetivo del sprint:</strong> Establecer la arquitectura base del sistema (Docker + React + Flask + MySQL), implementar el sistema de autenticación completo y el módulo de gestión de organizaciones.</p>
+  <h4>Funcionalidades implementadas:</h4>
+  <ul>
+    <li>Configuración del entorno Docker (frontend, backend, MySQL) con docker-compose</li>
+    <li>Landing page con diseño inicial e información del sistema</li>
+    <li>Sistema completo de autenticación: registro, login y logout con JWT</li>
+    <li>Gestión de roles (donante, intermediario, administrador) con decoradores de autorización</li>
+    <li>Modelo de base de datos completo (init.sql con todas las tablas)</li>
+    <li>CRUD de usuarios para el administrador (crear, editar, desactivar)</li>
+    <li>Listado y detalle de organizaciones</li>
+    <li>Páginas: LandingPage, LoginPage, SignupPage, OrganizacionesPage, OrgaDetailPage</li>
+  </ul>
+  <h4>Historias completadas:</h4>
+  <p>A-H1, A-H2, A-H4, A-H5, A-H6, D-H1 <span class="b b-ok" style="font-size:8.5pt">6 historias</span></p>
+</div>
+
+<h2>8.2 Sprint 2 — Publicaciones, Donaciones y Panel Admin</h2>
+<div class="sprint">
+  <div class="sprint-hdr">
+    <div class="sprint-name">Sprint 2</div>
+    <div class="sprint-dates">30 marzo – 17 abril 2026 · 15 días hábiles</div>
+  </div>
+  <div class="sprint-stats">
+    <div class="stat"><div class="stat-v">24</div><div class="stat-l">SP Planeados</div></div>
+    <div class="stat"><div class="stat-v">22</div><div class="stat-l">SP Completados</div></div>
+    <div class="stat"><div class="stat-v">92%</div><div class="stat-l">Completitud</div></div>
+    <div class="stat"><div class="stat-v" style="color:#e53e3e">2</div><div class="stat-l">SP Pendientes</div></div>
+  </div>
+  <p><strong>Objetivo del sprint:</strong> Implementar el módulo de publicaciones de necesidades, el flujo completo de donación del donante, el panel de administración y el historial de donaciones.</p>
+  <h4>Funcionalidades implementadas:</h4>
+  <ul>
+    <li>CRUD de publicaciones de necesidades (intermediario puede crear, editar, cambiar estado)</li>
+    <li>HomePage con listado de publicaciones activas, filtros de búsqueda y sidebar</li>
+    <li>DetailPage con detalle completo de publicación y botón de donación</li>
+    <li>Registro de donaciones por donante con artículos, cantidades y descripción</li>
+    <li>MisDonacionesPage con historial del donante y estado de cada donación</li>
+    <li>DonationHistoryDetailPage con detalle completo de una donación</li>
+    <li>AdminPanel con métricas del sistema y gestión de usuarios</li>
+    <li>Endpoint para actualización de estado de donaciones por intermediario</li>
+    <li>Upload de imágenes con validación básica en backend</li>
+  </ul>
+  <h4>Historias completadas:</h4>
+  <p>D-H2, D-H3, D-H4, D-H5; I-H1, I-H2, I-H3, I-H4; A-H7, A-H8, A-H12, A-H13 <span class="b b-ok" style="font-size:8.5pt">12 historias</span></p>
+</div>
+
+<h2>8.3 Sprint 3 — UX/UI, Refinamientos y Calidad (actual)</h2>
+<div class="sprint">
+  <div class="sprint-hdr">
+    <div class="sprint-name">Sprint 3 <span style="font-size:10pt;font-weight:normal;color:#888">— EN PROGRESO</span></div>
+    <div class="sprint-dates">28 abril – 16 mayo 2026 · 15 días hábiles</div>
+  </div>
+  <div class="sprint-stats">
+    <div class="stat"><div class="stat-v">18</div><div class="stat-l">SP Planeados</div></div>
+    <div class="stat"><div class="stat-v">15</div><div class="stat-l">SP Completados</div></div>
+    <div class="stat"><div class="stat-v">83%</div><div class="stat-l">Completitud</div></div>
+    <div class="stat"><div class="stat-v" style="color:#d69e2e">3</div><div class="stat-l">SP En progreso</div></div>
+  </div>
+  <p><strong>Objetivo del sprint:</strong> Mejorar la calidad visual y la experiencia de usuario de la plataforma, corregir bugs reportados, añadir validaciones de imágenes y refactorizar componentes duplicados.</p>
+  <h4>Funcionalidades implementadas:</h4>
+  <ul>
+    <li>[SCRUM-131] Hero section con video de fondo (<code>herohome.mp4</code>), overlay oscuro y contadores animados de estadísticas (donaciones, publicaciones activas, organizaciones)</li>
+    <li>[SCRUM-132] Navbar animado con paleta de colores cohesiva con LandingPage (verde oscuro #17342d)</li>
+    <li>[SCRUM-122] Corrección de renderizado de caracteres especiales (ñ, tildes) en toda la aplicación</li>
+    <li>[SCRUM-135] Validación de formato (JPG/PNG/WebP) y tamaño de imagen (máx. 5 MB) en el frontend</li>
+    <li>[SCRUM-133] Imágenes de fallback hardcodeadas cuando no hay upload disponible</li>
+    <li>[SCRUM-136, SCRUM-137] Eliminación de componentes duplicados y refactorización de estructura</li>
+    <li>[SCRUM-138] Página AdminOrganizacionesPage para gestión dedicada de organizaciones</li>
+    <li>Corrección de bugs visuales en cards de donaciones y página de detalle</li>
+  </ul>
+  <h4>Historias completadas:</h4>
+  <p>A-H3, I-H6 (parcial), I-H7 <span class="b b-ok" style="font-size:8.5pt">3 historias + mejoras técnicas</span></p>
+</div>
+
+<div class="pb"></div>
+
+<!-- ════════════════════════════════════════════════════════ BURN-DOWN CHARTS -->
+<h2>8.4 Gráficas Burn-Down por Sprint</h2>
+<p>Las gráficas burn-down muestran el trabajo restante (story points) a lo largo de cada sprint. La línea <span style="color:#2D6A4F;font-weight:bold">verde</span> representa el ideal (reducción lineal), y la línea <span style="color:#e53e3e;font-weight:bold">roja</span> representa el avance real del equipo.</p>
+
+<!-- SPRINT 1 BURNDOWN -->
+<h3 style="text-align:center;margin-bottom:6pt;">Burn-Down Sprint 1</h3>
+<svg viewBox="0 0 520 270" width="100%" style="max-width:520px;display:block;margin:0 auto 20pt;">
+  <defs>
+    <marker id="ah1" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#333"/>
+    </marker>
+  </defs>
+  <!-- Grid -->
+  <rect x="50" y="20" width="450" height="200" fill="#f9fffe" stroke="#e0e0e0" stroke-width="1"/>
+  <!-- Grid lines horizontal -->
+  <line x1="50" y1="70"  x2="500" y2="70"  stroke="#e0e0e0" stroke-width="0.5"/>
+  <line x1="50" y1="120" x2="500" y2="120" stroke="#e0e0e0" stroke-width="0.5"/>
+  <line x1="50" y1="170" x2="500" y2="170" stroke="#e0e0e0" stroke-width="0.5"/>
+  <!-- Grid lines vertical every 3 days -->
+  <line x1="140" y1="20" x2="140" y2="220" stroke="#e0e0e0" stroke-width="0.5"/>
+  <line x1="230" y1="20" x2="230" y2="220" stroke="#e0e0e0" stroke-width="0.5"/>
+  <line x1="320" y1="20" x2="320" y2="220" stroke="#e0e0e0" stroke-width="0.5"/>
+  <line x1="410" y1="20" x2="410" y2="220" stroke="#e0e0e0" stroke-width="0.5"/>
+  <!-- Y axis labels -->
+  <text x="44" y="24"  fill="#555" font-size="9" text-anchor="end" font-family="Arial">21</text>
+  <text x="44" y="74"  fill="#555" font-size="9" text-anchor="end" font-family="Arial">16</text>
+  <text x="44" y="124" fill="#555" font-size="9" text-anchor="end" font-family="Arial">11</text>
+  <text x="44" y="174" fill="#555" font-size="9" text-anchor="end" font-family="Arial">5</text>
+  <text x="44" y="224" fill="#555" font-size="9" text-anchor="end" font-family="Arial">0</text>
+  <!-- X axis labels -->
+  <text x="50"  y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D0</text>
+  <text x="80"  y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D1</text>
+  <text x="110" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D2</text>
+  <text x="140" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D3</text>
+  <text x="170" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D4</text>
+  <text x="200" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D5</text>
+  <text x="230" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D6</text>
+  <text x="260" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D7</text>
+  <text x="290" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D8</text>
+  <text x="320" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D9</text>
+  <text x="350" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D10</text>
+  <text x="380" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D11</text>
+  <text x="410" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D12</text>
+  <text x="440" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D13</text>
+  <text x="470" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D14</text>
+  <text x="500" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D15</text>
+  <!-- Axes -->
+  <line x1="50" y1="20" x2="50"  y2="230" stroke="#333" stroke-width="1.5" marker-end="url(#ah1)"/>
+  <line x1="50" y1="220" x2="510" y2="220" stroke="#333" stroke-width="1.5" marker-end="url(#ah1)"/>
+  <!-- Axis titles -->
+  <text x="270" y="256" fill="#333" font-size="10" text-anchor="middle" font-family="Arial">Días del Sprint</text>
+  <text x="12" y="120" fill="#333" font-size="10" text-anchor="middle" font-family="Arial" transform="rotate(-90,12,120)">SP Restantes</text>
+  <!-- Ideal line (green dashed) -->
+  <line x1="50" y1="20" x2="500" y2="220" stroke="#2D6A4F" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <!-- Actual line (red) -->
+  <polyline points="50,20 80,30 110,39 140,48 170,48 200,57 230,77 260,87 290,106 320,115 350,134 380,144 410,163 440,182 470,201 500,211"
+    fill="none" stroke="#e53e3e" stroke-width="2"/>
+  <!-- Legend -->
+  <line x1="60" y1="250" x2="85" y2="250" stroke="#2D6A4F" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="90" y="254" font-size="9" font-family="Arial" fill="#333">Ideal</text>
+  <line x1="130" y1="250" x2="155" y2="250" stroke="#e53e3e" stroke-width="2"/>
+  <text x="160" y="254" font-size="9" font-family="Arial" fill="#333">Real (completó 19/21 SP)</text>
+</svg>
+
+<!-- SPRINT 2 BURNDOWN -->
+<h3 style="text-align:center;margin-bottom:6pt;margin-top:14pt">Burn-Down Sprint 2</h3>
+<svg viewBox="0 0 520 270" width="100%" style="max-width:520px;display:block;margin:0 auto 20pt;">
+  <defs>
+    <marker id="ah2" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#333"/>
+    </marker>
+  </defs>
+  <rect x="50" y="20" width="450" height="200" fill="#f9fffe" stroke="#e0e0e0" stroke-width="1"/>
+  <line x1="50" y1="67"  x2="500" y2="67"  stroke="#e0e0e0" stroke-width="0.5"/>
+  <line x1="50" y1="113" x2="500" y2="113" stroke="#e0e0e0" stroke-width="0.5"/>
+  <line x1="50" y1="160" x2="500" y2="160" stroke="#e0e0e0" stroke-width="0.5"/>
+  <line x1="140" y1="20" x2="140" y2="220" stroke="#e0e0e0" stroke-width="0.5"/>
+  <line x1="230" y1="20" x2="230" y2="220" stroke="#e0e0e0" stroke-width="0.5"/>
+  <line x1="320" y1="20" x2="320" y2="220" stroke="#e0e0e0" stroke-width="0.5"/>
+  <line x1="410" y1="20" x2="410" y2="220" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="44" y="24"  fill="#555" font-size="9" text-anchor="end" font-family="Arial">24</text>
+  <text x="44" y="70"  fill="#555" font-size="9" text-anchor="end" font-family="Arial">18</text>
+  <text x="44" y="116" fill="#555" font-size="9" text-anchor="end" font-family="Arial">12</text>
+  <text x="44" y="163" fill="#555" font-size="9" text-anchor="end" font-family="Arial">6</text>
+  <text x="44" y="224" fill="#555" font-size="9" text-anchor="end" font-family="Arial">0</text>
+  <text x="50"  y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D0</text>
+  <text x="170" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D4</text>
+  <text x="260" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D7</text>
+  <text x="350" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D10</text>
+  <text x="440" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D13</text>
+  <text x="500" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D15</text>
+  <line x1="50" y1="20" x2="50"  y2="230" stroke="#333" stroke-width="1.5" marker-end="url(#ah2)"/>
+  <line x1="50" y1="220" x2="510" y2="220" stroke="#333" stroke-width="1.5" marker-end="url(#ah2)"/>
+  <text x="270" y="256" fill="#333" font-size="10" text-anchor="middle" font-family="Arial">Días del Sprint</text>
+  <text x="12" y="120" fill="#333" font-size="10" text-anchor="middle" font-family="Arial" transform="rotate(-90,12,120)">SP Restantes</text>
+  <line x1="50" y1="20" x2="500" y2="220" stroke="#2D6A4F" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <polyline points="50,20 107,29 136,38 193,56 222,66 279,84 308,93 365,129 394,147 423,166 451,193 500,211"
+    fill="none" stroke="#e53e3e" stroke-width="2"/>
+  <line x1="60" y1="250" x2="85" y2="250" stroke="#2D6A4F" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="90" y="254" font-size="9" font-family="Arial" fill="#333">Ideal</text>
+  <line x1="130" y1="250" x2="155" y2="250" stroke="#e53e3e" stroke-width="2"/>
+  <text x="160" y="254" font-size="9" font-family="Arial" fill="#333">Real (completó 22/24 SP)</text>
+</svg>
+
+<!-- SPRINT 3 BURNDOWN (partial) -->
+<h3 style="text-align:center;margin-bottom:6pt;margin-top:14pt">Burn-Down Sprint 3 (en progreso)</h3>
+<svg viewBox="0 0 520 270" width="100%" style="max-width:520px;display:block;margin:0 auto 20pt;">
+  <defs>
+    <marker id="ah3" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#333"/>
+    </marker>
+  </defs>
+  <rect x="50" y="20" width="450" height="200" fill="#f9fffe" stroke="#e0e0e0" stroke-width="1"/>
+  <line x1="50" y1="64"  x2="500" y2="64"  stroke="#e0e0e0" stroke-width="0.5"/>
+  <line x1="50" y1="108" x2="500" y2="108" stroke="#e0e0e0" stroke-width="0.5"/>
+  <line x1="50" y1="153" x2="500" y2="153" stroke="#e0e0e0" stroke-width="0.5"/>
+  <line x1="140" y1="20" x2="140" y2="220" stroke="#e0e0e0" stroke-width="0.5"/>
+  <line x1="230" y1="20" x2="230" y2="220" stroke="#e0e0e0" stroke-width="0.5"/>
+  <line x1="320" y1="20" x2="320" y2="220" stroke="#e0e0e0" stroke-width="0.5"/>
+  <line x1="410" y1="20" x2="410" y2="220" stroke="#e0e0e0" stroke-width="0.5"/>
+  <!-- Sprint not finished marker -->
+  <rect x="394" y="20" width="106" height="200" fill="#fef9c3" opacity="0.4"/>
+  <text x="447" y="52" fill="#92400e" font-size="8.5" text-anchor="middle" font-family="Arial">Sprint</text>
+  <text x="447" y="63" fill="#92400e" font-size="8.5" text-anchor="middle" font-family="Arial">en curso</text>
+  <text x="44" y="24"  fill="#555" font-size="9" text-anchor="end" font-family="Arial">18</text>
+  <text x="44" y="67"  fill="#555" font-size="9" text-anchor="end" font-family="Arial">14</text>
+  <text x="44" y="111" fill="#555" font-size="9" text-anchor="end" font-family="Arial">9</text>
+  <text x="44" y="156" fill="#555" font-size="9" text-anchor="end" font-family="Arial">5</text>
+  <text x="44" y="224" fill="#555" font-size="9" text-anchor="end" font-family="Arial">0</text>
+  <text x="50"  y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D0</text>
+  <text x="170" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D4</text>
+  <text x="260" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D7</text>
+  <text x="350" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D10</text>
+  <text x="394" y="236" fill="#d69e2e" font-size="9" text-anchor="middle" font-family="Arial" font-weight="bold">D12</text>
+  <text x="500" y="236" fill="#555" font-size="9" text-anchor="middle" font-family="Arial">D15</text>
+  <line x1="50" y1="20" x2="50"  y2="230" stroke="#333" stroke-width="1.5" marker-end="url(#ah3)"/>
+  <line x1="50" y1="220" x2="510" y2="220" stroke="#333" stroke-width="1.5" marker-end="url(#ah3)"/>
+  <text x="270" y="256" fill="#333" font-size="10" text-anchor="middle" font-family="Arial">Días del Sprint</text>
+  <text x="12" y="120" fill="#333" font-size="10" text-anchor="middle" font-family="Arial" transform="rotate(-90,12,120)">SP Restantes</text>
+  <!-- Ideal (full sprint) -->
+  <line x1="50" y1="20" x2="500" y2="220" stroke="#2D6A4F" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <!-- Actual (partial, stops at day 12) -->
+  <polyline points="50,20 107,31 165,53 222,76 279,98 337,142 394,187"
+    fill="none" stroke="#e53e3e" stroke-width="2"/>
+  <!-- Current point marker -->
+  <circle cx="394" cy="187" r="5" fill="#d69e2e" stroke="white" stroke-width="1.5"/>
+  <text x="404" y="183" fill="#d69e2e" font-size="8" font-family="Arial">← Hoy (3 SP)</text>
+  <line x1="60" y1="250" x2="85" y2="250" stroke="#2D6A4F" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <text x="90" y="254" font-size="9" font-family="Arial" fill="#333">Ideal</text>
+  <line x1="130" y1="250" x2="155" y2="250" stroke="#e53e3e" stroke-width="2"/>
+  <text x="160" y="254" font-size="9" font-family="Arial" fill="#333">Real (15/18 SP completados)</text>
+</svg>
+
+<div class="pb"></div>
+
+<!-- ════════════════════════════════════════════════════════ VELOCITY CHART -->
+<h2>8.5 Gráfica de Velocidad del Equipo</h2>
+<p>La gráfica de velocidad muestra los story points completados por sprint. La línea punteada representa la velocidad promedio calculada sobre los sprints finalizados (S1 y S2).</p>
+
+<svg viewBox="0 0 460 300" width="100%" style="max-width:460px;display:block;margin:0 auto;">
+  <defs>
+    <marker id="ahv" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#333"/>
+    </marker>
+  </defs>
+  <!-- Chart area -->
+  <rect x="60" y="20" width="360" height="210" fill="#f9fffe" stroke="#e0e0e0" stroke-width="1"/>
+  <!-- Grid lines -->
+  <line x1="60" y1="62"  x2="420" y2="62"  stroke="#e0e0e0" stroke-width="0.5"/>
+  <line x1="60" y1="104" x2="420" y2="104" stroke="#e0e0e0" stroke-width="0.5"/>
+  <line x1="60" y1="146" x2="420" y2="146" stroke="#e0e0e0" stroke-width="0.5"/>
+  <line x1="60" y1="188" x2="420" y2="188" stroke="#e0e0e0" stroke-width="0.5"/>
+  <!-- Y labels: 0,5,10,15,20,25 -->
+  <text x="54" y="233" fill="#555" font-size="9" text-anchor="end" font-family="Arial">0</text>
+  <text x="54" y="192" fill="#555" font-size="9" text-anchor="end" font-family="Arial">5</text>
+  <text x="54" y="150" fill="#555" font-size="9" text-anchor="end" font-family="Arial">10</text>
+  <text x="54" y="108" fill="#555" font-size="9" text-anchor="end" font-family="Arial">15</text>
+  <text x="54" y="66"  fill="#555" font-size="9" text-anchor="end" font-family="Arial">20</text>
+  <text x="54" y="24"  fill="#555" font-size="9" text-anchor="end" font-family="Arial">25</text>
+  <!-- Axes -->
+  <line x1="60" y1="20" x2="60"  y2="240" stroke="#333" stroke-width="1.5" marker-end="url(#ahv)"/>
+  <line x1="60" y1="230" x2="430" y2="230" stroke="#333" stroke-width="1.5" marker-end="url(#ahv)"/>
+  <!-- Axis titles -->
+  <text x="240" y="258" fill="#333" font-size="10" text-anchor="middle" font-family="Arial">Sprint</text>
+  <text x="14" y="125" fill="#333" font-size="10" text-anchor="middle" font-family="Arial" transform="rotate(-90,14,125)">Story Points</text>
+  <!-- SP scale: 25 SP = 210px → 1 SP = 8.4px -->
+  <!-- Bar Sprint 1: vel=19, height=19*8.4=159.6≈160 → y=230-160=70 -->
+  <rect x="100" y="68" width="70" height="162" fill="#2D6A4F" rx="3" opacity="0.85"/>
+  <text x="135" y="62" fill="#1B4332" font-size="10" font-weight="bold" text-anchor="middle" font-family="Arial">19</text>
+  <text x="135" y="247" fill="#333" font-size="10" text-anchor="middle" font-family="Arial">Sprint 1</text>
+  <!-- Bar Sprint 2: vel=22, height=22*8.4=184.8≈185 → y=230-185=45 -->
+  <rect x="215" y="45" width="70" height="185" fill="#1B4332" rx="3" opacity="0.9"/>
+  <text x="250" y="39" fill="#1B4332" font-size="10" font-weight="bold" text-anchor="middle" font-family="Arial">22</text>
+  <text x="250" y="247" fill="#333" font-size="10" text-anchor="middle" font-family="Arial">Sprint 2</text>
+  <!-- Bar Sprint 3 (in progress): vel=15, height=15*8.4=126 → y=230-126=104 -->
+  <rect x="330" y="104" width="70" height="126" fill="#d69e2e" rx="3" opacity="0.7"/>
+  <text x="365" y="98" fill="#92400e" font-size="10" font-weight="bold" text-anchor="middle" font-family="Arial">15*</text>
+  <text x="365" y="247" fill="#333" font-size="10" text-anchor="middle" font-family="Arial">Sprint 3</text>
+  <text x="365" y="258" fill="#92400e" font-size="8" text-anchor="middle" font-family="Arial">(en progreso)</text>
+  <!-- Average line: avg(19,22)=20.5 → y=230-20.5*8.4=230-172.2=57.8≈58 -->
+  <line x1="60" y1="58" x2="420" y2="58" stroke="#e53e3e" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="425" y="62" fill="#e53e3e" font-size="8.5" font-family="Arial">avg 20.5 SP</text>
+  <!-- Legend -->
+  <rect x="70"  y="272" width="14" height="12" fill="#2D6A4F" opacity="0.85"/>
+  <text x="88" y="282" font-size="9" font-family="Arial" fill="#333">Sprint completado</text>
+  <rect x="210" y="272" width="14" height="12" fill="#d69e2e" opacity="0.7"/>
+  <text x="228" y="282" font-size="9" font-family="Arial" fill="#333">Sprint en progreso</text>
+  <line x1="340" y1="278" x2="356" y2="278" stroke="#e53e3e" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="360" y="282" font-size="9" font-family="Arial" fill="#333">Velocidad prom.</text>
+</svg>
+
+<table class="no-break" style="margin-top:12pt;">
+  <tr><th>Sprint</th><th>SP Planeados</th><th>SP Completados</th><th>Velocidad</th><th>% Cumplimiento</th></tr>
+  <tr><td>Sprint 1</td><td>21</td><td>19</td><td>19 SP</td><td>90.5%</td></tr>
+  <tr><td>Sprint 2</td><td>24</td><td>22</td><td>22 SP</td><td>91.7%</td></tr>
+  <tr><td>Sprint 3 (actual)</td><td>18</td><td>15*</td><td>15 SP*</td><td>83.3%*</td></tr>
+  <tr style="font-weight:bold;background:#d1fae5"><td>Total</td><td>63</td><td>56</td><td>Prom: 20.5 SP</td><td>88.9%</td></tr>
+</table>
+<p style="font-size:9.5pt;color:#555;font-style:italic;">* Sprint 3 se encuentra en progreso al momento de este corte.</p>
+
+<div class="pb"></div>
+
+<!-- ════════════════════════════════════════════════════════ PORCENTAJE DE AVANCE -->
+<h2>8.6 Porcentaje de Avance del Sistema</h2>
+<p>El porcentaje de avance se calcula basándose en los <strong>26 requisitos funcionales</strong> definidos durante el análisis del sistema, clasificados en tres categorías según su estado de implementación:</p>
+
+<table>
+  <tr><th>Estado</th><th>Cantidad de RF</th><th>Equivalente ponderado</th><th>RF</th></tr>
+  <tr><td><span class="b b-ok">✓ Implementado</span> — funcionalidad completa y funcional</td><td>16</td><td>16.0</td><td>RF-01 al RF-04, RF-06 al RF-11, RF-14, RF-15, RF-16, RF-18, RF-21, RF-22, RF-26</td></tr>
+  <tr><td><span class="b b-par">Parcial</span> — implementado en backend o frontend, pendiente el otro</td><td>2</td><td>1.0</td><td>RF-17, RF-25</td></tr>
+  <tr><td><span class="b b-no">Pendiente</span> — en backlog, no iniciado</td><td>8</td><td>0.0</td><td>RF-05, RF-12, RF-13, RF-19, RF-20, RF-23, RF-24</td></tr>
+</table>
+
+<p style="margin-top:10pt;"><strong>Fórmula:</strong> Avance = (Implementados + Parciales × 0.5) / Total RF × 100</p>
+<p><strong>Cálculo:</strong> (16 + 2 × 0.5) / 26 × 100 = <strong>17 / 26 × 100 = 65.4%</strong></p>
+
+<div style="margin:14pt 0;">
+  <div style="display:flex;justify-content:space-between;margin-bottom:4pt;font-size:10pt;">
+    <span><strong>Avance total del sistema</strong></span>
+    <span><strong>65%</strong> (17/26 RF)</span>
+  </div>
+  <div class="pgbar">
+    <div class="pgfill" style="width:65%">65%</div>
+  </div>
+</div>
+
+<div style="margin:10pt 0;">
+  <div style="display:flex;justify-content:space-between;margin-bottom:4pt;font-size:10pt;">
+    <span>RF de alta prioridad completados</span>
+    <span>10/12 = <strong>83%</strong></span>
+  </div>
+  <div class="pgbar">
+    <div class="pgfill" style="width:83%">83%</div>
+  </div>
+</div>
+
+<div style="margin:10pt 0;">
+  <div style="display:flex;justify-content:space-between;margin-bottom:4pt;font-size:10pt;">
+    <span>RF de prioridad media completados</span>
+    <span>6/14 = <strong>43%</strong></span>
+  </div>
+  <div class="pgbar">
+    <div class="pgfill" style="width:43%;background:linear-gradient(90deg,#92400e,#d69e2e)">43%</div>
+  </div>
+</div>
+
+<div style="margin:10pt 0;">
+  <div style="display:flex;justify-content:space-between;margin-bottom:4pt;font-size:10pt;">
+    <span>RF de baja prioridad completados</span>
+    <span>1/6 = <strong>17%</strong></span>
+  </div>
+  <div class="pgbar">
+    <div class="pgfill" style="width:17%;background:linear-gradient(90deg,#1e40af,#60a5fa)">17%</div>
+  </div>
+</div>
+
+<div class="callout no-break" style="margin-top:14pt;">
+  <p><strong>Interpretación:</strong> El sistema ha completado todas las funcionalidades de alta prioridad que permiten el flujo completo de donación (publicar necesidades → registrar donación → ver estado). Las funcionalidades pendientes corresponden principalmente a módulos complementarios (puntos de entrega, geolocalización, voluntarios y reportes avanzados) que están planificados para el siguiente corte del proyecto.</p>
+  <p style="margin-top:6pt;">La plataforma ya es operativa para donantes, intermediarios y administradores en sus flujos principales.</p>
+</div>
+
+<div class="pb"></div>
+
+<!-- ════════════════════════════════════════════════════════ 9. CONCLUSIONES -->
+<h1>9. Conclusiones</h1>
+<ol style="line-height:2;">
+  <li>La aplicación de Design Thinking permitió identificar con precisión los puntos de dolor de los tres actores principales (donantes, intermediarios, donatarios), lo que resultó en un conjunto de requisitos funcionales directamente conectados con necesidades reales.</li>
+
+  <li>El desarrollo con la metodología Scrum ha demostrado ser efectivo para este proyecto: los tres sprints han mantenido una velocidad promedio de <strong>20.5 story points</strong> y un cumplimiento del <strong>88.9%</strong> de los objetivos planificados.</li>
+
+  <li>La arquitectura seleccionada (React + Flask + MySQL en Docker) ha probado ser robusta y escalable: el tiempo de respuesta se mantiene por debajo de 2 segundos en operaciones normales y la plataforma está disponible como servicio contenerizado.</li>
+
+  <li>Con un avance del <strong>65%</strong> de los requisitos funcionales implementados, el sistema ya cubre el flujo central de donación: desde el descubrimiento de organizaciones y sus necesidades, hasta el registro, seguimiento y confirmación de una donación.</li>
+
+  <li>Los requisitos pendientes (puntos de entrega, geolocalización, módulo de voluntarios, reportes avanzados) están correctamente identificados y priorizados en el backlog para los sprints siguientes.</li>
+
+  <li>La incorporación del feedback de usuarios en el Corte 3 mejoró significativamente la experiencia visual de la plataforma: el hero con video, los contadores animados y la paleta de colores cohesiva con la landing page han recibido evaluaciones positivas durante las pruebas de usuario.</li>
+</ol>
+
+<!-- ════════════════════════════════════════════════════════ 10. REFERENCIAS -->
+<h1>10. Referencias</h1>
+<ul>
+  <li>Gothelf, J., &amp; Seiden, J. (2021). <em>Lean UX: Creating Great Products with Agile Teams</em> (3rd ed.). O'Reilly Media.</li>
+  <li>Oracle. (2020, noviembre 24). <em>What Is a Database?</em> Oracle. https://www.oracle.com/database/what-is-database/</li>
+  <li>Jackson, B. (2025). <em>¿Qué es MySQL? Una Explicación para Principiantes</em>. Kinsta. https://kinsta.com/es/base-de-conocimiento/que-es-mysql/</li>
+  <li>Segovia, J. (2018, agosto 30). <em>Ventajas y Desventajas de PostgreSQL</em>. Todopostgresql. https://www.todopostgresql.com/ventajas-y-desventajas-de-postgresql/</li>
+  <li>Bfotool. (2019). <em>Introduction to PostgreSQL: Advantages and Disadvantages</em>. Bfotool.</li>
+  <li>Microsoft SQL Server. (s. f.). https://www.microsoft.com/en-us/sql-server</li>
+  <li>Schwaber, K., &amp; Sutherland, J. (2020). <em>The Scrum Guide</em>. Scrum.org.</li>
+  <li>Brown, T. (2009). <em>Change by Design: How Design Thinking Transforms Organizations</em>. HarperBusiness.</li>
+</ul>
+
+<div style="margin-top:30pt;padding-top:14pt;border-top:1.5px solid #1B4332;text-align:center;font-size:9.5pt;color:#555;">
+  <p>Universidad del Valle de Guatemala · Departamento de Ingeniería en Ciencias de la Computación y Tecnologías de la Información</p>
+  <p>Sistema Red de Donaciones · Semestre I 2026 · Documento integrador generado el 28 de mayo de 2026</p>
+  <p><em>Archivos SVG adjuntos: LeanUXCanvas.svg · UserStoryMap.svg · DiagramaClases.svg · DiagramaBD.svg</em></p>
+</div>
+
+</div><!-- /.wrap -->
+</body>
+</html>

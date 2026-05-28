@@ -1,0 +1,157 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 640" width="960" height="640" font-family="Arial, sans-serif">
+  <!-- Background -->
+  <rect width="960" height="640" fill="#f8fff8"/>
+
+  <!-- Title -->
+  <rect x="0" y="0" width="960" height="44" fill="#1B4332"/>
+  <text x="480" y="28" fill="white" font-size="16" font-weight="bold" text-anchor="middle">LEAN UX CANVAS — Sistema Red de Donaciones</text>
+  <text x="480" y="40" fill="#a7f3d0" font-size="10" text-anchor="middle">Universidad del Valle de Guatemala · 2026</text>
+
+  <!-- Cell borders: 4 columns x 2 rows starting at y=44 -->
+  <!-- Row heights: row1=298, row2=298 -->
+  <!-- Column widths: 240 each -->
+
+  <!-- ── ROW 1 ── -->
+  <!-- Cell 1: Business Problem -->
+  <rect x="0"   y="44"  width="240" height="298" fill="#ffffff" stroke="#1B4332" stroke-width="1.5"/>
+  <rect x="0"   y="44"  width="240" height="30"  fill="#1B4332"/>
+  <text x="120" y="64" fill="white" font-size="11" font-weight="bold" text-anchor="middle">1. PROBLEMA DE NEGOCIO</text>
+  <text x="12" y="92" fill="#1a1a1a" font-size="9.5" xml:space="preserve">El proceso de donación en Guatemala</text>
+  <text x="12" y="106" fill="#1a1a1a" font-size="9.5">es desorganizado y poco transparente.</text>
+  <text x="12" y="124" fill="#1a1a1a" font-size="9.5">• Los donantes no saben qué ni dónde</text>
+  <text x="20" y="137" fill="#1a1a1a" font-size="9.5">  donar.</text>
+  <text x="12" y="152" fill="#1a1a1a" font-size="9.5">• Las organizaciones reciben artículos</text>
+  <text x="20" y="165" fill="#1a1a1a" font-size="9.5">  incorrectos o en mal estado.</text>
+  <text x="12" y="180" fill="#1a1a1a" font-size="9.5">• Los intermediarios clasifican donaciones</text>
+  <text x="20" y="193" fill="#1a1a1a" font-size="9.5">  manualmente y sin información previa.</text>
+  <text x="12" y="210" fill="#1a1a1a" font-size="9.5">• Existe desconexión total entre donantes,</text>
+  <text x="20" y="223" fill="#1a1a1a" font-size="9.5">  intermediarios y donatarios.</text>
+  <text x="12" y="245" fill="#555" font-size="9" font-style="italic">Reto: ¿Cómo facilitar y organizar el</text>
+  <text x="12" y="257" fill="#555" font-size="9" font-style="italic">proceso para que más personas participen</text>
+  <text x="12" y="269" fill="#555" font-size="9" font-style="italic">y los intermediarios reciban los recursos</text>
+  <text x="12" y="281" fill="#555" font-size="9" font-style="italic">adecuados de forma eficiente?</text>
+
+  <!-- Cell 2: Business Outcomes -->
+  <rect x="240" y="44"  width="240" height="298" fill="#ffffff" stroke="#1B4332" stroke-width="1.5"/>
+  <rect x="240" y="44"  width="240" height="30"  fill="#2D6A4F"/>
+  <text x="360" y="64" fill="white" font-size="11" font-weight="bold" text-anchor="middle">2. RESULTADOS DE NEGOCIO</text>
+  <text x="252" y="92" fill="#1a1a1a" font-size="9.5">Indicadores de éxito del producto:</text>
+  <text x="252" y="110" fill="#1a1a1a" font-size="9.5">• ↑ Donaciones mensuales completadas</text>
+  <text x="252" y="124" fill="#1a1a1a" font-size="9.5">• ↓ Tasa de artículos rechazados</text>
+  <text x="252" y="138" fill="#1a1a1a" font-size="9.5">• ↑ Satisfacción del donante ≥ 4/5</text>
+  <text x="252" y="152" fill="#1a1a1a" font-size="9.5">• ↑ Organizaciones con necesidades</text>
+  <text x="260" y="165" fill="#1a1a1a" font-size="9.5">  cubiertas adecuadamente</text>
+  <text x="252" y="179" fill="#1a1a1a" font-size="9.5">• ↑ Retención de donantes recurrentes</text>
+  <text x="252" y="200" fill="#1a1a1a" font-size="9.5">Métricas secundarias:</text>
+  <text x="252" y="214" fill="#1a1a1a" font-size="9.5">• Tiempo de registro de donación &lt; 2 min</text>
+  <text x="252" y="228" fill="#1a1a1a" font-size="9.5">• Tiempo de respuesta sistema &lt; 2 seg</text>
+  <text x="252" y="242" fill="#1a1a1a" font-size="9.5">• Disponibilidad mensual ≥ 99.5%</text>
+
+  <!-- Cell 3: Users & Customers -->
+  <rect x="480" y="44"  width="240" height="298" fill="#ffffff" stroke="#1B4332" stroke-width="1.5"/>
+  <rect x="480" y="44"  width="240" height="30"  fill="#40916C"/>
+  <text x="600" y="64" fill="white" font-size="11" font-weight="bold" text-anchor="middle">3. USUARIOS Y CLIENTES</text>
+  <text x="492" y="92" fill="#1a1a1a" font-size="9.5" font-weight="bold">Donante</text>
+  <text x="492" y="106" fill="#1a1a1a" font-size="9.5">Persona con artículos en buen estado.</text>
+  <text x="492" y="119" fill="#1a1a1a" font-size="9.5">Quiere un proceso fácil, rápido y</text>
+  <text x="492" y="132" fill="#1a1a1a" font-size="9.5">transparente.</text>
+  <text x="492" y="150" fill="#1a1a1a" font-size="9.5" font-weight="bold">Intermediario</text>
+  <text x="492" y="164" fill="#1a1a1a" font-size="9.5">Voluntario/organizador de ONGs,</text>
+  <text x="492" y="177" fill="#1a1a1a" font-size="9.5">iglesias o colectivos. Gestiona la</text>
+  <text x="492" y="190" fill="#1a1a1a" font-size="9.5">logística de donaciones.</text>
+  <text x="492" y="208" fill="#1a1a1a" font-size="9.5" font-weight="bold">Administrador</text>
+  <text x="492" y="222" fill="#1a1a1a" font-size="9.5">Equipo técnico que supervisa usuarios,</text>
+  <text x="492" y="235" fill="#1a1a1a" font-size="9.5">organizaciones y configuración.</text>
+  <text x="492" y="256" fill="#555" font-size="9" font-style="italic">Beneficiarios (no usan la plataforma):</text>
+  <text x="492" y="269" fill="#555" font-size="9" font-style="italic">Donatarios — personas en situación</text>
+  <text x="492" y="282" fill="#555" font-size="9" font-style="italic">vulnerable que reciben las donaciones.</text>
+
+  <!-- Cell 4: User Outcomes -->
+  <rect x="720" y="44"  width="240" height="298" fill="#ffffff" stroke="#1B4332" stroke-width="1.5"/>
+  <rect x="720" y="44"  width="240" height="30"  fill="#52B788"/>
+  <text x="840" y="64" fill="white" font-size="11" font-weight="bold" text-anchor="middle">4. BENEFICIOS AL USUARIO</text>
+  <text x="732" y="92" fill="#1a1a1a" font-size="9.5" font-weight="bold">Donante obtiene:</text>
+  <text x="732" y="106" fill="#1a1a1a" font-size="9.5">• Claridad sobre qué y dónde donar</text>
+  <text x="732" y="120" fill="#1a1a1a" font-size="9.5">• Confirmación y seguimiento de donación</text>
+  <text x="732" y="134" fill="#1a1a1a" font-size="9.5">• Satisfacción emocional de impacto real</text>
+  <text x="732" y="155" fill="#1a1a1a" font-size="9.5" font-weight="bold">Intermediario obtiene:</text>
+  <text x="732" y="169" fill="#1a1a1a" font-size="9.5">• Donaciones clasificadas previamente</text>
+  <text x="732" y="183" fill="#1a1a1a" font-size="9.5">• Reducción de artículos no solicitados</text>
+  <text x="732" y="197" fill="#1a1a1a" font-size="9.5">• Control de cantidades en tiempo real</text>
+  <text x="732" y="218" fill="#1a1a1a" font-size="9.5" font-weight="bold">Administrador obtiene:</text>
+  <text x="732" y="232" fill="#1a1a1a" font-size="9.5">• Visibilidad de donaciones y usuarios</text>
+  <text x="732" y="246" fill="#1a1a1a" font-size="9.5">• Control centralizado de la plataforma</text>
+  <text x="732" y="260" fill="#1a1a1a" font-size="9.5">• Reportes de impacto</text>
+
+  <!-- ── ROW 2 ── -->
+  <!-- Cell 5: Solutions -->
+  <rect x="0"   y="342" width="240" height="298" fill="#ffffff" stroke="#1B4332" stroke-width="1.5"/>
+  <rect x="0"   y="342" width="240" height="30"  fill="#1B4332"/>
+  <text x="120" y="362" fill="white" font-size="11" font-weight="bold" text-anchor="middle">5. SOLUCIONES</text>
+  <text x="12" y="392" fill="#1a1a1a" font-size="9.5" font-weight="bold">Funcionalidades clave del sistema:</text>
+  <text x="12" y="408" fill="#1a1a1a" font-size="9.5">• Registro y autenticación por roles</text>
+  <text x="12" y="422" fill="#1a1a1a" font-size="9.5">• Publicación de necesidades por artículo</text>
+  <text x="12" y="436" fill="#1a1a1a" font-size="9.5">• Control de cantidades (necesarias/</text>
+  <text x="20" y="449" fill="#1a1a1a" font-size="9.5">  recibidas) con barra de progreso</text>
+  <text x="12" y="463" fill="#1a1a1a" font-size="9.5">• Registro y seguimiento de donaciones</text>
+  <text x="12" y="477" fill="#1a1a1a" font-size="9.5">• Panel de administración centralizado</text>
+  <text x="12" y="491" fill="#1a1a1a" font-size="9.5">• Landing page + hero con video</text>
+  <text x="12" y="505" fill="#1a1a1a" font-size="9.5">• Listado y detalle de organizaciones</text>
+  <text x="12" y="519" fill="#1a1a1a" font-size="9.5">• Upload de imágenes con validación</text>
+  <text x="12" y="540" fill="#555" font-size="9" font-style="italic">Stack: React + Flask + MySQL + Docker</text>
+
+  <!-- Cell 6: Hypotheses -->
+  <rect x="240" y="342" width="240" height="298" fill="#ffffff" stroke="#1B4332" stroke-width="1.5"/>
+  <rect x="240" y="342" width="240" height="30"  fill="#2D6A4F"/>
+  <text x="360" y="362" fill="white" font-size="11" font-weight="bold" text-anchor="middle">6. HIPÓTESIS</text>
+  <text x="252" y="392" fill="#1a1a1a" font-size="9.5">"Creemos que si…"</text>
+  <text x="252" y="412" fill="#1a1a1a" font-size="9.5">• Los donantes ven necesidades</text>
+  <text x="260" y="425" fill="#1a1a1a" font-size="9.5">  específicas, donarán artículos más</text>
+  <text x="260" y="438" fill="#1a1a1a" font-size="9.5">  útiles y adecuados.</text>
+  <text x="252" y="456" fill="#1a1a1a" font-size="9.5">• El proceso es &lt; 2 min, más personas</text>
+  <text x="260" y="469" fill="#1a1a1a" font-size="9.5">  completarán su donación.</text>
+  <text x="252" y="487" fill="#1a1a1a" font-size="9.5">• Mostramos progreso visual, habrá</text>
+  <text x="260" y="500" fill="#1a1a1a" font-size="9.5">  mayor motivación para cubrir metas.</text>
+  <text x="252" y="518" fill="#1a1a1a" font-size="9.5">• El sistema centraliza la info,</text>
+  <text x="260" y="531" fill="#1a1a1a" font-size="9.5">  intermediarios recibirán menos</text>
+  <text x="260" y="544" fill="#1a1a1a" font-size="9.5">  donaciones no solicitadas.</text>
+  <text x="252" y="622" fill="#555" font-size="9" font-style="italic">Sabemos que tenemos razón cuando</text>
+  <text x="252" y="634" fill="#555" font-size="9" font-style="italic">veamos ↓ rechazo de artículos ≥ 30%.</text>
+
+  <!-- Cell 7: Most important to learn -->
+  <rect x="480" y="342" width="240" height="298" fill="#ffffff" stroke="#1B4332" stroke-width="1.5"/>
+  <rect x="480" y="342" width="240" height="30"  fill="#40916C"/>
+  <text x="600" y="356" fill="white" font-size="10" font-weight="bold" text-anchor="middle">7. LO MÁS IMPORTANTE</text>
+  <text x="600" y="368" fill="white" font-size="10" font-weight="bold" text-anchor="middle">QUE APRENDER</text>
+  <text x="492" y="398" fill="#1a1a1a" font-size="9.5" font-weight="bold">Pregunta crítica:</text>
+  <text x="492" y="414" fill="#1a1a1a" font-size="9.5">¿Los donantes realmente registrarán</text>
+  <text x="492" y="427" fill="#1a1a1a" font-size="9.5">donaciones en la plataforma en lugar</text>
+  <text x="492" y="440" fill="#1a1a1a" font-size="9.5">de usar canales informales (WhatsApp,</text>
+  <text x="492" y="453" fill="#1a1a1a" font-size="9.5">redes sociales, contacto directo)?</text>
+  <text x="492" y="474" fill="#1a1a1a" font-size="9.5">También es clave saber:</text>
+  <text x="492" y="490" fill="#1a1a1a" font-size="9.5">• ¿Los intermediarios adoptarán el</text>
+  <text x="500" y="503" fill="#1a1a1a" font-size="9.5">  sistema para registrar necesidades?</text>
+  <text x="492" y="519" fill="#1a1a1a" font-size="9.5">• ¿Cuánto impacta la UX en la</text>
+  <text x="500" y="532" fill="#1a1a1a" font-size="9.5">  decisión de donar?</text>
+
+  <!-- Cell 8: Least amount of work -->
+  <rect x="720" y="342" width="240" height="298" fill="#ffffff" stroke="#1B4332" stroke-width="1.5"/>
+  <rect x="720" y="342" width="240" height="30"  fill="#52B788"/>
+  <text x="840" y="356" fill="white" font-size="10" font-weight="bold" text-anchor="middle">8. MÍNIMO TRABAJO</text>
+  <text x="840" y="368" fill="white" font-size="10" font-weight="bold" text-anchor="middle">PARA APRENDER</text>
+  <text x="732" y="398" fill="#1a1a1a" font-size="9.5" font-weight="bold">MVP (Sprint 1):</text>
+  <text x="732" y="414" fill="#1a1a1a" font-size="9.5">• Registro/login básico</text>
+  <text x="732" y="428" fill="#1a1a1a" font-size="9.5">• Listado de organizaciones con</text>
+  <text x="740" y="441" fill="#1a1a1a" font-size="9.5">  necesidades publicadas</text>
+  <text x="732" y="455" fill="#1a1a1a" font-size="9.5">• Formulario de registro de donación</text>
+  <text x="732" y="472" fill="#1a1a1a" font-size="9.5" font-weight="bold">Experimento de validación:</text>
+  <text x="732" y="488" fill="#1a1a1a" font-size="9.5">Mostrar el MVP a 5 donantes reales</text>
+  <text x="732" y="501" fill="#1a1a1a" font-size="9.5">y medir si completan una donación</text>
+  <text x="732" y="514" fill="#1a1a1a" font-size="9.5">sin asistencia en menos de 2 min.</text>
+  <text x="732" y="533" fill="#1a1a1a" font-size="9.5">Criterio de éxito:</text>
+  <text x="732" y="547" fill="#1a1a1a" font-size="9.5">≥ 4 de 5 donantes completan el</text>
+  <text x="732" y="560" fill="#1a1a1a" font-size="9.5">proceso sin ayuda externa.</text>
+
+  <!-- Bottom border lines -->
+  <line x1="0" y1="639" x2="960" y2="639" stroke="#1B4332" stroke-width="2"/>
+</svg>

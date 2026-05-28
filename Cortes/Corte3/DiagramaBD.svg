@@ -1,0 +1,307 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 880" width="1200" height="880" font-family="Arial, sans-serif" font-size="9">
+  <rect width="1200" height="880" fill="#f9fffe"/>
+  <rect x="0" y="0" width="1200" height="34" fill="#1B4332"/>
+  <text x="600" y="22" fill="white" font-size="13" font-weight="bold" text-anchor="middle">DIAGRAMA ENTIDAD-RELACIÓN — Sistema Red de Donaciones</text>
+
+  <!-- Helper macros as groups -->
+  <!-- TABLE: usuario -->
+  <g id="t_usuario">
+    <rect x="430" y="50" width="220" height="180" fill="white" stroke="#1B4332" stroke-width="2" rx="2"/>
+    <rect x="430" y="50" width="220" height="22"  fill="#1B4332" rx="2"/>
+    <rect x="430" y="61" width="220" height="11"  fill="#1B4332"/>
+    <text x="540" y="66" fill="white" font-size="11" font-weight="bold" text-anchor="middle">usuario</text>
+    <line x1="430" y1="72" x2="650" y2="72" stroke="#1B4332" stroke-width="1"/>
+    <!-- PK row -->
+    <rect x="430" y="72" width="22" height="14" fill="#fef9c3"/>
+    <text x="441" y="83" fill="#92400e" font-size="8" font-weight="bold" text-anchor="middle">PK</text>
+    <text x="460" y="83" fill="#1a1a1a" font-size="8.5">id_usuario INT</text>
+    <!-- Other rows -->
+    <text x="438" y="97"  fill="#333" font-size="8.5">nombre VARCHAR(200) NN</text>
+    <text x="438" y="110" fill="#333" font-size="8.5">correo VARCHAR(200) UNIQUE NN</text>
+    <text x="438" y="123" fill="#333" font-size="8.5">password VARCHAR(200) NN</text>
+    <text x="438" y="136" fill="#333" font-size="8.5">telefono VARCHAR(100) NN</text>
+    <text x="438" y="149" fill="#333" font-size="8.5">fecha_registro TIMESTAMP</text>
+    <text x="438" y="162" fill="#333" font-size="8.5">rol ENUM(donante/inter/admin) NN</text>
+    <text x="438" y="175" fill="#333" font-size="8.5">activo TINYINT(1) NN DEFAULT 1</text>
+  </g>
+
+  <!-- TABLE: donante -->
+  <g id="t_donante">
+    <rect x="160" y="310" width="220" height="115" fill="white" stroke="#2D6A4F" stroke-width="1.5" rx="2"/>
+    <rect x="160" y="310" width="220" height="22"  fill="#2D6A4F" rx="2"/>
+    <rect x="160" y="321" width="220" height="11"  fill="#2D6A4F"/>
+    <text x="270" y="325" fill="white" font-size="11" font-weight="bold" text-anchor="middle">donante</text>
+    <line x1="160" y1="332" x2="380" y2="332" stroke="#2D6A4F" stroke-width="1"/>
+    <rect x="160" y="332" width="26" height="14" fill="#fef9c3"/>
+    <text x="173" y="343" fill="#92400e" font-size="8" font-weight="bold" text-anchor="middle">PK/FK</text>
+    <text x="193" y="343" fill="#1a1a1a" font-size="8.5">id_usuario INT</text>
+    <text x="168" y="357" fill="#333" font-size="8.5">departamento VARCHAR(200)</text>
+    <text x="168" y="370" fill="#333" font-size="8.5">municipio VARCHAR(200)</text>
+    <text x="168" y="383" fill="#333" font-size="8.5">zona VARCHAR(200)</text>
+    <text x="168" y="396" fill="#333" font-size="8.5">direccion_detalle VARCHAR(300)</text>
+  </g>
+
+  <!-- TABLE: intermediario -->
+  <g id="t_intermediario">
+    <rect x="760" y="310" width="220" height="90" fill="white" stroke="#2D6A4F" stroke-width="1.5" rx="2"/>
+    <rect x="760" y="310" width="220" height="22"  fill="#2D6A4F" rx="2"/>
+    <rect x="760" y="321" width="220" height="11"  fill="#2D6A4F"/>
+    <text x="870" y="325" fill="white" font-size="11" font-weight="bold" text-anchor="middle">intermediario</text>
+    <line x1="760" y1="332" x2="980" y2="332" stroke="#2D6A4F" stroke-width="1"/>
+    <rect x="760" y="332" width="26" height="14" fill="#fef9c3"/>
+    <text x="773" y="343" fill="#92400e" font-size="8" font-weight="bold" text-anchor="middle">PK/FK</text>
+    <text x="793" y="343" fill="#1a1a1a" font-size="8.5">id_usuario INT</text>
+    <rect x="760" y="346" width="18" height="13" fill="#dbeafe"/>
+    <text x="769" y="356" fill="#1e40af" font-size="7.5" font-weight="bold" text-anchor="middle">FK</text>
+    <text x="785" y="356" fill="#333" font-size="8.5">id_organizacion INT</text>
+    <text x="768" y="369" fill="#333" font-size="8.5">cargo VARCHAR(200)</text>
+    <text x="768" y="382" fill="#333" font-size="8.5">NN</text>
+  </g>
+
+  <!-- TABLE: organizacion -->
+  <g id="t_organizacion">
+    <rect x="760" y="50" width="220" height="150" fill="white" stroke="#1B4332" stroke-width="1.5" rx="2"/>
+    <rect x="760" y="50" width="220" height="22"  fill="#1B4332" rx="2"/>
+    <rect x="760" y="61" width="220" height="11"  fill="#1B4332"/>
+    <text x="870" y="65" fill="white" font-size="11" font-weight="bold" text-anchor="middle">organizacion</text>
+    <line x1="760" y1="72" x2="980" y2="72" stroke="#1B4332" stroke-width="1"/>
+    <rect x="760" y="72" width="22" height="14" fill="#fef9c3"/>
+    <text x="771" y="83" fill="#92400e" font-size="8" font-weight="bold" text-anchor="middle">PK</text>
+    <text x="789" y="83" fill="#1a1a1a" font-size="8.5">id_organizacion INT</text>
+    <text x="768" y="97"  fill="#333" font-size="8.5">nombre VARCHAR(200)</text>
+    <text x="768" y="110" fill="#333" font-size="8.5">descripcion VARCHAR(400)</text>
+    <text x="768" y="123" fill="#333" font-size="8.5">direccion VARCHAR(200)</text>
+    <text x="768" y="136" fill="#333" font-size="8.5">telefono VARCHAR(50) UNIQUE</text>
+    <text x="768" y="149" fill="#333" font-size="8.5">correo VARCHAR(200) UNIQUE</text>
+    <text x="768" y="162" fill="#333" font-size="8.5">estado_verificacion VARCHAR(200)</text>
+    <text x="768" y="175" fill="#333" font-size="8.5">NN en todos los campos</text>
+  </g>
+
+  <!-- TABLE: publicacion -->
+  <g id="t_publicacion">
+    <rect x="430" y="460" width="240" height="195" fill="white" stroke="#1B4332" stroke-width="1.5" rx="2"/>
+    <rect x="430" y="460" width="240" height="22"  fill="#1B4332" rx="2"/>
+    <rect x="430" y="471" width="240" height="11"  fill="#1B4332"/>
+    <text x="550" y="475" fill="white" font-size="11" font-weight="bold" text-anchor="middle">publicacion</text>
+    <line x1="430" y1="482" x2="670" y2="482" stroke="#1B4332" stroke-width="1"/>
+    <rect x="430" y="482" width="22" height="14" fill="#fef9c3"/>
+    <text x="441" y="493" fill="#92400e" font-size="8" font-weight="bold" text-anchor="middle">PK</text>
+    <text x="458" y="493" fill="#1a1a1a" font-size="8.5">id_publicacion INT</text>
+    <rect x="430" y="496" width="18" height="13" fill="#dbeafe"/>
+    <text x="439" y="506" fill="#1e40af" font-size="7.5" font-weight="bold" text-anchor="middle">FK</text>
+    <text x="453" y="506" fill="#333" font-size="8.5">id_intermediario INT</text>
+    <rect x="430" y="509" width="18" height="13" fill="#dbeafe"/>
+    <text x="439" y="519" fill="#1e40af" font-size="7.5" font-weight="bold" text-anchor="middle">FK</text>
+    <text x="453" y="519" fill="#333" font-size="8.5">id_organizacion INT</text>
+    <rect x="430" y="522" width="18" height="13" fill="#dbeafe"/>
+    <text x="439" y="532" fill="#1e40af" font-size="7.5" font-weight="bold" text-anchor="middle">FK</text>
+    <text x="453" y="532" fill="#333" font-size="8.5">id_articulo INT</text>
+    <text x="438" y="546" fill="#333" font-size="8.5">titulo VARCHAR(400)</text>
+    <text x="438" y="559" fill="#333" font-size="8.5">descripcion VARCHAR(500)</text>
+    <text x="438" y="572" fill="#333" font-size="8.5">cantidad_necesaria INT ≥ 0</text>
+    <text x="438" y="585" fill="#333" font-size="8.5">cantidad_recibida INT ≥ 0</text>
+    <text x="438" y="598" fill="#333" font-size="8.5">fecha_publicacion DATE</text>
+    <text x="438" y="611" fill="#333" font-size="8.5">fecha_limite DATE</text>
+    <text x="438" y="624" fill="#333" font-size="8.5">estado ENUM(activa/fin/canc)</text>
+    <text x="438" y="637" fill="#333" font-size="8.5">imagen_url VARCHAR(500)</text>
+    <text x="438" y="650" fill="#555" font-size="8" font-style="italic">CHECK(fecha_limite ≥ fecha_pub)</text>
+  </g>
+
+  <!-- TABLE: donacion -->
+  <g id="t_donacion">
+    <rect x="110" y="460" width="220" height="145" fill="white" stroke="#1B4332" stroke-width="1.5" rx="2"/>
+    <rect x="110" y="460" width="220" height="22"  fill="#1B4332" rx="2"/>
+    <rect x="110" y="471" width="220" height="11"  fill="#1B4332"/>
+    <text x="220" y="475" fill="white" font-size="11" font-weight="bold" text-anchor="middle">donacion</text>
+    <line x1="110" y1="482" x2="330" y2="482" stroke="#1B4332" stroke-width="1"/>
+    <rect x="110" y="482" width="22" height="14" fill="#fef9c3"/>
+    <text x="121" y="493" fill="#92400e" font-size="8" font-weight="bold" text-anchor="middle">PK</text>
+    <text x="138" y="493" fill="#1a1a1a" font-size="8.5">id_donacion INT</text>
+    <rect x="110" y="496" width="18" height="13" fill="#dbeafe"/>
+    <text x="119" y="506" fill="#1e40af" font-size="7.5" text-anchor="middle">FK</text>
+    <text x="133" y="506" fill="#333" font-size="8.5">id_donante INT</text>
+    <rect x="110" y="509" width="18" height="13" fill="#dbeafe"/>
+    <text x="119" y="519" fill="#1e40af" font-size="7.5" text-anchor="middle">FK</text>
+    <text x="133" y="519" fill="#333" font-size="8.5">id_publicacion INT</text>
+    <rect x="110" y="522" width="18" height="13" fill="#dbeafe"/>
+    <text x="119" y="532" fill="#1e40af" font-size="7.5" text-anchor="middle">FK</text>
+    <text x="133" y="532" fill="#333" font-size="8.5">id_estado_donacion INT</text>
+    <text x="118" y="546" fill="#333" font-size="8.5">descripcion VARCHAR(500)</text>
+    <text x="118" y="559" fill="#333" font-size="8.5">foto LONGBLOB</text>
+    <text x="118" y="572" fill="#333" font-size="8.5">fecha_donacion DATE</text>
+  </g>
+
+  <!-- TABLE: donacion_articulo -->
+  <g id="t_donacionarticulo">
+    <rect x="20" y="700" width="210" height="115" fill="white" stroke="#40916C" stroke-width="1.5" rx="2"/>
+    <rect x="20" y="700" width="210" height="22"  fill="#40916C" rx="2"/>
+    <rect x="20" y="711" width="210" height="11"  fill="#40916C"/>
+    <text x="125" y="715" fill="white" font-size="10" font-weight="bold" text-anchor="middle">donacion_articulo</text>
+    <line x1="20" y1="722" x2="230" y2="722" stroke="#40916C" stroke-width="1"/>
+    <rect x="20" y="722" width="22" height="14" fill="#fef9c3"/>
+    <text x="31" y="733" fill="#92400e" font-size="8" text-anchor="middle">PK</text>
+    <text x="48" y="733" fill="#1a1a1a" font-size="8.5">id_donacion_articulo INT</text>
+    <rect x="20" y="736" width="18" height="13" fill="#dbeafe"/>
+    <text x="29" y="746" fill="#1e40af" font-size="7.5" text-anchor="middle">FK</text>
+    <text x="43" y="746" fill="#333" font-size="8.5">id_donacion INT</text>
+    <rect x="20" y="749" width="18" height="13" fill="#dbeafe"/>
+    <text x="29" y="759" fill="#1e40af" font-size="7.5" text-anchor="middle">FK</text>
+    <text x="43" y="759" fill="#333" font-size="8.5">id_articulo INT</text>
+    <text x="28" y="773" fill="#333" font-size="8.5">cantidad INT</text>
+    <text x="28" y="786" fill="#333" font-size="8.5">estado_articulo VARCHAR</text>
+    <text x="28" y="806" fill="#555" font-size="8" font-style="italic">+ aceptado / rechazado</text>
+  </g>
+
+  <!-- TABLE: articulo -->
+  <g id="t_articulo">
+    <rect x="270" y="700" width="200" height="100" fill="white" stroke="#1B4332" stroke-width="1.5" rx="2"/>
+    <rect x="270" y="700" width="200" height="22"  fill="#1B4332" rx="2"/>
+    <rect x="270" y="711" width="200" height="11"  fill="#1B4332"/>
+    <text x="370" y="715" fill="white" font-size="11" font-weight="bold" text-anchor="middle">articulo</text>
+    <line x1="270" y1="722" x2="470" y2="722" stroke="#1B4332" stroke-width="1"/>
+    <rect x="270" y="722" width="22" height="14" fill="#fef9c3"/>
+    <text x="281" y="733" fill="#92400e" font-size="8" text-anchor="middle">PK</text>
+    <text x="298" y="733" fill="#1a1a1a" font-size="8.5">id_articulo INT</text>
+    <text x="278" y="747" fill="#333" font-size="8.5">nombre VARCHAR(300)</text>
+    <text x="278" y="760" fill="#333" font-size="8.5">descripcion VARCHAR(400)</text>
+    <rect x="270" y="763" width="18" height="13" fill="#dbeafe"/>
+    <text x="279" y="773" fill="#1e40af" font-size="7.5" text-anchor="middle">FK</text>
+    <text x="293" y="773" fill="#333" font-size="8.5">id_categoria INT</text>
+    <text x="278" y="790" fill="#555" font-size="8" font-style="italic">UNIQUE(nombre, id_categoria)</text>
+  </g>
+
+  <!-- TABLE: categoria_articulo -->
+  <g id="t_categoria">
+    <rect x="510" y="700" width="190" height="90" fill="white" stroke="#1B4332" stroke-width="1.5" rx="2"/>
+    <rect x="510" y="700" width="190" height="22"  fill="#1B4332" rx="2"/>
+    <rect x="510" y="711" width="190" height="11"  fill="#1B4332"/>
+    <text x="605" y="715" fill="white" font-size="10" font-weight="bold" text-anchor="middle">categoria_articulo</text>
+    <line x1="510" y1="722" x2="700" y2="722" stroke="#1B4332" stroke-width="1"/>
+    <rect x="510" y="722" width="22" height="14" fill="#fef9c3"/>
+    <text x="521" y="733" fill="#92400e" font-size="8" text-anchor="middle">PK</text>
+    <text x="538" y="733" fill="#1a1a1a" font-size="8.5">id_categoria INT</text>
+    <text x="518" y="747" fill="#333" font-size="8.5">nombre VARCHAR(200) UNIQUE</text>
+    <text x="518" y="760" fill="#333" font-size="8.5">descripcion VARCHAR(200)</text>
+  </g>
+
+  <!-- TABLE: punto_entrega -->
+  <g id="t_puntoentrega">
+    <rect x="750" y="460" width="210" height="125" fill="white" stroke="#1B4332" stroke-width="1.5" rx="2"/>
+    <rect x="750" y="460" width="210" height="22"  fill="#1B4332" rx="2"/>
+    <rect x="750" y="471" width="210" height="11"  fill="#1B4332"/>
+    <text x="855" y="475" fill="white" font-size="11" font-weight="bold" text-anchor="middle">punto_entrega</text>
+    <line x1="750" y1="482" x2="960" y2="482" stroke="#1B4332" stroke-width="1"/>
+    <rect x="750" y="482" width="22" height="14" fill="#fef9c3"/>
+    <text x="761" y="493" fill="#92400e" font-size="8" text-anchor="middle">PK</text>
+    <text x="778" y="493" fill="#1a1a1a" font-size="8.5">id_punto_entrega INT</text>
+    <rect x="750" y="496" width="18" height="13" fill="#dbeafe"/>
+    <text x="759" y="506" fill="#1e40af" font-size="7.5" text-anchor="middle">FK</text>
+    <text x="773" y="506" fill="#333" font-size="8.5">id_organizacion INT</text>
+    <text x="758" y="520" fill="#333" font-size="8.5">departamento VARCHAR</text>
+    <text x="758" y="533" fill="#333" font-size="8.5">municipio VARCHAR</text>
+    <text x="758" y="546" fill="#333" font-size="8.5">zona VARCHAR</text>
+    <text x="758" y="559" fill="#333" font-size="8.5">descripcion VARCHAR</text>
+    <text x="758" y="577" fill="#555" font-size="8" font-style="italic">NN en campos clave</text>
+  </g>
+
+  <!-- TABLE: estado_donacion -->
+  <g id="t_estadodonacion">
+    <rect x="750" y="700" width="185" height="90" fill="white" stroke="#1B4332" stroke-width="1.5" rx="2"/>
+    <rect x="750" y="700" width="185" height="22"  fill="#1B4332" rx="2"/>
+    <rect x="750" y="711" width="185" height="11"  fill="#1B4332"/>
+    <text x="842" y="715" fill="white" font-size="10" font-weight="bold" text-anchor="middle">estado_donacion</text>
+    <line x1="750" y1="722" x2="935" y2="722" stroke="#1B4332" stroke-width="1"/>
+    <rect x="750" y="722" width="22" height="14" fill="#fef9c3"/>
+    <text x="761" y="733" fill="#92400e" font-size="8" text-anchor="middle">PK</text>
+    <text x="778" y="733" fill="#1a1a1a" font-size="8.5">id_estado_donacion INT</text>
+    <text x="758" y="747" fill="#333" font-size="8.5">nombre VARCHAR(200)</text>
+    <text x="758" y="760" fill="#333" font-size="8.5">descripcion VARCHAR(450)</text>
+  </g>
+
+  <!-- TABLE: motivo_rechazo -->
+  <g id="t_motivorechazo">
+    <rect x="970" y="700" width="195" height="100" fill="white" stroke="#1B4332" stroke-width="1.5" rx="2"/>
+    <rect x="970" y="700" width="195" height="22"  fill="#1B4332" rx="2"/>
+    <rect x="970" y="711" width="195" height="11"  fill="#1B4332"/>
+    <text x="1067" y="715" fill="white" font-size="10" font-weight="bold" text-anchor="middle">motivo_rechazo</text>
+    <line x1="970" y1="722" x2="1165" y2="722" stroke="#1B4332" stroke-width="1"/>
+    <rect x="970" y="722" width="22" height="14" fill="#fef9c3"/>
+    <text x="981" y="733" fill="#92400e" font-size="8" text-anchor="middle">PK</text>
+    <text x="998" y="733" fill="#1a1a1a" font-size="8.5">id_motivo_rechazo INT</text>
+    <rect x="970" y="736" width="18" height="13" fill="#dbeafe"/>
+    <text x="979" y="746" fill="#1e40af" font-size="7.5" text-anchor="middle">FK</text>
+    <text x="993" y="746" fill="#333" font-size="8.5">id_donacion INT</text>
+    <text x="978" y="760" fill="#333" font-size="8.5">descripcion VARCHAR(450)</text>
+    <text x="978" y="773" fill="#333" font-size="8.5">fecha_rechazo DATE</text>
+  </g>
+
+  <!-- RELATIONSHIPS (FK arrows) -->
+  <!-- usuario → donante (1:1) -->
+  <line x1="430" y1="170" x2="270" y2="310" stroke="#2D6A4F" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="320" y="245" fill="#2D6A4F" font-size="8">1:1</text>
+
+  <!-- usuario → intermediario (1:1) -->
+  <line x1="650" y1="170" x2="760" y2="310" stroke="#2D6A4F" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="700" y="245" fill="#2D6A4F" font-size="8">1:1</text>
+
+  <!-- usuario → donacion (1:N) -->
+  <line x1="430" y1="160" x2="330" y2="460" stroke="#1B4332" stroke-width="1"/>
+  <text x="355" y="330" fill="#555" font-size="8">1:N</text>
+
+  <!-- intermediario → publicacion (1:N) -->
+  <line x1="760" y1="360" x2="670" y2="460" stroke="#1B4332" stroke-width="1"/>
+  <text x="700" y="415" fill="#555" font-size="8">1:N</text>
+
+  <!-- organizacion → publicacion (1:N) -->
+  <line x1="870" y1="200" x2="670" y2="460" stroke="#1B4332" stroke-width="1"/>
+  <text x="780" y="340" fill="#555" font-size="8">1:N</text>
+
+  <!-- organizacion → intermidiario (1:N) -->
+  <line x1="870" y1="200" x2="870" y2="310" stroke="#1B4332" stroke-width="1"/>
+  <text x="880" y="260" fill="#555" font-size="8">1:N</text>
+
+  <!-- organizacion → punto_entrega (1:N) -->
+  <line x1="980" y1="175" x2="855" y2="460" stroke="#1B4332" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="960" y="330" fill="#555" font-size="8">1:N</text>
+
+  <!-- publicacion → donacion (1:N) -->
+  <line x1="430" y1="550" x2="330" y2="530" stroke="#1B4332" stroke-width="1"/>
+  <text x="360" y="545" fill="#555" font-size="8">1:N</text>
+
+  <!-- publicacion → articulo (N:1) -->
+  <line x1="540" y1="655" x2="420" y2="700" stroke="#1B4332" stroke-width="1"/>
+  <text x="460" y="683" fill="#555" font-size="8">N:1</text>
+
+  <!-- donacion → donacion_articulo (1:N) -->
+  <line x1="160" y1="580" x2="120" y2="700" stroke="#40916C" stroke-width="1"/>
+  <text x="118" y="645" fill="#40916C" font-size="8">1:N</text>
+
+  <!-- donacion_articulo → articulo (N:1) -->
+  <line x1="230" y1="760" x2="270" y2="750" stroke="#1B4332" stroke-width="1"/>
+  <text x="240" y="745" fill="#555" font-size="8">N:1</text>
+
+  <!-- articulo → categoria_articulo (N:1) -->
+  <line x1="470" y1="740" x2="510" y2="735" stroke="#1B4332" stroke-width="1"/>
+  <text x="475" y="725" fill="#555" font-size="8">N:1</text>
+
+  <!-- donacion → estado_donacion (N:1) -->
+  <line x1="220" y1="605" x2="800" y2="730" stroke="#1B4332" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="490" y="690" fill="#555" font-size="8">N:1</text>
+
+  <!-- donacion → motivo_rechazo (1:N) -->
+  <line x1="330" y1="570" x2="970" y2="745" stroke="#1B4332" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="620" y="690" fill="#555" font-size="8">0..1:N</text>
+
+  <!-- Legend -->
+  <rect x="0" y="840" width="1200" height="40" fill="#f0fff4" stroke="#1B4332" stroke-width="1"/>
+  <text x="20" y="858" fill="#1B4332" font-size="9" font-weight="bold">LEYENDA:</text>
+  <rect x="90" y="845" width="16" height="12" fill="#fef9c3" stroke="#92400e"/>
+  <text x="111" y="855" fill="#333" font-size="9">PK — Clave primaria</text>
+  <rect x="230" y="845" width="16" height="12" fill="#dbeafe" stroke="#1e40af"/>
+  <text x="251" y="855" fill="#333" font-size="9">FK — Clave foránea</text>
+  <line x1="370" y1="851" x2="400" y2="851" stroke="#1B4332" stroke-width="1.5"/>
+  <text x="405" y="855" fill="#333" font-size="9">Relación obligatoria</text>
+  <line x1="510" y1="851" x2="540" y2="851" stroke="#1B4332" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="545" y="855" fill="#333" font-size="9">Herencia / relación opcional</text>
+  <text x="750" y="858" fill="#555" font-size="9">Motor: MySQL 8 · Charset: utf8mb4 · Collation: utf8mb4_unicode_ci · UVG 2026</text>
+</svg>
