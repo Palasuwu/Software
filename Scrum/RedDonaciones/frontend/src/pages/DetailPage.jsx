@@ -5,6 +5,7 @@ import { obtenerUsuarioSesion } from '../utils/session'
 import { apiGet, apiPost } from '../utils/api'
 import Spinner from '../components/Spinner'
 import ErrorView from '../components/ErrorView'
+import './DetailPage.css'
 
 const EASE_OUT_EXPO = [0.16, 1, 0.3, 1]
 

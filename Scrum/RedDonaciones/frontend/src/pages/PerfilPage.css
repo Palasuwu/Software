@@ -1,0 +1,217 @@
+/* Estilos de PerfilPage.jsx. Consume tokens.css. */
+
+/*  PERFIL  */
+.profile-page-figma {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.profile-header-figma {
+  margin-bottom: 2px;
+}
+
+.profile-main-title {
+  margin: 0 0 10px;
+  font-size: 2.15rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.profile-main-subtitle {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.profile-grid-figma {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 26px;
+}
+
+.profile-card-figma {
+  background: var(--surface);
+  border: 1px solid var(--outline);
+  border-radius: 22px;
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-info-card-figma {
+  padding: 28px 28px 24px;
+}
+
+.profile-achievements-card-figma {
+  padding: 28px;
+}
+
+.profile-section-title {
+  margin: 0 0 28px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.profile-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.profile-title-row .profile-section-title {
+  margin-bottom: 0;
+}
+
+.profile-edit-button,
+.profile-cancel-button {
+  border: 1px solid var(--outline);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  min-height: 44px;
+  padding: 0 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.profile-edit-button:hover,
+.profile-cancel-button:hover {
+  border-color: var(--primary-muted);
+  color: var(--primary-strong);
+  transform: translateY(-1px);
+}
+
+.profile-edit-form {
+  margin-top: 28px;
+}
+
+.profile-edit-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.profile-cancel-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+  transform: none;
+}
+
+.profile-user-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.profile-avatar-figma {
+  width: 92px;
+  height: 92px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.profile-user-copy {
+  min-width: 0;
+}
+
+.profile-user-name {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.profile-user-role {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.98rem;
+}
+
+.profile-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 36px;
+}
+
+.profile-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.profile-info-icon-box {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.profile-info-label {
+  margin: 0 0 3px;
+  color: var(--text-soft);
+  font-size: 0.98rem;
+  line-height: 1.4;
+}
+
+.profile-info-value {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.98rem;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.profile-achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+/* responsive perfil */
+@media (max-width: 860px) {
+
+  .profile-title-row,
+  .profile-edit-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-title-row {
+    display: grid;
+  }
+
+  .profile-edit-button,
+  .profile-cancel-button {
+    width: 100%;
+  }
+
+  .profile-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-achievements-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-user-row {
+    align-items: flex-start;
+  }
+
+}

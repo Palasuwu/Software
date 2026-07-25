@@ -4,6 +4,7 @@ import { obtenerUsuarioSesion } from '../utils/session'
 import { apiGet } from '../utils/api'
 import Spinner from '../components/Spinner'
 import ErrorView from '../components/ErrorView'
+import './MisDonaciones.css'
 
 function formatearFecha(fecha) {
     if (!fecha) {

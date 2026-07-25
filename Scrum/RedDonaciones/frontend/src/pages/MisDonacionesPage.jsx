@@ -5,6 +5,7 @@ import { apiGet } from '../utils/api'
 import Spinner from '../components/Spinner'
 import ErrorView from '../components/ErrorView'
 import { IconCalendar } from '../components/icons'
+import './MisDonaciones.css'
 
 function calcularProgreso(cantidadRecibida, cantidadNecesaria) {
   const necesaria = Number(cantidadNecesaria) || 0

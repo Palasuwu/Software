@@ -5,6 +5,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { apiGet, apiPut } from '../utils/api'
 import { guardarUsuarioSesion } from '../utils/session'
 import { IconUser, IconDonation, IconLocation } from '../components/icons'
+import './PerfilPage.css'
 
 function roleLabel(role) {
     if (!role) return 'Sin rol'

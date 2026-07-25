@@ -1,0 +1,232 @@
+/* Estilos compartidos por OrganizacionesPage.jsx y OrgaDetailPage.jsx (directorio y detalle de organizacion). Consume tokens.css. */
+
+.org-admin-header {
+  padding: 28px;
+  border: 1px solid var(--outline);
+  border-radius: 24px;
+  background: linear-gradient(135deg, var(--hero-gradient-start) 0%, var(--hero-gradient-end-panel) 100%);
+  box-shadow: var(--shadow-sm);
+}
+
+.org-admin-row-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.org-admin-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+.org-admin-meta span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--outline);
+}
+
+/* ============================================================
+   ORGANIZACIONES PAGE — directorio público (org-directory-*, org-status-*)
+   ============================================================ */
+.org-directory-page {
+  display: grid;
+  gap: 22px;
+}
+
+.org-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+@media (max-width: 1040px) {
+  .org-directory-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .org-directory-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.org-directory-card {
+  background: var(--surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+  cursor: pointer;
+  padding: 22px;
+}
+
+.org-directory-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-muted);
+}
+
+.org-directory-card p {
+  margin: 0 0 18px;
+  color: var(--text-soft);
+  font-size: 0.98rem;
+  line-height: 1.7;
+  min-height: 66px;
+}
+
+.org-directory-card .org-admin-row-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.org-directory-card .org-admin-row-title h3 {
+  margin: 0;
+  font-size: 1.12rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--text);
+}
+
+.org-directory-card .org-admin-meta {
+  display: grid;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.org-directory-card .org-admin-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--outline-soft);
+  background: var(--surface-soft);
+}
+
+.org-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 1px solid var(--outline);
+  background: var(--surface);
+  color: var(--text-soft);
+}
+
+.org-status-verificada {
+  color: var(--success);
+  background: var(--status-verified-bg);
+  border-color: var(--status-verified-border);
+}
+
+.org-status-pendiente {
+  color: var(--warning);
+  background: var(--status-pending-bg);
+  border-color: var(--status-pending-border);
+}
+
+.org-status-rechazada {
+  color: var(--danger);
+  background: var(--status-rejected-bg);
+  border-color: var(--status-rejected-border);
+}
+
+.org-status-inactiva {
+  color: var(--secondary);
+  background: var(--status-inactive-bg);
+  border-color: var(--status-inactive-border);
+}
+
+/* ============================================================
+   ORGANIZATION DETAIL PAGE — org-detail-* namespace
+   ============================================================ */
+.org-detail-header {
+  background: linear-gradient(135deg, var(--primary-soft) 0%, var(--secondary-soft) 100%);
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  margin-bottom: 36px;
+  box-shadow: var(--shadow-sm);
+}
+
+.org-detail-status {
+  display: inline-block;
+  margin-bottom: 18px;
+}
+
+.org-detail-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 12px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.org-detail-desc {
+  font-size: 1.05rem;
+  color: var(--text-soft);
+  margin: 0 0 28px;
+  line-height: 1.75;
+}
+
+.org-detail-contact {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.org-detail-section {
+  margin-bottom: 48px;
+}
+
+.org-detail-section .section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.org-detail-section .section-count {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: var(--surface-tinted);
+  border: 1px solid var(--outline);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .org-detail-header {
+    padding: 28px;
+  }
+
+  .org-detail-title {
+    font-size: 2rem;
+  }
+
+  .org-detail-contact {
+    grid-template-columns: 1fr;
+  }
+}

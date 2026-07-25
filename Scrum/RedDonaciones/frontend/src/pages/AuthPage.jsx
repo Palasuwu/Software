@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { guardarTokenSesion, guardarUsuarioSesion } from '../utils/session'
 import { IconBrand } from '../components/icons'
+import './AuthPage.css'
 
 const INITIAL_LOGIN = { correo: '', password: '' }
 const INITIAL_REGISTER = {

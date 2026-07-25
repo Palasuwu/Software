@@ -124,12 +124,11 @@ export function IconPlus({ className = '', ...props }) {
 }
 
 // Único consumidor: AdminPanel.jsx (switch de activar/desactivar usuario).
-// Los hex de fill/stroke se tokenizan en SCRUM-146; se mueve tal cual por ahora.
 export function IconToggle({ checked, className = 'admin-action-icon' }) {
   return (
     <svg viewBox="0 0 24 24" className={`${className} ${checked ? 'checked' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" style={{ transition: 'all 0.2s ease' }}>
       <rect x="2" y="6" width="20" height="12" rx="6" ry="6" fill={checked ? "var(--success)" : "var(--danger)"} stroke={checked ? "var(--success)" : "var(--danger)"} />
-      <circle cx={checked ? "16" : "8"} cy="12" r="3.5" fill="#ffffff" stroke="#ffffff" style={{ transition: 'all 0.2s ease' }} />
+      <circle cx={checked ? "16" : "8"} cy="12" r="3.5" fill="var(--on-primary)" stroke="var(--on-primary)" style={{ transition: 'all 0.2s ease' }} />
     </svg>
   )
 }

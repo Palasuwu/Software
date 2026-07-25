@@ -7,7 +7,7 @@ import { IconCampaigns, IconUsers, IconPlus } from '../components/icons'
 import OrgaCampaignsTable from './orga/OrgaCampaignsTable'
 import OrgaIntermediariosTable from './orga/OrgaIntermediariosTable'
 import OrgaCampaignFormModal from './orga/OrgaCampaignFormModal'
-import './AdminPanel.css'
+import './admin/admin-panel.css'
 
 const CAMP_INITIAL_FORM = {
   titulo: '',

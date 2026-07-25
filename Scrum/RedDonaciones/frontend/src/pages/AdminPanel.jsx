@@ -22,7 +22,7 @@ import CampaignFormModal from './admin/CampaignFormModal'
 import OrgFormModal from './admin/OrgFormModal'
 import TempPasswordModal from './admin/TempPasswordModal'
 import ConfirmationModal from './admin/ConfirmationModal'
-import './AdminPanel.css'
+import './admin/admin-panel.css'
 
 export default function AdminPanel({ usuarioSesion }) {
     const [activeTab, setActiveTab] = React.useState('usuarios')
