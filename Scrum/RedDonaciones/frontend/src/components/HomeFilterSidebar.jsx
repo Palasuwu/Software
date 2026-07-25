@@ -1,15 +1,6 @@
 import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-
-function IconSearch() {
-  return (
-    <svg className="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-      fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-  )
-}
+import { IconSearch } from './icons'
 
 function FilterSection({ title, isOpen, onToggle, children }) {
   return (
@@ -112,7 +103,7 @@ export default function HomeFilterSidebar({
           </div>
 
           <div className="hf-search">
-            <IconSearch />
+            <IconSearch className="search-icon" />
             <input
               type="text"
               placeholder="Buscar campañas..."

@@ -4,8 +4,7 @@ import { obtenerUsuarioSesion } from '../utils/session'
 import { apiGet } from '../utils/api'
 import Spinner from '../components/Spinner'
 import ErrorView from '../components/ErrorView'
-
-// Íconos definidos como SVG inline dentro del componente
+import { IconCalendar } from '../components/icons'
 
 function calcularProgreso(cantidadRecibida, cantidadNecesaria) {
   const necesaria = Number(cantidadNecesaria) || 0
@@ -33,18 +32,6 @@ function formatearFecha(fecha) {
     month: 'long',
     day: 'numeric'
   })
-}
-
-function IconCalendar() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" className="donation-row-icon">
-      <rect x="3" y="4" width="18" height="18" rx="2" />
-      <line x1="16" y1="2" x2="16" y2="6" />
-      <line x1="8" y1="2" x2="8" y2="6" />
-      <line x1="3" y1="10" x2="21" y2="10" />
-    </svg>
-  )
 }
 
 function formatearCantidad(valor) {
@@ -205,7 +192,7 @@ export default function MisDonacionesPage() {
 
                       <div className="donation-row-meta-figma">
                         <span className="donation-row-date-figma">
-                          <IconCalendar />
+                          <IconCalendar className="donation-row-icon" />
                           {formatearFecha(donacion.fecha_donacion)}
                         </span>
 

@@ -25,85 +25,7 @@ import HomePage from './pages/HomePage'
 import NavBar from './components/NavBar'
 import { apiGet, apiPut } from './utils/api'
 import { obtenerTokenSesion, obtenerUsuarioSesion, limpiarUsuarioSesion, limpiarTokenSesion, guardarUsuarioSesion } from './utils/session'
-
-function IconBrand() {
-  return (
-    <svg viewBox="0 0 24 24" className="brand-icon" fill="currentColor" aria-hidden="true">
-      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-    </svg>
-  )
-}
-
-function IconHome() {
-  return (
-    <svg viewBox="0 0 24 24" className="nav-icon" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M3 10.5L12 3l9 7.5" />
-      <path d="M5 9.5V21h14V9.5" />
-    </svg>
-  )
-}
-
-function IconDonation() {
-  return (
-    <svg viewBox="0 0 24 24" className="nav-icon" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-      <line x1="9" y1="7" x2="15" y2="7" />
-      <line x1="9" y1="11" x2="15" y2="11" />
-      <line x1="9" y1="15" x2="13" y2="15" />
-    </svg>
-  )
-}
-
-function IconUser() {
-  return (
-    <svg viewBox="0 0 24 24" className="nav-icon" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  )
-}
-
-function IconRegister() {
-  return (
-    <svg viewBox="0 0 24 24" className="nav-icon" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M19 8v6" />
-      <path d="M16 11h6" />
-    </svg>
-  )
-}
-
-function IconAdmin() {
-  return (
-    <svg viewBox="0 0 24 24" className="nav-icon" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M12 2l7 4v6c0 5-3 8.5-7 10-4-1.5-7-5-7-10V6l7-4z" />
-      <path d="M9 12l2 2 4-5" />
-    </svg>
-  )
-}
-
-function IconLocation() {
-  return (
-    <svg className="meta-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-      fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-      <circle cx="12" cy="10" r="3" />
-    </svg>
-  )
-}
-
-function IconUsers() {
-  return (
-    <svg className="meta-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-      fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
-      <circle cx="9.5" cy="7" r="3.5" />
-      <path d="M20 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M14 4.13a3.5 3.5 0 0 1 0 5.74" />
-    </svg>
-  )
-}
+import { IconBrand, IconHome, IconDonation, IconUser, IconRegister, IconAdmin, IconLocation, IconUsers } from './components/icons'
 
 function roleLabel(role) {
   if (!role) return 'Sin rol'
@@ -119,47 +41,47 @@ function BottomNav({ isAuthenticated, usuarioSesion, onLogout }) {
   return (
     <nav className="bottom-nav">
       <NavLink to="/home" end className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-        <IconHome />
+        <IconHome className="nav-icon" />
         <span>Inicio</span>
       </NavLink>
 
       <NavLink to="/organizaciones" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-        <IconUsers />
+        <IconUsers className="meta-icon" />
         <span>Organizaciones</span>
       </NavLink>
 
       {isAuthenticated ? (
         <>
           <NavLink to="/donaciones" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-            <IconDonation />
+            <IconDonation className="nav-icon" />
             <span>Historial</span>
           </NavLink>
           <NavLink to="/perfil" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-            <IconUser />
+            <IconUser className="nav-icon" />
             <span>Perfil</span>
           </NavLink>
           {isAdmin && (
             <NavLink to="/admin" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-              <IconAdmin />
+              <IconAdmin className="nav-icon" />
               <span>Admin</span>
             </NavLink>
           )}
 
           {isIntermediario && (
             <NavLink to="/intermediario" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-              <IconUsers />
+              <IconUsers className="meta-icon" />
               <span>Mi Org</span>
             </NavLink>
           )}
           <button type="button" className="nav-item nav-item-button" onClick={onLogout}>
-            <IconRegister />
+            <IconRegister className="nav-icon" />
             <span>Salir</span>
           </button>
         </>
       ) : (
         <>
           <NavLink to="/login" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-            <IconUser />
+            <IconUser className="nav-icon" />
             <span>Login</span>
           </NavLink>
         </>
@@ -429,7 +351,7 @@ function PerfilPage({ usuarioSesion, onProfileUpdated }) {
 
           <div className="profile-user-row">
             <div className="profile-avatar-figma">
-              <IconUser />
+              <IconUser className="nav-icon" />
             </div>
 
             <div className="profile-user-copy">
@@ -590,7 +512,7 @@ function PerfilPage({ usuarioSesion, onProfileUpdated }) {
             <div className="profile-info-grid">
               <div className="profile-info-item">
                 <div className="profile-info-icon-box">
-                  <IconUser />
+                  <IconUser className="nav-icon" />
                 </div>
                 <div>
                   <p className="profile-info-label">Correo</p>
@@ -600,7 +522,7 @@ function PerfilPage({ usuarioSesion, onProfileUpdated }) {
 
               <div className="profile-info-item">
                 <div className="profile-info-icon-box">
-                  <IconDonation />
+                  <IconDonation className="nav-icon" />
                 </div>
                 <div>
                   <p className="profile-info-label">Telefono</p>
@@ -611,7 +533,7 @@ function PerfilPage({ usuarioSesion, onProfileUpdated }) {
               {perfil?.rol === 'donante' && (
                 <div className="profile-info-item">
                   <div className="profile-info-icon-box">
-                    <IconLocation />
+                    <IconLocation className="meta-icon" />
                   </div>
                   <div>
                     <p className="profile-info-label">Ubicacion</p>
@@ -625,7 +547,7 @@ function PerfilPage({ usuarioSesion, onProfileUpdated }) {
               {perfil?.rol === 'intermediario' && (
                 <div className="profile-info-item">
                   <div className="profile-info-icon-box">
-                    <IconLocation />
+                    <IconLocation className="meta-icon" />
                   </div>
                   <div>
                     <p className="profile-info-label">Organización</p>
@@ -744,7 +666,7 @@ function AppShell() {
         >
           <div className="brand-block">
             <div className="brand-mark">
-              <IconBrand />
+              <IconBrand className="brand-icon" />
             </div>
             <motion.h1
               className="header-title"

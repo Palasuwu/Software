@@ -2,6 +2,7 @@ import React from 'react'
 import { apiDelete, apiGet, apiPost, apiPut, apiUpload } from '../utils/api'
 import Spinner from '../components/Spinner'
 import ErrorView from '../components/ErrorView'
+import { IconUsers, IconCampaigns, IconEdit, IconTrash, IconPlus, IconToggle } from '../components/icons'
 import './AdminPanel.css'
 
 const USER_INITIAL_FORM = {
@@ -65,67 +66,6 @@ function validateOrgForm(form) {
     if (!ORG_STATUSES.includes(payload.estado_verificacion)) errors.estado_verificacion = 'Selecciona un estado valido'
 
     return errors
-}
-
-function IconUsers() {
-    return (
-        <svg viewBox="0 0 24 24" className="admin-svg-icon" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
-            <circle cx="9.5" cy="7" r="3.5" />
-            <path d="M20 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M14 4.13a3.5 3.5 0 0 1 0 5.74" />
-        </svg>
-    )
-}
-
-function IconCampaigns() {
-    return (
-        <svg viewBox="0 0 24 24" className="admin-svg-icon" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M4 19.5V4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 1 4 17.5" />
-            <path d="M8 7h8" />
-            <path d="M8 11h8" />
-            <path d="M8 15h5" />
-        </svg>
-    )
-}
-
-function IconEdit() {
-    return (
-        <svg viewBox="0 0 24 24" className="admin-action-icon" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 20h9" />
-            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-        </svg>
-    )
-}
-
-function IconTrash() {
-    return (
-        <svg viewBox="0 0 24 24" className="admin-action-icon" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M3 6h18" />
-            <path d="M8 6V4h8v2" />
-            <path d="M19 6l-1 14H6L5 6" />
-            <path d="M10 11v5" />
-            <path d="M14 11v5" />
-        </svg>
-    )
-}
-
-function IconPlus() {
-    return (
-        <svg viewBox="0 0 24 24" className="admin-button-icon" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 5v14" />
-            <path d="M5 12h14" />
-        </svg>
-    )
-}
-
-function IconToggle({ checked }) {
-    return (
-        <svg viewBox="0 0 24 24" className={`admin-action-icon ${checked ? 'checked' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" style={{ transition: 'all 0.2s ease' }}>
-            <rect x="2" y="6" width="20" height="12" rx="6" ry="6" fill={checked ? "var(--success)" : "var(--danger)"} stroke={checked ? "var(--success)" : "var(--danger)"} />
-            <circle cx={checked ? "16" : "8"} cy="12" r="3.5" fill="#ffffff" stroke="#ffffff" style={{ transition: 'all 0.2s ease' }} />
-        </svg>
-    )
 }
 
 function roleLabel(role) {
@@ -1116,7 +1056,7 @@ export default function AdminPanel({ usuarioSesion }) {
                                                     aria-label={`Editar ${usuario.nombre}`}
                                                     title="Editar"
                                                 >
-                                                    <IconEdit />
+                                                    <IconEdit className="admin-action-icon" />
                                                 </button>
                                                 {usuario.activo !== 0 ? (
                                                     <button
@@ -1149,7 +1089,7 @@ export default function AdminPanel({ usuarioSesion }) {
                                                     aria-label={`Anonimizar ${usuario.nombre}`}
                                                     title="Anonimizar"
                                                 >
-                                                    <IconTrash />
+                                                    <IconTrash className="admin-action-icon" />
                                                 </button>
                                             </div>
                                         </td>
@@ -1584,7 +1524,7 @@ export default function AdminPanel({ usuarioSesion }) {
                         className={`admin-tab-button ${activeTab === 'usuarios' ? 'active' : ''}`}
                         onClick={() => setActiveTab('usuarios')}
                     >
-                        <IconUsers />
+                        <IconUsers className="admin-svg-icon" />
                         <span>Usuarios</span>
                     </button>
                     <button
@@ -1592,7 +1532,7 @@ export default function AdminPanel({ usuarioSesion }) {
                         className={`admin-tab-button ${activeTab === 'organizaciones' ? 'active' : ''}`}
                         onClick={() => setActiveTab('organizaciones')}
                     >
-                        <IconUsers />
+                        <IconUsers className="admin-svg-icon" />
                         <span>Organizaciones</span>
                     </button>
                     <button
@@ -1600,7 +1540,7 @@ export default function AdminPanel({ usuarioSesion }) {
                         className={`admin-tab-button ${activeTab === 'campanas' ? 'active' : ''}`}
                         onClick={() => setActiveTab('campanas')}
                     >
-                        <IconCampaigns />
+                        <IconCampaigns className="admin-svg-icon" />
                         <span>Campañas</span>
                     </button>
                 </aside>
@@ -1614,7 +1554,7 @@ export default function AdminPanel({ usuarioSesion }) {
                                     <p>Administra cuentas de donantes, intermediarios y administradores.</p>
                                 </div>
                                 <button type="button" className="admin-primary-action" onClick={openCreateUser}>
-                                    <IconPlus />
+                                    <IconPlus className="admin-button-icon" />
                                     <span>Nuevo Usuario</span>
                                 </button>
                             </div>
@@ -1628,7 +1568,7 @@ export default function AdminPanel({ usuarioSesion }) {
                                     <p>Administra organizaciones registradas en la plataforma.</p>
                                 </div>
                                 <button type="button" className="admin-primary-action" onClick={openCreateOrg}>
-                                    <IconPlus />
+                                    <IconPlus className="admin-button-icon" />
                                     <span>Nueva Organización</span>
                                 </button>
                             </div>
@@ -1671,7 +1611,7 @@ export default function AdminPanel({ usuarioSesion }) {
                                                                 title="Editar"
                                                                 aria-label={`Editar ${org.nombre}`}
                                                             >
-                                                                <IconEdit />
+                                                                <IconEdit className="admin-action-icon" />
                                                             </button>
                                                             <button
                                                                 type="button"
@@ -1681,7 +1621,7 @@ export default function AdminPanel({ usuarioSesion }) {
                                                                 title="Archivar"
                                                                 aria-label={`Archivar ${org.nombre}`}
                                                             >
-                                                                <IconTrash />
+                                                                <IconTrash className="admin-action-icon" />
                                                             </button>
                                                         </div>
                                                     </td>
@@ -1700,7 +1640,7 @@ export default function AdminPanel({ usuarioSesion }) {
                                     <p>Activa o desactiva campañas publicadas en la plataforma.</p>
                                 </div>
                                 <button type="button" className="admin-primary-action" onClick={openCreateCampaign}>
-                                    <IconPlus />
+                                    <IconPlus className="admin-button-icon" />
                                     <span>Nueva Campaña</span>
                                 </button>
                             </div>

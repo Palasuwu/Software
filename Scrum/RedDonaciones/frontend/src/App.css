@@ -1833,6 +1833,8 @@ a {
 .auth-brand-logo svg {
   width: 34px;
   height: 34px;
+  /* IconBrand ahora usa fill="currentColor" (antes #ffffff hardcodeado) */
+  color: var(--surface);
 }
 
 .auth-brand-title {

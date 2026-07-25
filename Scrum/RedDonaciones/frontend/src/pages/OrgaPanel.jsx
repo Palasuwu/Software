@@ -1,6 +1,7 @@
 import React from 'react'
 import { apiGet, apiPut, apiPost } from '../utils/api'
 import ErrorView from '../components/ErrorView'
+import { IconCampaigns, IconUsers, IconEdit, IconPlus } from '../components/icons'
 import './AdminPanel.css'
 
 const CAMP_INITIAL_FORM = {
@@ -12,46 +13,6 @@ const CAMP_INITIAL_FORM = {
   estado: 'activa',
   id_articulo: '',
   imagen_url: ''
-}
-
-function IconCampaigns() {
-  return (
-    <svg viewBox="0 0 24 24" className="admin-svg-icon" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M4 19.5V4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 1 4 17.5" />
-      <path d="M8 7h8" />
-      <path d="M8 11h8" />
-      <path d="M8 15h5" />
-    </svg>
-  )
-}
-
-function IconUsers() {
-  return (
-    <svg viewBox="0 0 24 24" className="admin-svg-icon" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
-      <circle cx="9.5" cy="7" r="3.5" />
-      <path d="M20 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M14 4.13a3.5 3.5 0 0 1 0 5.74" />
-    </svg>
-  )
-}
-
-function IconEdit() {
-  return (
-    <svg viewBox="0 0 24 24" className="admin-action-icon" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M12 20h9" />
-      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-    </svg>
-  )
-}
-
-function IconPlus() {
-  return (
-    <svg viewBox="0 0 24 24" className="admin-button-icon" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M12 5v14" />
-      <path d="M5 12h14" />
-    </svg>
-  )
 }
 
 function formatDate(value) {
@@ -367,7 +328,7 @@ export default function OrgaPanel() {
                           title="Editar publicación"
                           onClick={() => openEditCampaign(publicacion)}
                         >
-                          <IconEdit />
+                          <IconEdit className="admin-action-icon" />
                         </button>
                       </div>
                     </td>
@@ -474,7 +435,7 @@ export default function OrgaPanel() {
             className={`admin-tab-button ${activeTab === 'campanas' ? 'active' : ''}`}
             onClick={() => setActiveTab('campanas')}
           >
-            <IconCampaigns />
+            <IconCampaigns className="admin-svg-icon" />
             <span>Publicaciones</span>
           </button>
 
@@ -483,7 +444,7 @@ export default function OrgaPanel() {
             className={`admin-tab-button ${activeTab === 'intermediarios' ? 'active' : ''}`}
             onClick={() => setActiveTab('intermediarios')}
           >
-            <IconUsers />
+            <IconUsers className="admin-svg-icon" />
             <span>Intermediarios</span>
           </button>
         </aside>
@@ -505,7 +466,7 @@ export default function OrgaPanel() {
                   className="admin-primary-action"
                   onClick={openCreateCampaign}
                 >
-                  <IconPlus />
+                  <IconPlus className="admin-button-icon" />
                   <span>Nueva Publicación</span>
                 </button>
               </div>
