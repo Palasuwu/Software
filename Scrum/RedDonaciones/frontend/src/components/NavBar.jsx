@@ -2,6 +2,7 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import { NavLink } from 'react-router-dom'
 import { IconHome, IconDonation, IconUser, IconRegister, IconAdmin, IconUsers } from './icons'
+import NotificationCenter from './NotificationCenter'
 
 /* ── Motion variants ──────────────────────────────────────────────────── */
 const spring = { type: 'spring', stiffness: 320, damping: 32, mass: 0.7 }
@@ -76,6 +77,10 @@ export default function NavBar({ isAuthenticated, usuarioSesion, onLogout, isExp
 
       {isAuthenticated && (
         <NavItem to="/perfil" icon={<IconUser className="nav-icon" />} label="Perfil" isExpanded={expanded} />
+      )}
+
+      {isAuthenticated && (
+        <NotificationCenter isExpanded={expanded} />
       )}
 
       {isAuthenticated && isAdmin && (
