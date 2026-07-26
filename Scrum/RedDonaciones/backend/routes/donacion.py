@@ -4,6 +4,7 @@ import logging
 
 from db.connection import get_db_connection
 from auth_utils import token_required
+from db.notificaciones import asegurar_tabla_notificaciones, crear_notificacion
 
 donacion_bp = Blueprint("donacion", __name__)
 
@@ -273,6 +274,8 @@ def crear_donacion():
             """
             SELECT
                 id_publicacion,
+                id_intermediario,
+                titulo,
                 cantidad_necesaria,
                 cantidad_recibida,
                 estado
@@ -351,6 +354,24 @@ def crear_donacion():
         WHERE id_publicacion = %s
         """
         cursor.execute(update_sql, (cantidad_donada, cantidad_donada, id_publicacion))
+
+        asegurar_tabla_notificaciones(cursor)
+        crear_notificacion(
+            cursor,
+            id_donante,
+            "donacion_registrada",
+            "Donacion registrada",
+            f"Tu aporte de {cantidad_donada} unidades para {publicacion['titulo']} fue registrado.",
+            f"/donaciones/{id_donacion}"
+        )
+        crear_notificacion(
+            cursor,
+            publicacion["id_intermediario"],
+            "nueva_donacion",
+            "Nueva donacion recibida",
+            f"{nombre_contacto.strip()} dono {cantidad_donada} unidades para {publicacion['titulo']}.",
+            "/intermediario"
+        )
 
         conn.commit()
 
