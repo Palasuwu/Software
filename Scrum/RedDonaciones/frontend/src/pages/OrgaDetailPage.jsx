@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { apiGet } from '../utils/api'
 import Spinner from '../components/Spinner'
 import ErrorView from '../components/ErrorView'
+import './Organizaciones.css'
 
 function estadoLabel(estado) {
   const labels = {

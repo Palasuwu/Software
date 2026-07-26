@@ -2,29 +2,8 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import defaultImg from '../assets/Defult.jpg'
+import { IconLocation, IconUsers } from './icons'
 import './DonationCard.css'
-
-function IconLocation() {
-  return (
-    <svg className="meta-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-      fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-      <circle cx="12" cy="10" r="3" />
-    </svg>
-  )
-}
-
-function IconUsers() {
-  return (
-    <svg className="meta-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-      fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
-      <circle cx="9.5" cy="7" r="3.5" />
-      <path d="M20 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M14 4.13a3.5 3.5 0 0 1 0 5.74" />
-    </svg>
-  )
-}
 
 function formatAmount(value) {
   return new Intl.NumberFormat('es-GT').format(value)
@@ -58,7 +37,7 @@ export default function DonationCard({ org, index = 0 }) {
         <p className="campaign-org">{org.organizacion}</p>
 
         <div className="campaign-location">
-          <IconLocation />
+          <IconLocation className="meta-icon" />
           <span>{org.location || 'Ubicacion no disponible'}</span>
         </div>
 
@@ -74,7 +53,7 @@ export default function DonationCard({ org, index = 0 }) {
         </div>
 
         <div className="campaign-supporters">
-          <IconUsers />
+          <IconUsers className="meta-icon" />
           <span>{formatAmount(org.supporters)} unidades registradas</span>
         </div>
 

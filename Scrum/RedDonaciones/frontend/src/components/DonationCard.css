@@ -4,7 +4,7 @@
   border: none;
   border-radius: 14px;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   font-weight: 700;
   font-size: 0.98rem;
   cursor: pointer;

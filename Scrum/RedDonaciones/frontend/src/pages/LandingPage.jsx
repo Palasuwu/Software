@@ -9,6 +9,7 @@ import courierSvg   from '../assets/courier.svg'
 import scholarSvg   from '../assets/scholar.svg'
 import celebrationSvg from '../assets/celebration.svg'
 import { obtenerUsuarioSesion } from '../utils/session'
+import './LandingPage.css'
 
 const CAROUSEL_IMAGES = [
   { src: cajaPng,  alt: 'Caja de donaciones' },

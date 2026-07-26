@@ -1,489 +1,28 @@
+// Contenedor del panel de administrador: mantiene todo el estado y las
+// llamadas a la API. La presentacion (tablas, modales, formularios) vive en
+// pages/admin/ y recibe todo por props.
 import React from 'react'
 import { apiDelete, apiGet, apiPost, apiPut, apiUpload } from '../utils/api'
-import Spinner from '../components/Spinner'
-import ErrorView from '../components/ErrorView'
-import './AdminPanel.css'
-
-const USER_INITIAL_FORM = {
-    nombre: '',
-    correo: '',
-    telefono: '',
-    password: '',
-    rol: 'donante',
-    departamento: '',
-    municipio: '',
-    zona: '',
-    direccion_detalle: '',
-    id_organizacion: '',
-    cargo: ''
-}
-
-const CAMP_INITIAL_FORM = {
-    titulo: '',
-    descripcion: '',
-    cantidad_necesaria: '',
-    fecha_publicacion: '',
-    fecha_limite: '',
-    estado: 'activa',
-    id_intermediario: '',
-    id_organizacion: '',
-    id_articulo: '',
-    imagen_url: ''
-}
-const ORG_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
-const ORG_PHONE_REGEX = /^[0-9+\-()\s]{8,20}$/
-const ORG_STATUSES = ['pendiente', 'verificada', 'rechazada', 'inactiva', 'archivada']
-
-function cleanSpaces(value) {
-    return value.trim().replace(/\s+/g, ' ')
-}
-
-function countDigits(value) {
-    return (value.match(/\d/g) || []).length
-}
-
-function buildOrgPayload(form) {
-    return {
-        nombre: cleanSpaces(form.nombre),
-        descripcion: cleanSpaces(form.descripcion),
-        direccion: cleanSpaces(form.direccion),
-        telefono: form.telefono.trim(),
-        correo: form.correo.trim().toLowerCase(),
-        estado_verificacion: form.estado_verificacion
-    }
-}
-
-function validateOrgForm(form) {
-    const errors = {}
-    const payload = buildOrgPayload(form)
-
-    if (payload.nombre.length < 3) errors.nombre = 'Ingresa al menos 3 caracteres'
-    if (payload.descripcion.length < 10) errors.descripcion = 'Ingresa una descripcion mas completa'
-    if (payload.direccion.length < 8) errors.direccion = 'Ingresa una direccion mas especifica'
-    if (!ORG_PHONE_REGEX.test(payload.telefono) || countDigits(payload.telefono) < 8) errors.telefono = 'Ingresa un telefono valido'
-    if (!ORG_EMAIL_REGEX.test(payload.correo)) errors.correo = 'Ingresa un correo valido'
-    if (!ORG_STATUSES.includes(payload.estado_verificacion)) errors.estado_verificacion = 'Selecciona un estado valido'
-
-    return errors
-}
-
-function IconUsers() {
-    return (
-        <svg viewBox="0 0 24 24" className="admin-svg-icon" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
-            <circle cx="9.5" cy="7" r="3.5" />
-            <path d="M20 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M14 4.13a3.5 3.5 0 0 1 0 5.74" />
-        </svg>
-    )
-}
-
-function IconCampaigns() {
-    return (
-        <svg viewBox="0 0 24 24" className="admin-svg-icon" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M4 19.5V4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 1 4 17.5" />
-            <path d="M8 7h8" />
-            <path d="M8 11h8" />
-            <path d="M8 15h5" />
-        </svg>
-    )
-}
-
-function IconEdit() {
-    return (
-        <svg viewBox="0 0 24 24" className="admin-action-icon" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 20h9" />
-            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-        </svg>
-    )
-}
-
-function IconTrash() {
-    return (
-        <svg viewBox="0 0 24 24" className="admin-action-icon" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M3 6h18" />
-            <path d="M8 6V4h8v2" />
-            <path d="M19 6l-1 14H6L5 6" />
-            <path d="M10 11v5" />
-            <path d="M14 11v5" />
-        </svg>
-    )
-}
-
-function IconPlus() {
-    return (
-        <svg viewBox="0 0 24 24" className="admin-button-icon" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 5v14" />
-            <path d="M5 12h14" />
-        </svg>
-    )
-}
-
-function IconToggle({ checked }) {
-    return (
-        <svg viewBox="0 0 24 24" className={`admin-action-icon ${checked ? 'checked' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" style={{ transition: 'all 0.2s ease' }}>
-            <rect x="2" y="6" width="20" height="12" rx="6" ry="6" fill={checked ? "var(--success)" : "var(--danger)"} stroke={checked ? "var(--success)" : "var(--danger)"} />
-            <circle cx={checked ? "16" : "8"} cy="12" r="3.5" fill="#ffffff" stroke="#ffffff" style={{ transition: 'all 0.2s ease' }} />
-        </svg>
-    )
-}
-
-function roleLabel(role) {
-    if (role === 'donante') return 'Donante'
-    if (role === 'intermediario') return 'Intermediario'
-    if (role === 'administrador') return 'Administrador'
-    return 'Sin rol'
-}
-
-function campaignStatusLabel(status) {
-    if (status === 'activa') return 'Activa'
-    if (status === 'finalizada') return 'Finalizada'
-    if (status === 'cancelada') return 'Cancelada'
-    return 'Sin estado'
-}
-
-function formatDate(value) {
-    if (!value) return 'Sin fecha'
-
-    try {
-        return new Intl.DateTimeFormat('es-GT', {
-            year: 'numeric',
-            month: 'short',
-            day: '2-digit'
-        }).format(new Date(value))
-    } catch {
-        return String(value)
-    }
-}
-
-function getProgress(publicacion) {
-    const necesaria = Number(publicacion.cantidad_necesaria || 0)
-    const recibida = Number(publicacion.cantidad_recibida || 0)
-
-    if (necesaria <= 0) return 0
-
-    return Math.min(100, Math.round((recibida / necesaria) * 100))
-}
-
-function buildUserPayload(form, includePassword) {
-    const payload = {
-        nombre: form.nombre.trim(),
-        correo: form.correo.trim().toLowerCase(),
-        telefono: form.telefono.trim()
-    }
-
-    if (includePassword) {
-        payload.password = form.password
-        payload.rol = form.rol
-    }
-
-    if (form.rol === 'donante') {
-        payload.departamento = form.departamento.trim()
-        payload.municipio = form.municipio.trim()
-        payload.zona = form.zona.trim()
-        payload.direccion_detalle = form.direccion_detalle.trim()
-    }
-
-    if (form.rol === 'intermediario') {
-        payload.id_organizacion = Number(form.id_organizacion)
-        payload.cargo = form.cargo.trim()
-    }
-
-    return payload
-}
-
-function validateUserForm(form, mode) {
-    const errors = {}
-
-    if (!form.nombre.trim()) {
-        errors.nombre = 'El nombre es obligatorio'
-    } else if (form.nombre.trim().length < 3) {
-        errors.nombre = 'Ingresa al menos 3 caracteres'
-    }
-
-    if (!form.correo.trim()) {
-        errors.correo = 'El correo es obligatorio'
-    } else if (!/^\S+@\S+\.\S+$/.test(form.correo.trim())) {
-        errors.correo = 'Ingresa un correo valido'
-    }
-
-    if (!form.telefono.trim()) {
-        errors.telefono = 'El telefono es obligatorio'
-    } else if (!/^[0-9\-+()\s]{8,20}$/.test(form.telefono.trim())) {
-        errors.telefono = 'Ingresa un telefono valido'
-    }
-
-    if (mode === 'create') {
-        if (form.password && form.password.length < 8) {
-            errors.password = 'La contraseña debe tener al menos 8 caracteres'
-        }
-
-        if (!['donante', 'intermediario', 'administrador'].includes(form.rol)) {
-            errors.rol = 'Selecciona un rol valido'
-        }
-    }
-
-    if (form.rol === 'donante') {
-        if (!form.departamento.trim()) errors.departamento = 'El departamento es obligatorio'
-        if (!form.municipio.trim()) errors.municipio = 'El municipio es obligatorio'
-        if (!form.zona.trim()) errors.zona = 'La zona es obligatoria'
-        if (!form.direccion_detalle.trim()) errors.direccion_detalle = 'La direccion es obligatoria'
-    }
-
-    if (form.rol === 'intermediario') {
-        if (!form.id_organizacion) errors.id_organizacion = 'Selecciona una organización'
-        if (!form.cargo.trim()) errors.cargo = 'El cargo es obligatorio'
-    }
-
-    return errors;
-}
-
-function ConfirmationModal({ isOpen, title, message, onCancel, onConfirm, isSubmitting }) {
-    if (!isOpen) return null;
-    return (
-        <AdminModal
-            title={title}
-            onClose={onCancel}
-            sizeClass="modal-confirm"
-            footer={(
-                <>
-                    <button type="button" className="profile-cancel-button" onClick={onCancel} disabled={isSubmitting}>
-                        Cancelar
-                    </button>
-                    <button type="button" className="admin-danger-button" onClick={onConfirm} disabled={isSubmitting}>
-                        {isSubmitting ? 'Confirmando...' : 'Confirmar'}
-                    </button>
-                </>
-            )}
-        >
-            <p className="admin-confirm-text">{message}</p>
-        </AdminModal>
-    )
-}
-
-function AdminModal({ title, description, children, footer, onClose, sizeClass = '' }) {
-    return (
-        <div className="admin-modal-backdrop" role="presentation" onMouseDown={onClose}>
-            <section
-                className={`admin-modal ${sizeClass}`}
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="admin-modal-title"
-                onMouseDown={(event) => event.stopPropagation()}
-            >
-                <header className="admin-modal-header">
-                    <div>
-                        <h2 id="admin-modal-title">{title}</h2>
-                        {description && <p>{description}</p>}
-                    </div>
-                    <button type="button" className="admin-modal-close" onClick={onClose} aria-label="Cerrar modal">
-                        x
-                    </button>
-                </header>
-                <div className="admin-modal-body">{children}</div>
-                {footer && <footer className="admin-modal-footer">{footer}</footer>}
-            </section>
-        </div>
-    )
-}
-
-function UserFormFields({ form, errors, mode, organizaciones, orgLoading, orgError, onChange }) {
-    const isAdmin = form.rol === 'administrador'
-    const isDonante = form.rol === 'donante'
-    const isIntermediario = form.rol === 'intermediario'
-
-    return (
-        <div className="form-grid">
-            <div className="form-row">
-                <div className="form-field">
-                    <label className="form-label" htmlFor="admin-user-nombre">Nombre completo</label>
-                    <input
-                        id="admin-user-nombre"
-                        className={`form-input ${errors.nombre ? 'form-input-invalid' : ''}`}
-                        name="nombre"
-                        value={form.nombre}
-                        onChange={onChange}
-                    />
-                    {errors.nombre && <span className="form-error-text">{errors.nombre}</span>}
-                </div>
-
-                <div className="form-field">
-                    <label className="form-label" htmlFor="admin-user-telefono">Telefono</label>
-                    <input
-                        id="admin-user-telefono"
-                        className={`form-input ${errors.telefono ? 'form-input-invalid' : ''}`}
-                        name="telefono"
-                        value={form.telefono}
-                        onChange={onChange}
-                    />
-                    {errors.telefono && <span className="form-error-text">{errors.telefono}</span>}
-                </div>
-            </div>
-
-            <div className="form-row">
-                <div className="form-field">
-                    <label className="form-label" htmlFor="admin-user-correo">Correo</label>
-                    <input
-                        id="admin-user-correo"
-                        type="email"
-                        className={`form-input ${errors.correo ? 'form-input-invalid' : ''}`}
-                        name="correo"
-                        value={form.correo}
-                        onChange={onChange}
-                    />
-                    {errors.correo && <span className="form-error-text">{errors.correo}</span>}
-                </div>
-
-                <div className="form-field">
-                    <label className="form-label" htmlFor="admin-user-rol">Rol</label>
-                    <select
-                        id="admin-user-rol"
-                        className={`form-select ${errors.rol ? 'form-input-invalid' : ''}`}
-                        name="rol"
-                        value={form.rol}
-                        onChange={onChange}
-                        disabled={mode === 'edit'}
-                    >
-                        <option value="donante">Donante</option>
-                        <option value="intermediario">Intermediario</option>
-                        <option value="administrador">Administrador</option>
-                    </select>
-                    {errors.rol && <span className="form-error-text">{errors.rol}</span>}
-                </div>
-            </div>
-
-            {mode === 'create' && (
-                <div className="form-field">
-                    <label className="form-label" htmlFor="admin-user-password">Contraseña temporal</label>
-                    <input
-                        id="admin-user-password"
-                        type="password"
-                        className={`form-input ${errors.password ? 'form-input-invalid' : ''}`}
-                        name="password"
-                        placeholder="Dejar en blanco para autogenerar automáticamente"
-                        value={form.password}
-                        onChange={onChange}
-                    />
-                    {errors.password && <span className="form-error-text">{errors.password}</span>}
-                </div>
-            )}
-
-            {isDonante && (
-                <>
-                    <div className="form-row">
-                        <div className="form-field">
-                            <label className="form-label" htmlFor="admin-user-departamento">Departamento</label>
-                            <input
-                                id="admin-user-departamento"
-                                className={`form-input ${errors.departamento ? 'form-input-invalid' : ''}`}
-                                name="departamento"
-                                value={form.departamento}
-                                onChange={onChange}
-                            />
-                            {errors.departamento && <span className="form-error-text">{errors.departamento}</span>}
-                        </div>
-
-                        <div className="form-field">
-                            <label className="form-label" htmlFor="admin-user-municipio">Municipio</label>
-                            <input
-                                id="admin-user-municipio"
-                                className={`form-input ${errors.municipio ? 'form-input-invalid' : ''}`}
-                                name="municipio"
-                                value={form.municipio}
-                                onChange={onChange}
-                            />
-                            {errors.municipio && <span className="form-error-text">{errors.municipio}</span>}
-                        </div>
-                    </div>
-
-                    <div className="form-row">
-                        <div className="form-field">
-                            <label className="form-label" htmlFor="admin-user-zona">Zona</label>
-                            <input
-                                id="admin-user-zona"
-                                className={`form-input ${errors.zona ? 'form-input-invalid' : ''}`}
-                                name="zona"
-                                value={form.zona}
-                                onChange={onChange}
-                            />
-                            {errors.zona && <span className="form-error-text">{errors.zona}</span>}
-                        </div>
-
-                        <div className="form-field">
-                            <label className="form-label" htmlFor="admin-user-direccion">Direccion</label>
-                            <input
-                                id="admin-user-direccion"
-                                className={`form-input ${errors.direccion_detalle ? 'form-input-invalid' : ''}`}
-                                name="direccion_detalle"
-                                value={form.direccion_detalle}
-                                onChange={onChange}
-                            />
-                            {errors.direccion_detalle && (
-                                <span className="form-error-text">{errors.direccion_detalle}</span>
-                            )}
-                        </div>
-                    </div>
-                </>
-            )}
-
-            {isIntermediario && (
-                <div className="form-row">
-                    <div className="form-field">
-                        <label className="form-label" htmlFor="admin-user-organizacion">Organización</label>
-                        <select
-                            id="admin-user-organizacion"
-                            className={`form-select ${errors.id_organizacion ? 'form-input-invalid' : ''}`}
-                            name="id_organizacion"
-                            value={form.id_organizacion}
-                            onChange={onChange}
-                            disabled={orgLoading}
-                        >
-                            <option value="">Selecciona una organización</option>
-                            {organizaciones.filter((organizacion) => organizacion.estado_verificacion === 'verificada').map((organizacion) => (
-                                <option key={organizacion.id_organizacion} value={organizacion.id_organizacion}>
-                                    {organizacion.nombre}
-                                </option>
-                            ))}
-                        </select>
-                        {errors.id_organizacion && (
-                            <span className="form-error-text">{errors.id_organizacion}</span>
-                        )}
-                        {orgLoading && <span className="form-help-text">Cargando organizaciones...</span>}
-                        {orgError && <span className="form-error-text">{orgError}</span>}
-                    </div>
-
-                    <div className="form-field">
-                        <label className="form-label" htmlFor="admin-user-cargo">Cargo</label>
-                        <input
-                            id="admin-user-cargo"
-                            className={`form-input ${errors.cargo ? 'form-input-invalid' : ''}`}
-                            name="cargo"
-                            value={form.cargo}
-                            onChange={onChange}
-                        />
-                        {errors.cargo && <span className="form-error-text">{errors.cargo}</span>}
-                    </div>
-                </div>
-            )}
-
-            {isAdmin && (
-                <div className="admin-inline-note">
-                    Esta cuenta tendra acceso al Panel de Administrador.
-                </div>
-            )}
-        </div>
-    )
-}
-
-function SkeletonRows({ cols, rows = 5 }) {
-    return Array.from({ length: rows }).map((_, i) => (
-        <tr key={i} className="skeleton-row">
-            {Array.from({ length: cols }).map((__, j) => (
-                <td key={j}><div className="skeleton-cell" /></td>
-            ))}
-        </tr>
-    ))
-}
+import { IconUsers, IconCampaigns, IconPlus } from '../components/icons'
+import {
+    USER_INITIAL_FORM,
+    CAMP_INITIAL_FORM,
+    buildOrgPayload,
+    validateOrgForm,
+    buildUserPayload,
+    validateUserForm
+} from './admin/adminForms'
+import { campaignStatusLabel } from './admin/adminHelpers'
+import AdminUsersTable from './admin/AdminUsersTable'
+import AdminOrgsTable from './admin/AdminOrgsTable'
+import AdminCampaignsTable from './admin/AdminCampaignsTable'
+import AdminModal from './admin/AdminModal'
+import UserFormModal from './admin/UserFormModal'
+import CampaignFormModal from './admin/CampaignFormModal'
+import OrgFormModal from './admin/OrgFormModal'
+import TempPasswordModal from './admin/TempPasswordModal'
+import ConfirmationModal from './admin/ConfirmationModal'
+import './admin/admin-panel.css'
 
 export default function AdminPanel({ usuarioSesion }) {
     const [activeTab, setActiveTab] = React.useState('usuarios')
@@ -1072,411 +611,63 @@ export default function AdminPanel({ usuarioSesion }) {
         }
     }
 
-    const renderUsersTable = () => {
-        if (usersError) return <ErrorView message={usersError} onRetry={loadUsers} />
-        if (usuarios.length === 0 && !loadingUsers) return <div className="empty-box">No hay usuarios registrados.</div>
-
-        return (
-            <div className="admin-table-wrap">
-                <table className="admin-table admin-table-users">
-                    <thead>
-                        <tr>
-                            <th>Usuario</th>
-                            <th>Telefono</th>
-                            <th>Rol</th>
-                            <th>Registro</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {loadingUsers
-                            ? <SkeletonRows cols={5} rows={4} />
-                            : usuarios.map((usuario) => {
-                                const isSelf = usuarioSesion?.id_usuario === usuario.id_usuario
-
-                                return (
-                                    <tr key={usuario.id_usuario}>
-                                        <td>
-                                            <div className="admin-table-primary">{usuario.nombre}</div>
-                                            <div className="admin-table-muted">{usuario.correo}</div>
-                                        </td>
-                                        <td>{usuario.telefono}</td>
-                                        <td>
-                                            <span className={`admin-status-pill admin-status-${usuario.rol}`}>
-                                                {roleLabel(usuario.rol)}
-                                            </span>
-                                        </td>
-                                        <td>{formatDate(usuario.fecha_registro)}</td>
-                                        <td>
-                                            <div className="admin-row-actions">
-                                                <button
-                                                    type="button"
-                                                    className="admin-icon-button"
-                                                    onClick={() => openEditUser(usuario)}
-                                                    aria-label={`Editar ${usuario.nombre}`}
-                                                    title="Editar"
-                                                >
-                                                    <IconEdit />
-                                                </button>
-                                                {usuario.activo !== 0 ? (
-                                                    <button
-                                                        type="button"
-                                                        className="admin-icon-button"
-                                                        onClick={() => openDesactivarUser(usuario)}
-                                                        disabled={isSelf}
-                                                        aria-label={`Desactivar ${usuario.nombre}`}
-                                                        title="Desactivar"
-                                                    >
-                                                        <IconToggle checked={true} />
-                                                    </button>
-                                                ) : (
-                                                    <button
-                                                        type="button"
-                                                        className="admin-icon-button"
-                                                        onClick={() => openActivarUser(usuario)}
-                                                        disabled={isSelf}
-                                                        aria-label={`Activar ${usuario.nombre}`}
-                                                        title="Activar"
-                                                    >
-                                                        <IconToggle checked={false} />
-                                                    </button>
-                                                )}
-                                                <button
-                                                    type="button"
-                                                    className="admin-icon-button admin-icon-button-danger"
-                                                    onClick={() => openAnonimizarUser(usuario)}
-                                                    disabled={isSelf || usuario.nombre === 'Usuario Anonimizado'}
-                                                    aria-label={`Anonimizar ${usuario.nombre}`}
-                                                    title="Anonimizar"
-                                                >
-                                                    <IconTrash />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )
-                            })}
-                    </tbody>
-                </table>
-            </div>
-        )
-    }
-
-    const renderCampaignsTable = () => {
-        if (campaignsError) return <ErrorView message={campaignsError} onRetry={loadCampaigns} />
-        if (publicaciones.length === 0 && !loadingCampaigns) return <div className="empty-box">No hay campañas registradas.</div>
-
-        return (
-            <div className="admin-table-wrap">
-                <table className="admin-table admin-table-campaigns">
-                    <thead>
-                        <tr>
-                            <th>Campaña</th>
-                            <th>Organización</th>
-                            <th>Progreso</th>
-                            <th>Fechas</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {loadingCampaigns
-                            ? <SkeletonRows cols={5} rows={4} />
-                            : publicaciones.map((publicacion) => {
-                                const progress = getProgress(publicacion)
-                                const isSaving = savingCampaignId === publicacion.id_publicacion
-
-                                const statusClass = publicacion.estado === 'activa'
-                                    ? 'status-active'
-                                    : publicacion.estado === 'finalizada'
-                                        ? 'status-finished'
-                                        : publicacion.estado === 'cancelada'
-                                            ? 'status-canceled'
-                                            : ''
-
-                                return (
-                                    <tr key={publicacion.id_publicacion}>
-                                        <td>
-                                            <div className="admin-table-primary">{publicacion.titulo}</div>
-                                            <div className="admin-table-muted">{publicacion.categoria || 'Sin categoría'}</div>
-                                        </td>
-                                        <td>{publicacion.organizacion || 'Sin organización'}</td>
-                                        <td>
-                                            <div className="admin-progress-cell">
-                                                <span>{progress}%</span>
-                                                <div className="progress-track admin-progress-track">
-                                                    <div className="progress-fill" style={{ width: `${progress}%` }} />
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div>{formatDate(publicacion.fecha_publicacion)}</div>
-                                            <div className="admin-table-muted">Límite: {formatDate(publicacion.fecha_limite)}</div>
-                                        </td>
-                                        <td>
-                                            <select
-                                                className={`form-select admin-select-status campaign-select-status ${statusClass}`}
-                                                value={publicacion.estado}
-                                                onChange={(e) => handleChangeCampaignStatus(publicacion, e.target.value)}
-                                                disabled={isSaving}
-                                            >
-                                                <option value="activa">Activa</option>
-                                                <option value="finalizada">Finalizada</option>
-                                                <option value="cancelada">Cancelada</option>
-                                            </select>
-                                        </td>
-                                    </tr>
-                                )
-                            })}
-                    </tbody>
-                </table>
-            </div>
-        )
+    const handleCopyTempPassword = () => {
+        navigator.clipboard.writeText(modal.password)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
     }
 
     const currentModal = (() => {
-
         if (modal?.type === 'createUser' || modal?.type === 'editUser') {
-            const isCreate = modal.type === 'createUser'
-
             return (
-                <AdminModal
-                    title={isCreate ? 'Nuevo usuario' : 'Editar usuario'}
-                    description={isCreate ? 'Crea una cuenta operativa para la plataforma.' : 'Actualiza los datos principales de esta cuenta.'}
+                <UserFormModal
+                    isCreate={modal.type === 'createUser'}
+                    form={userForm}
+                    errors={formErrors}
+                    organizaciones={organizaciones}
+                    orgLoading={orgLoading}
+                    orgError={orgError}
+                    onChange={handleUserFormChange}
+                    onSubmit={submitUserForm}
                     onClose={closeModal}
-                    footer={(
-                        <>
-                            <button type="button" className="profile-cancel-button" onClick={closeModal} disabled={isSubmitting}>
-                                Cancelar
-                            </button>
-                            <button type="submit" form="admin-user-form" className="btn-confirmar admin-submit-button" disabled={isSubmitting}>
-                                {isSubmitting ? 'Guardando...' : 'Guardar usuario'}
-                            </button>
-                        </>
-                    )}
-                >
-                    {modalError && <div className="error-box">{modalError}</div>}
-                    <form id="admin-user-form" onSubmit={submitUserForm} noValidate>
-                        <UserFormFields
-                            form={userForm}
-                            errors={formErrors}
-                            mode={isCreate ? 'create' : 'edit'}
-                            organizaciones={organizaciones}
-                            orgLoading={orgLoading}
-                            orgError={orgError}
-                            onChange={handleUserFormChange}
-                        />
-                    </form>
-                </AdminModal>
+                    isSubmitting={isSubmitting}
+                    modalError={modalError}
+                />
             )
         }
 
         if (modal?.type === 'createCampaign') {
-            const intermediarios = usuarios.filter((u) => u.rol === 'intermediario')
             return (
-                <AdminModal
-                    title="Nueva campaña"
-                    description="Crea una campaña de recolección de donaciones."
+                <CampaignFormModal
+                    campForm={campForm}
+                    campFormErrors={campFormErrors}
+                    articulos={articulos}
+                    organizaciones={organizaciones}
+                    intermediarios={usuarios.filter((u) => u.rol === 'intermediario')}
+                    onChange={handleCampChange}
+                    onImageChange={handleImageChange}
+                    onSubmit={submitCampForm}
                     onClose={closeModal}
-                    footer={(
-                        <>
-                            <button type="button" className="profile-cancel-button" onClick={closeModal} disabled={isSubmitting}>
-                                Cancelar
-                            </button>
-                            <button type="submit" form="camp-form" className="btn-confirmar admin-submit-button" disabled={isSubmitting || uploadingImage}>
-                                {isSubmitting ? 'Guardando...' : 'Crear campaña'}
-                            </button>
-                        </>
-                    )}
-                >
-                    {modalError && <div className="error-box">{modalError}</div>}
-                    <form id="camp-form" onSubmit={submitCampForm} noValidate>
-                        <div className="form-grid">
-                            <div className="form-field">
-                                <label className="form-label">Título</label>
-                                <input className={`form-input ${campFormErrors.titulo ? 'form-input-invalid' : ''}`} name="titulo" value={campForm.titulo} onChange={handleCampChange} />
-                                {campFormErrors.titulo && <span className="form-error-text">{campFormErrors.titulo}</span>}
-                            </div>
-
-                            <div className="form-field">
-                                <label className="form-label">Descripción</label>
-                                <textarea className={`form-textarea ${campFormErrors.descripcion ? 'form-input-invalid' : ''}`} name="descripcion" value={campForm.descripcion} onChange={handleCampChange} />
-                                {campFormErrors.descripcion && <span className="form-error-text">{campFormErrors.descripcion}</span>}
-                            </div>
-
-                            <div className="form-field">
-                                <label className="form-label">Cantidad necesaria</label>
-                                <input className={`form-input ${campFormErrors.cantidad_necesaria ? 'form-input-invalid' : ''}`} name="cantidad_necesaria" type="number" min="1" value={campForm.cantidad_necesaria} onChange={handleCampChange} />
-                                {campFormErrors.cantidad_necesaria && <span className="form-error-text">{campFormErrors.cantidad_necesaria}</span>}
-                            </div>
-
-                            <div className="form-field">
-                                <label className="form-label">Fecha de publicación</label>
-                                <input className={`form-input ${campFormErrors.fecha_publicacion ? 'form-input-invalid' : ''}`} name="fecha_publicacion" type="date" value={campForm.fecha_publicacion} onChange={handleCampChange} />
-                                {campFormErrors.fecha_publicacion && <span className="form-error-text">{campFormErrors.fecha_publicacion}</span>}
-                            </div>
-
-                            <div className="form-field">
-                                <label className="form-label">Fecha límite</label>
-                                <input className={`form-input ${campFormErrors.fecha_limite ? 'form-input-invalid' : ''}`} name="fecha_limite" type="date" value={campForm.fecha_limite} onChange={handleCampChange} />
-                                {campFormErrors.fecha_limite && <span className="form-error-text">{campFormErrors.fecha_limite}</span>}
-                            </div>
-
-                            <div className="form-field">
-                                <label className="form-label">Estado</label>
-                                <select className="form-select" name="estado" value={campForm.estado} onChange={handleCampChange}>
-                                    <option value="activa">Activa</option>
-                                    <option value="finalizada">Finalizada</option>
-                                    <option value="cancelada">Cancelada</option>
-                                </select>
-                            </div>
-
-                            <div className="form-field">
-                                <label className="form-label">Intermediario</label>
-                                <select className={`form-select ${campFormErrors.id_intermediario ? 'form-input-invalid' : ''}`} name="id_intermediario" value={campForm.id_intermediario} onChange={handleCampChange}>
-                                    <option value="">Selecciona un intermediario</option>
-                                    {intermediarios.map((u) => (
-                                        <option key={u.id_usuario} value={u.id_usuario}>{u.nombre}</option>
-                                    ))}
-                                </select>
-                                {campFormErrors.id_intermediario && <span className="form-error-text">{campFormErrors.id_intermediario}</span>}
-                            </div>
-
-                            <div className="form-field">
-                                <label className="form-label">Organización</label>
-                                <select className={`form-select ${campFormErrors.id_organizacion ? 'form-input-invalid' : ''}`} name="id_organizacion" value={campForm.id_organizacion} onChange={handleCampChange}>
-                                    <option value="">Selecciona una organización</option>
-                                    {organizaciones.filter((o) => o.estado_verificacion === 'verificada').map((o) => (
-                                        <option key={o.id_organizacion} value={o.id_organizacion}>{o.nombre}</option>
-                                    ))}
-                                </select>
-                                {campFormErrors.id_organizacion && <span className="form-error-text">{campFormErrors.id_organizacion}</span>}
-                            </div>
-
-                            <div className="form-field">
-                                <label className="form-label">Artículo</label>
-                                <select className={`form-select ${campFormErrors.id_articulo ? 'form-input-invalid' : ''}`} name="id_articulo" value={campForm.id_articulo} onChange={handleCampChange}>
-                                    <option value="">Selecciona un artículo</option>
-                                    {articulos.map((a) => (
-                                        <option key={a.id_articulo} value={a.id_articulo}>{a.nombre}</option>
-                                    ))}
-                                </select>
-                                {campFormErrors.id_articulo && <span className="form-error-text">{campFormErrors.id_articulo}</span>}
-                            </div>
-
-                            <div className="form-field">
-                                <label className="form-label">Imagen</label>
-                                <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={handleImageChange} disabled={uploadingImage} className={`form-input ${campFormErrors.imagen_url ? 'form-input-invalid' : ''}`} />
-                                {uploadingImage && <span className="form-error-text" style={{ color: 'var(--primary)' }}>Subiendo imagen...</span>}
-                                {campFormErrors.imagen_url && <span className="form-error-text">{campFormErrors.imagen_url}</span>}
-                                {imagePreview && !uploadingImage && (
-                                    <img src={imagePreview} alt="Vista previa" style={{ marginTop: '8px', maxHeight: '120px', borderRadius: '6px', objectFit: 'cover' }} />
-                                )}
-                            </div>
-                        </div>
-                    </form>
-                </AdminModal>
+                    isSubmitting={isSubmitting}
+                    uploadingImage={uploadingImage}
+                    imagePreview={imagePreview}
+                    modalError={modalError}
+                />
             )
         }
 
         if (modal?.type === 'createOrg' || modal?.type === 'editOrg') {
             return (
-                <AdminModal
-                    title={modal.type === 'editOrg' ? 'Editar organización' : 'Nueva organización'}
-                    description={modal.type === 'editOrg' ? 'Actualiza los datos de la organización.' : 'Crea una organización en la plataforma'}
+                <OrgFormModal
+                    isEdit={modal.type === 'editOrg'}
+                    orgForm={orgForm}
+                    orgFormErrors={orgFormErrors}
+                    onChange={handleOrgChange}
+                    onSubmit={submitOrgForm}
                     onClose={closeModal}
-                    footer={(
-                        <>
-                            <button type="button" className="profile-cancel-button" onClick={closeModal} disabled={isSubmitting}>
-                                Cancelar
-                            </button>
-                            <button
-                                type="submit"
-                                form="org-form"
-                                className="btn-confirmar admin-submit-button"
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting ? 'Guardando...' : 'Guardar'}
-                            </button>
-                        </>
-                    )}
-                >
-                    {modalError && <div className="error-box">{modalError}</div>}
-
-                    <form id="org-form" onSubmit={submitOrgForm}>
-                        <div className="form-grid">
-                            <div className="form-field">
-                                <label className="form-label">Nombre</label>
-                                <input
-                                    className={`form-input ${orgFormErrors.nombre ? 'form-input-invalid' : ''}`}
-                                    name="nombre"
-                                    value={orgForm.nombre}
-                                    onChange={handleOrgChange}
-                                />
-                                {orgFormErrors.nombre && <span className="form-error-text org-field-error-text">{orgFormErrors.nombre}</span>}
-                            </div>
-
-                            <div className="form-field">
-                                <label className="form-label">Descripcion</label>
-                                <textarea
-                                    className={`form-textarea ${orgFormErrors.descripcion ? 'form-input-invalid' : ''}`}
-                                    name="descripcion"
-                                    value={orgForm.descripcion}
-                                    onChange={handleOrgChange}
-                                />
-                                {orgFormErrors.descripcion && <span className="form-error-text org-field-error-text">{orgFormErrors.descripcion}</span>}
-                            </div>
-
-                            <div className="form-field">
-                                <label className="form-label">Direccion</label>
-                                <input
-                                    className={`form-input ${orgFormErrors.direccion ? 'form-input-invalid' : ''}`}
-                                    name="direccion"
-                                    value={orgForm.direccion}
-                                    onChange={handleOrgChange}
-                                />
-                                {orgFormErrors.direccion && <span className="form-error-text org-field-error-text">{orgFormErrors.direccion}</span>}
-                            </div>
-
-                            <div className="form-field">
-                                <label className="form-label">Telefono</label>
-                                <input
-                                    className={`form-input ${orgFormErrors.telefono ? 'form-input-invalid' : ''}`}
-                                    name="telefono"
-                                    value={orgForm.telefono}
-                                    onChange={handleOrgChange}
-                                />
-                                {orgFormErrors.telefono && <span className="form-error-text org-field-error-text">{orgFormErrors.telefono}</span>}
-                            </div>
-
-                            <div className="form-field">
-                                <label className="form-label">Correo</label>
-                                <input
-                                    className={`form-input ${orgFormErrors.correo ? 'form-input-invalid' : ''}`}
-                                    name="correo"
-                                    value={orgForm.correo}
-                                    onChange={handleOrgChange}
-                                />
-                                {orgFormErrors.correo && <span className="form-error-text org-field-error-text">{orgFormErrors.correo}</span>}
-                            </div>
-
-                            <div className="form-field">
-                                <label className="form-label">Estado</label>
-                                <select
-                                    className="form-select"
-                                    name="estado_verificacion"
-                                    value={orgForm.estado_verificacion}
-                                    onChange={handleOrgChange}
-                                >
-                                    <option value="pendiente">Pendiente</option>
-                                    <option value="verificada">Verificada</option>
-                                    <option value="rechazada">Rechazada</option>
-                                    <option value="inactiva">Inactiva</option>
-                                    <option value="archivada">Archivada</option>
-                                </select>
-                            </div>
-                        </div>
-                    </form>
-                </AdminModal>
+                    isSubmitting={isSubmitting}
+                    modalError={modalError}
+                />
             )
         }
 
@@ -1507,41 +698,14 @@ export default function AdminPanel({ usuarioSesion }) {
         }
 
         if (modal?.type === 'tempPassword') {
-            const handleCopy = () => {
-                navigator.clipboard.writeText(modal.password)
-                setCopied(true)
-                setTimeout(() => setCopied(false), 2000)
-            }
-
             return (
-                <AdminModal
-                    title="Contraseña Temporal Generada"
-                    description="Se ha creado el usuario con una contraseña temporal. Por favor, cópiala y compártela de forma segura."
+                <TempPasswordModal
+                    email={modal.email}
+                    password={modal.password}
                     onClose={closeModal}
-                    footer={(
-                        <button type="button" className="btn-confirmar temp-password-close-btn" onClick={closeModal}>
-                            He guardado la contraseña
-                        </button>
-                    )}
-                >
-                    <div className="temp-password-box">
-                        <p className="temp-password-user-label">
-                            <strong>Usuario:</strong> {modal.email}
-                        </p>
-                        <div className="temp-password-value-container">
-                            <span className="temp-password-monospace">
-                                {modal.password}
-                            </span>
-                            <button
-                                type="button"
-                                className="profile-edit-button temp-password-copy-btn"
-                                onClick={handleCopy}
-                            >
-                                {copied ? 'Copiado' : 'Copiar Contraseña'}
-                            </button>
-                        </div>
-                    </div>
-                </AdminModal>
+                    copied={copied}
+                    onCopy={handleCopyTempPassword}
+                />
             )
         }
 
@@ -1584,7 +748,7 @@ export default function AdminPanel({ usuarioSesion }) {
                         className={`admin-tab-button ${activeTab === 'usuarios' ? 'active' : ''}`}
                         onClick={() => setActiveTab('usuarios')}
                     >
-                        <IconUsers />
+                        <IconUsers className="admin-svg-icon" />
                         <span>Usuarios</span>
                     </button>
                     <button
@@ -1592,7 +756,7 @@ export default function AdminPanel({ usuarioSesion }) {
                         className={`admin-tab-button ${activeTab === 'organizaciones' ? 'active' : ''}`}
                         onClick={() => setActiveTab('organizaciones')}
                     >
-                        <IconUsers />
+                        <IconUsers className="admin-svg-icon" />
                         <span>Organizaciones</span>
                     </button>
                     <button
@@ -1600,7 +764,7 @@ export default function AdminPanel({ usuarioSesion }) {
                         className={`admin-tab-button ${activeTab === 'campanas' ? 'active' : ''}`}
                         onClick={() => setActiveTab('campanas')}
                     >
-                        <IconCampaigns />
+                        <IconCampaigns className="admin-svg-icon" />
                         <span>Campañas</span>
                     </button>
                 </aside>
@@ -1614,11 +778,21 @@ export default function AdminPanel({ usuarioSesion }) {
                                     <p>Administra cuentas de donantes, intermediarios y administradores.</p>
                                 </div>
                                 <button type="button" className="admin-primary-action" onClick={openCreateUser}>
-                                    <IconPlus />
+                                    <IconPlus className="admin-button-icon" />
                                     <span>Nuevo Usuario</span>
                                 </button>
                             </div>
-                            {renderUsersTable()}
+                            <AdminUsersTable
+                                usuarios={usuarios}
+                                loadingUsers={loadingUsers}
+                                usersError={usersError}
+                                usuarioSesion={usuarioSesion}
+                                onRetry={loadUsers}
+                                onEdit={openEditUser}
+                                onDesactivar={openDesactivarUser}
+                                onActivar={openActivarUser}
+                                onAnonimizar={openAnonimizarUser}
+                            />
                         </>
                     ) : activeTab === 'organizaciones' ? (
                         <>
@@ -1628,69 +802,19 @@ export default function AdminPanel({ usuarioSesion }) {
                                     <p>Administra organizaciones registradas en la plataforma.</p>
                                 </div>
                                 <button type="button" className="admin-primary-action" onClick={openCreateOrg}>
-                                    <IconPlus />
+                                    <IconPlus className="admin-button-icon" />
                                     <span>Nueva Organización</span>
                                 </button>
                             </div>
-
-                            {orgError && <ErrorView message={orgError} onRetry={ensureOrganizations} />}
-                            {orgLoading && <div className="empty-box">Cargando organizaciones...</div>}
-                            {!orgLoading && !orgError && organizaciones.length === 0 && (
-                                <div className="empty-box">No hay organizaciones registradas.</div>
-                            )}
-                            {!orgLoading && !orgError && organizaciones.length > 0 && (
-                                <div className="admin-table-wrap">
-                                    <table className="admin-table admin-table-orgs">
-                                        <thead>
-                                            <tr>
-                                                <th>Organización</th>
-                                                <th>Estado</th>
-                                                <th>Dirección</th>
-                                                <th>Telefono</th>
-                                                <th>Correo</th>
-                                                <th>Acciones</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {organizaciones.map((org) => (
-                                                <tr key={org.id_organizacion}>
-                                                    <td>
-                                                        <div className="admin-table-primary">{org.nombre}</div>
-                                                        <div className="admin-table-muted">{org.descripcion || 'Sin descripción'}</div>
-                                                    </td>
-                                                    <td>{org.estado_verificacion || 'Sin estado'}</td>
-                                                    <td>{org.direccion || '-'}</td>
-                                                    <td>{org.telefono || '-'}</td>
-                                                    <td>{org.correo || '-'}</td>
-                                                    <td>
-                                                        <div className="admin-row-actions">
-                                                            <button
-                                                                type="button"
-                                                                className="admin-icon-button"
-                                                                onClick={() => openEditOrg(org)}
-                                                                title="Editar"
-                                                                aria-label={`Editar ${org.nombre}`}
-                                                            >
-                                                                <IconEdit />
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                className="admin-icon-button admin-icon-button-danger"
-                                                                onClick={() => openArchivarOrg(org)}
-                                                                disabled={isSubmitting}
-                                                                title="Archivar"
-                                                                aria-label={`Archivar ${org.nombre}`}
-                                                            >
-                                                                <IconTrash />
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
+                            <AdminOrgsTable
+                                organizaciones={organizaciones}
+                                orgLoading={orgLoading}
+                                orgError={orgError}
+                                isSubmitting={isSubmitting}
+                                onRetry={ensureOrganizations}
+                                onEdit={openEditOrg}
+                                onArchivar={openArchivarOrg}
+                            />
                         </>
                     ) : (
                         <>
@@ -1700,11 +824,18 @@ export default function AdminPanel({ usuarioSesion }) {
                                     <p>Activa o desactiva campañas publicadas en la plataforma.</p>
                                 </div>
                                 <button type="button" className="admin-primary-action" onClick={openCreateCampaign}>
-                                    <IconPlus />
+                                    <IconPlus className="admin-button-icon" />
                                     <span>Nueva Campaña</span>
                                 </button>
                             </div>
-                            {renderCampaignsTable()}
+                            <AdminCampaignsTable
+                                publicaciones={publicaciones}
+                                loadingCampaigns={loadingCampaigns}
+                                campaignsError={campaignsError}
+                                savingCampaignId={savingCampaignId}
+                                onRetry={loadCampaigns}
+                                onStatusChange={handleChangeCampaignStatus}
+                            />
                         </>
                     )}
                 </section>
