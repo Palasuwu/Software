@@ -88,6 +88,11 @@ export async function apiPut(url, data, init = {}) {
     return parseApiResponse(response)
 }
 
+export async function apiPatch(url, data = {}, init = {}) {
+    const response = await apiFetch(url, buildJsonInit('PATCH', data, init))
+    return parseApiResponse(response)
+}
+
 export async function apiDelete(url, init = {}) {
     const response = await apiFetch(url, {
         ...init,
