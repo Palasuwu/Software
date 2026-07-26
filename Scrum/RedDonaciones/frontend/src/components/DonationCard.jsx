@@ -37,7 +37,7 @@ export default function DonationCard({ org, index = 0 }) {
         <p className="campaign-org">{org.organizacion}</p>
 
         <div className="campaign-location">
-          <IconLocation />
+          <IconLocation className="meta-icon" />
           <span>{org.location || 'Ubicacion no disponible'}</span>
         </div>
 
@@ -53,7 +53,7 @@ export default function DonationCard({ org, index = 0 }) {
         </div>
 
         <div className="campaign-supporters">
-          <IconUsers />
+          <IconUsers className="meta-icon" />
           <span>{formatAmount(org.supporters)} unidades registradas</span>
         </div>
 
