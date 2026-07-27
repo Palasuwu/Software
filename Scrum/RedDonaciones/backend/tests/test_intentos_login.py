@@ -42,7 +42,10 @@ class LoginCursor:
     def execute(self, sql, params=None):
         sql_norm = " ".join(sql.split())
 
-        if sql_norm.startswith("SELECT id_usuario, nombre, correo"):
+        if "information_schema.COLUMNS" in sql_norm:
+            self._resultado = {"total": 1}
+
+        elif sql_norm.startswith("SELECT id_usuario, nombre, correo"):
             self._resultado = self.estado.as_row()
 
         elif "SET intentos_fallidos = 0" in sql_norm and "bloqueado_hasta = DATE_ADD" in sql_norm:

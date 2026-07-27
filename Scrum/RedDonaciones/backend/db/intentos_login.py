@@ -3,14 +3,24 @@ MINUTOS_BLOQUEO = 15
 
 
 def asegurar_columnas_intentos_login(cursor):
-    cursor.execute(
-        "ALTER TABLE usuario ADD COLUMN IF NOT EXISTS "
-        "intentos_fallidos INT NOT NULL DEFAULT 0"
+    # MySQL no soporta "ADD COLUMN IF NOT EXISTS"; se revisa information_schema.
+    columnas = (
+        ("intentos_fallidos", "INT NOT NULL DEFAULT 0"),
+        ("bloqueado_hasta", "DATETIME NULL"),
     )
-    cursor.execute(
-        "ALTER TABLE usuario ADD COLUMN IF NOT EXISTS "
-        "bloqueado_hasta DATETIME NULL"
-    )
+    for columna, definicion in columnas:
+        cursor.execute(
+            """
+            SELECT COUNT(*) AS total
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = 'usuario'
+            AND COLUMN_NAME = %s
+            """,
+            (columna,)
+        )
+        if cursor.fetchone()["total"] == 0:
+            cursor.execute(f"ALTER TABLE usuario ADD COLUMN {columna} {definicion}")
 
 
 def registrar_intento_fallido(cursor, id_usuario, intentos_actuales):

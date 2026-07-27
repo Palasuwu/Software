@@ -18,10 +18,15 @@ def crear_conexion_mock(usuario_mock):
     """
 
     class DummyCursor:
+        def __init__(self):
+            self.ultima_consulta = ""
+
         def execute(self, sql, params=None):
-            return None
+            self.ultima_consulta = sql
 
         def fetchone(self):
+            if "information_schema.COLUMNS" in self.ultima_consulta:
+                return {"total": 1}
             return usuario_mock
 
         def close(self):
