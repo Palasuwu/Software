@@ -2,13 +2,7 @@ import os
 
 from auth_utils import generate_token
 
-# -----------------------------------------------------------------------------
-# Pruebas para DELETE /usuarios/<id_usuario>
-#
-# Cubren el bug donde eliminar un intermediario fallaba con un error interno
-# porque la consulta de publicaciones asociadas usaba una variable
-# (id_intermediario) que nunca fue definida en la funcion.
-# -----------------------------------------------------------------------------
+# Pruebas para DELETE /usuarios/<id_usuario> (bug: id_intermediario indefinido)
 
 
 class CursorEliminarUsuario:

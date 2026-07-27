@@ -270,6 +270,7 @@ def crear_donacion():
             return jsonify({"error": "El donante no existe"}), 404
 
         # Verificar que exista la publicación
+        # FOR UPDATE evita que dos donaciones concurrentes lean el mismo cupo
         cursor.execute(
             """
             SELECT
@@ -281,6 +282,7 @@ def crear_donacion():
                 estado
             FROM publicacion
             WHERE id_publicacion = %s
+            FOR UPDATE
             """,
             (id_publicacion,)
         )
