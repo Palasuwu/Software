@@ -31,6 +31,12 @@ def crear_conexion_mock(usuario_mock):
         def cursor(self, dictionary=True):
             return DummyCursor()
 
+        def commit(self):
+            pass
+
+        def rollback(self):
+            pass
+
         def close(self):
             pass
 

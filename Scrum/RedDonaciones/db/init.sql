@@ -17,7 +17,9 @@ CREATE TABLE usuario (
     telefono VARCHAR(100) NOT NULL,
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     rol ENUM('donante', 'intermediario', 'administrador') NOT NULL,
-    activo TINYINT(1) NOT NULL DEFAULT 1
+    activo TINYINT(1) NOT NULL DEFAULT 1,
+    intentos_fallidos INT NOT NULL DEFAULT 0,
+    bloqueado_hasta DATETIME NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

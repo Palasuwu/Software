@@ -1,10 +1,17 @@
 from flask import Blueprint, jsonify, request
 import bcrypt
+import math
 import mysql.connector
 import re
 import secrets
 import string
+from datetime import datetime
 from db.connection import get_db_connection
+from db.intentos_login import (
+    asegurar_columnas_intentos_login,
+    registrar_intento_fallido,
+    reiniciar_intentos_login,
+)
 from auth_utils import generate_token, token_required, admin_required
 
 usuario_bp = Blueprint("usuario", __name__)
@@ -578,8 +585,11 @@ def login_usuario():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
+        asegurar_columnas_intentos_login(cursor)
+
         sql = """
-        SELECT id_usuario, nombre, correo, telefono, password, rol, activo
+        SELECT id_usuario, nombre, correo, telefono, password, rol, activo,
+               intentos_fallidos, bloqueado_hasta
         FROM usuario
         WHERE correo = %s
         """
@@ -592,6 +602,13 @@ def login_usuario():
         if usuario.get("activo") == 0:
             return jsonify({"error": "Esta cuenta está desactivada. Por favor contacte al administrador."}), 403
 
+        bloqueado_hasta = usuario.get("bloqueado_hasta")
+        if bloqueado_hasta and bloqueado_hasta > datetime.now():
+            minutos_restantes = math.ceil((bloqueado_hasta - datetime.now()).total_seconds() / 60)
+            return jsonify({
+                "error": f"Demasiados intentos fallidos. Intenta de nuevo en {minutos_restantes} minuto(s)."
+            }), 429
+
         stored_password = usuario.get("password") or ""
         if not stored_password.startswith("$2"):
             return jsonify({"error": "Credenciales invalidas"}), 401
@@ -602,7 +619,12 @@ def login_usuario():
         )
 
         if not is_valid_password:
+            registrar_intento_fallido(cursor, usuario["id_usuario"], usuario.get("intentos_fallidos") or 0)
+            conn.commit()
             return jsonify({"error": "Credenciales invalidas"}), 401
+
+        reiniciar_intentos_login(cursor, usuario["id_usuario"])
+        conn.commit()
 
         # Datos extra para intermediario
         id_organizacion = None
@@ -646,9 +668,13 @@ def login_usuario():
         }), 200
 
     except ValueError:
+        if conn:
+            conn.rollback()
         return jsonify({"error": "Credenciales invalidas"}), 401
 
     except Exception as e:
+        if conn:
+            conn.rollback()
         return jsonify({
             "error": "Error al iniciar sesion",
             "detalle": str(e)
