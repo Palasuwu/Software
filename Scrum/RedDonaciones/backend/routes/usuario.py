@@ -364,7 +364,7 @@ def eliminar_usuario(id_usuario):
         elif rol == "intermediario":
             cursor.execute(
                 "SELECT COUNT(*) AS total FROM publicacion WHERE id_intermediario = %s",
-                (id_intermediario,)
+                (id_usuario,)
             )
             if cursor.fetchone()["total"] > 0:
                 return jsonify({
