@@ -26,7 +26,8 @@ def request_es_admin():
         return False
 
     payload = verify_token(parts[1])
-    return payload and payload.get("rol") == "administrador"
+    # bool(payload): token invalido/expirado no debe devolver None (falsy pero no False)
+    return bool(payload) and payload.get("rol") == "administrador"
 
 
 def normalizar_organizacion_payload(data):
