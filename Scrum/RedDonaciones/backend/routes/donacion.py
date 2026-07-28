@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from datetime import datetime
 import logging
 
-from db.connection import get_db_connection
+from db.connection import get_db_connection, db_cursor
 from auth_utils import token_required
 from db.notificaciones import asegurar_tabla_notificaciones, crear_notificacion
 
@@ -25,14 +25,9 @@ def listar_donaciones():
             return jsonify({"error": "No autorizado para consultar donaciones de otro usuario"}), 403
         id_donante = request.usuario_id
 
-    conn = None
-    cursor = None
-
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-
-        sql = """
+        with db_cursor(connection_factory=get_db_connection) as (conn, cursor):
+            sql = """
         SELECT
             d.id_donacion, d.id_donante, d.id_publicacion, d.descripcion,
             d.nombre_contacto, d.telefono_contacto,
@@ -54,12 +49,12 @@ def listar_donaciones():
         LIMIT 50
         """
 
-        try:
-            cursor.execute(sql, (id_donante, id_donante))
-            donaciones = cursor.fetchall()
-        except Exception:
-            logging.exception("Error en query enriquecido, ejecutando fallback_sql")
-            fallback_sql = """
+            try:
+                cursor.execute(sql, (id_donante, id_donante))
+                donaciones = cursor.fetchall()
+            except Exception:
+                logging.exception("Error en query enriquecido, ejecutando fallback_sql")
+                fallback_sql = """
             SELECT
                 d.id_donacion, d.id_donante, d.id_publicacion, d.descripcion,
                 DATE_FORMAT(d.fecha_donacion, '%Y-%m-%d') AS fecha_donacion,
@@ -77,22 +72,16 @@ def listar_donaciones():
             ORDER BY d.fecha_donacion DESC, d.id_donacion DESC
             LIMIT 50
             """
-            cursor.execute(fallback_sql, (id_donante, id_donante))
-            donaciones = cursor.fetchall()
+                cursor.execute(fallback_sql, (id_donante, id_donante))
+                donaciones = cursor.fetchall()
 
-        return jsonify(donaciones), 200
+            return jsonify(donaciones), 200
 
     except Exception as e:
         return jsonify({
             "error": "Error al listar donaciones",
             "detalle": str(e)
         }), 500
-        
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
 
 # Ruta para obtener el detalle de una donación por su ID
 @donacion_bp.route("/donaciones/<int:id_donacion>", methods=["GET"])
@@ -400,36 +389,27 @@ def crear_donacion():
 @donacion_bp.route("/donaciones/<int:id_donacion>/estado", methods=["GET"])
 @token_required
 def obtener_estado_donacion(id_donacion):
-    conn = None
-    cursor = None
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-
-        sql = """
+        with db_cursor(connection_factory=get_db_connection) as (conn, cursor):
+            sql = """
         SELECT d.id_donacion, d.id_donante, d.id_publicacion, p.estado
         FROM donacion d
         JOIN publicacion p ON p.id_publicacion = d.id_publicacion
         WHERE d.id_donacion = %s
         """
-        cursor.execute(sql, (id_donacion,))
-        donacion = cursor.fetchone()
+            cursor.execute(sql, (id_donacion,))
+            donacion = cursor.fetchone()
 
-        if not donacion:
-            return jsonify({"error": "Donación no encontrada"}), 404
+            if not donacion:
+                return jsonify({"error": "Donación no encontrada"}), 404
 
-        if request.usuario_rol != "administrador" and donacion["id_donante"] != request.usuario_id:
-            return jsonify({"error": "No autorizado para consultar esta donacion"}), 403
+            if request.usuario_rol != "administrador" and donacion["id_donante"] != request.usuario_id:
+                return jsonify({"error": "No autorizado para consultar esta donacion"}), 403
 
-        return jsonify(donacion), 200
+            return jsonify(donacion), 200
 
     except Exception as e:
         return jsonify({
             "error": "Error al obtener el estado de la donación",
             "detalle": str(e)
         }), 500
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()

@@ -14,12 +14,14 @@ def get_db_connection():
 
 
 @contextmanager
-def db_cursor(dictionary=True):
+def db_cursor(dictionary=True, connection_factory=None):
     """Context manager que maneja la apertura y cierre automatico de conexion y cursor."""
-    conn = get_db_connection()
+    factory = connection_factory if connection_factory is not None else get_db_connection
+    conn = factory()
     cursor = conn.cursor(dictionary=dictionary)
     try:
         yield conn, cursor
     finally:
         cursor.close()
-        conn.close()
+        conn.close()
+

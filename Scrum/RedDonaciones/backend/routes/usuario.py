@@ -6,7 +6,7 @@ import re
 import secrets
 import string
 from datetime import datetime
-from db.connection import get_db_connection
+from db.connection import get_db_connection, db_cursor
 from db.intentos_login import (
     asegurar_columnas_intentos_login,
     registrar_intento_fallido,
@@ -669,102 +669,70 @@ def login_usuario():
 @usuario_bp.route("/usuarios/<int:id_usuario>/desactivar", methods=["PUT"])
 @admin_required
 def desactivar_usuario(id_usuario):
-    conn = None
-    cursor = None
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
+        with db_cursor() as (conn, cursor):
+            cursor.execute("SELECT id_usuario FROM usuario WHERE id_usuario = %s", (id_usuario,))
+            usuario = cursor.fetchone()
+            if not usuario:
+                return jsonify({"error": "Usuario no encontrado"}), 404
 
-        cursor.execute("SELECT id_usuario FROM usuario WHERE id_usuario = %s", (id_usuario,))
-        usuario = cursor.fetchone()
-        if not usuario:
-            return jsonify({"error": "Usuario no encontrado"}), 404
+            # Cambiar columna activo a 0
+            cursor.execute("UPDATE usuario SET activo = 0 WHERE id_usuario = %s", (id_usuario,))
+            conn.commit()
 
-        # Cambiar columna activo a 0
-        cursor.execute("UPDATE usuario SET activo = 0 WHERE id_usuario = %s", (id_usuario,))
-        conn.commit()
-
-        return jsonify({"message": "Usuario desactivado correctamente"}), 200
+            return jsonify({"message": "Usuario desactivado correctamente"}), 200
     except Exception as e:
-        if conn:
-            conn.rollback()
         return jsonify({"error": "No se pudo desactivar el usuario", "detalle": str(e)}), 500
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
 
 
 @usuario_bp.route("/usuarios/<int:id_usuario>/activar", methods=["PUT"])
 @admin_required
 def activar_usuario(id_usuario):
-    conn = None
-    cursor = None
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
+        with db_cursor() as (conn, cursor):
+            cursor.execute("SELECT id_usuario FROM usuario WHERE id_usuario = %s", (id_usuario,))
+            usuario = cursor.fetchone()
+            if not usuario:
+                return jsonify({"error": "Usuario no encontrado"}), 404
 
-        cursor.execute("SELECT id_usuario FROM usuario WHERE id_usuario = %s", (id_usuario,))
-        usuario = cursor.fetchone()
-        if not usuario:
-            return jsonify({"error": "Usuario no encontrado"}), 404
+            # Cambiar columna activo a 1
+            cursor.execute("UPDATE usuario SET activo = 1 WHERE id_usuario = %s", (id_usuario,))
+            conn.commit()
 
-        # Cambiar columna activo a 1
-        cursor.execute("UPDATE usuario SET activo = 1 WHERE id_usuario = %s", (id_usuario,))
-        conn.commit()
-
-        return jsonify({"message": "Usuario activado correctamente"}), 200
+            return jsonify({"message": "Usuario activado correctamente"}), 200
     except Exception as e:
-        if conn:
-            conn.rollback()
         return jsonify({"error": "No se pudo activar el usuario", "detalle": str(e)}), 500
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
 
 
 @usuario_bp.route("/usuarios/<int:id_usuario>/anonimizar", methods=["PUT"])
 @admin_required
 def anonimizar_usuario(id_usuario):
-    conn = None
-    cursor = None
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
+        with db_cursor() as (conn, cursor):
+            cursor.execute("SELECT id_usuario FROM usuario WHERE id_usuario = %s", (id_usuario,))
+            usuario = cursor.fetchone()
+            if not usuario:
+                return jsonify({"error": "Usuario no encontrado"}), 404
 
-        cursor.execute("SELECT id_usuario FROM usuario WHERE id_usuario = %s", (id_usuario,))
-        usuario = cursor.fetchone()
-        if not usuario:
-            return jsonify({"error": "Usuario no encontrado"}), 404
+            # Generar correo único anonimizado para cumplir con la restricción UNIQUE y GDPR
+            correo_anonimo = f"anonimo_{id_usuario}@reddonaciones.local"
+            telefono_anonimo = ""
 
-        # Generar correo único anonimizado para cumplir con la restricción UNIQUE y GDPR
-        correo_anonimo = f"anonimo_{id_usuario}@reddonaciones.local"
-        telefono_anonimo = ""
+            # Actualizar la fila en la tabla de usuario
+            cursor.execute(
+                """
+                UPDATE usuario
+                SET nombre = 'Usuario Anonimizado',
+                    correo = %s,
+                    telefono = %s,
+                    activo = 0
+                WHERE id_usuario = %s
+                """,
+                (correo_anonimo, telefono_anonimo, id_usuario)
+            )
+            conn.commit()
 
-        # Actualizar la fila en la tabla de usuario
-        cursor.execute(
-            """
-            UPDATE usuario
-            SET nombre = 'Usuario Anonimizado',
-                correo = %s,
-                telefono = %s,
-                activo = 0
-            WHERE id_usuario = %s
-            """,
-            (correo_anonimo, telefono_anonimo, id_usuario)
-        )
-        conn.commit()
-
-        return jsonify({"message": "Usuario anonimizado correctamente"}), 200
+            return jsonify({"message": "Usuario anonimizado correctamente"}), 200
     except Exception as e:
-        if conn:
-            conn.rollback()
         return jsonify({"error": "No se pudo anonimizar el usuario", "detalle": str(e)}), 500
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
+
