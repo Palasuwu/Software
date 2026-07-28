@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 import mysql.connector
 
 from db.connection import get_db_connection
-from auth_utils import token_required
+from auth_utils import token_required, intermediario_required
 
 intermediario_bp = Blueprint("intermediario", __name__)
 
@@ -10,18 +10,12 @@ intermediario_bp = Blueprint("intermediario", __name__)
 
 # Ruta para que el intermediario vea las publicaciones de su organización
 @intermediario_bp.route("/intermediario/publicaciones", methods=["GET"])
-@token_required
+@intermediario_required
 def obtener_publicaciones_intermediario():
     conn = None
     cursor = None
 
     try:
-        # Validar rol
-        if request.usuario_rol != "intermediario":
-            return jsonify({
-                "error": "Acceso denegado"
-            }), 403
-
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
@@ -68,17 +62,12 @@ def obtener_publicaciones_intermediario():
 
 # Ruta para que el intermediario vea los usuarios de su organización
 @intermediario_bp.route("/intermediario/usuarios", methods=["GET"])
-@token_required
+@intermediario_required
 def obtener_intermediarios_organizacion():
     conn = None
     cursor = None
 
     try:
-        if request.usuario_rol != "intermediario":
-            return jsonify({
-                "error": "Acceso denegado"
-            }), 403
-
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
@@ -120,17 +109,12 @@ def obtener_intermediarios_organizacion():
     "/intermediario/publicaciones/<int:id_publicacion>/estado",
     methods=["PUT"]
 )
-@token_required
+@intermediario_required
 def cambiar_estado_publicacion(id_publicacion):
     conn = None
     cursor = None
 
     try:
-        if request.usuario_rol != "intermediario":
-            return jsonify({
-                "error": "Acceso denegado"
-            }), 403
-
         data = request.get_json()
         estado = data.get("estado")
 
@@ -195,17 +179,12 @@ def cambiar_estado_publicacion(id_publicacion):
 
 # Para crear una post
 @intermediario_bp.route("/intermediario/publicaciones", methods=["POST"])
-@token_required
+@intermediario_required
 def crear_publicacion_intermediario():
     conn = None
     cursor = None
 
     try:
-        if request.usuario_rol != "intermediario":
-            return jsonify({
-                "error": "Acceso denegado"
-            }), 403
-
         data = request.get_json()
 
         titulo = (data.get("titulo") or "").strip()
@@ -284,17 +263,12 @@ def crear_publicacion_intermediario():
     "/intermediario/publicaciones/<int:id_publicacion>",
     methods=["PUT"]
 )
-@token_required
+@intermediario_required
 def editar_publicacion_intermediario(id_publicacion):
     conn = None
     cursor = None
 
     try:
-        if request.usuario_rol != "intermediario":
-            return jsonify({
-                "error": "Acceso denegado"
-            }), 403
-
         data = request.get_json()
 
         titulo = (data.get("titulo") or "").strip()

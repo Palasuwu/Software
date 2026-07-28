@@ -12,7 +12,14 @@ logging.basicConfig(level=logging.INFO)
 publicacion_bp = Blueprint("publicacion", __name__)
 
 
+_tiene_imagen_url_cache = None
+
+
 def publicacion_tiene_imagen_url(cursor):
+    global _tiene_imagen_url_cache
+    if _tiene_imagen_url_cache is not None:
+        return _tiene_imagen_url_cache
+
     cursor.execute(
         """
         SELECT COUNT(*) AS total
@@ -25,9 +32,13 @@ def publicacion_tiene_imagen_url(cursor):
     row = cursor.fetchone()
 
     if isinstance(row, dict):
-        return row.get("total", 0) > 0
+        has_column = row.get("total", 0) > 0
+    else:
+        has_column = bool(row and row[0] > 0)
 
-    return bool(row and row[0] > 0)
+    _tiene_imagen_url_cache = has_column
+    return has_column
+
 
 
 @publicacion_bp.route("/articulos", methods=["GET"])

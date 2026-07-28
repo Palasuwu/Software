@@ -4,30 +4,24 @@ import re
 
 from flask import Blueprint, jsonify, request
 
-from db.connection import get_db_connection
-from auth_utils import admin_required, verify_token
+from db.connection import get_db_connection, db_cursor
+from auth_utils import admin_required, verify_token, _get_bearer_token
+from utils.validation import EMAIL_REGEX, PHONE_REGEX, limpiar_espacios
 
 logging.basicConfig(level=logging.INFO)
 
 organizacion_bp = Blueprint("organizacion", __name__)
-EMAIL_REGEX = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$")
-PHONE_REGEX = re.compile(r"^[0-9+\-()\s]{8,20}$")
 ESTADOS_VALIDOS = ("pendiente", "verificada", "rechazada", "inactiva", "archivada")
 
 
-def limpiar_espacios(value):
-    return re.sub(r"\s+", " ", (value or "").strip())
-
-
 def request_es_admin():
-    auth_header = request.headers.get("Authorization", "")
-    parts = auth_header.split()
-    if len(parts) != 2 or parts[0] != "Bearer":
+    token = _get_bearer_token()
+    if not token:
         return False
 
-    payload = verify_token(parts[1])
-    # bool(payload): token invalido/expirado no debe devolver None (falsy pero no False)
+    payload = verify_token(token)
     return bool(payload) and payload.get("rol") == "administrador"
+
 
 
 def normalizar_organizacion_payload(data):
@@ -76,86 +70,69 @@ def obtener_organizacion(cursor, id_organizacion):
 
 @organizacion_bp.route("/organizaciones", methods=["GET"])
 def listar_organizaciones():
-    conn = None
-    cursor = None
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
+        with db_cursor() as (conn, cursor):
+            incluir_todas = request.args.get("vista") == "admin"
+            if incluir_todas and not request_es_admin():
+                return jsonify({"error": "Acceso denegado: requiere rol administrador"}), 403
 
-        incluir_todas = request.args.get("vista") == "admin"
-        if incluir_todas and not request_es_admin():
-            return jsonify({"error": "Acceso denegado: requiere rol administrador"}), 403
+            where_sql = "" if incluir_todas else "WHERE estado_verificacion = 'verificada'"
 
-        where_sql = "" if incluir_todas else "WHERE estado_verificacion = 'verificada'"
+            cursor.execute(
+                f"""
+                SELECT id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion
+                FROM organizacion
+                {where_sql}
+                ORDER BY FIELD(estado_verificacion, 'pendiente', 'verificada', 'rechazada', 'inactiva', 'archivada'), nombre
+                """
+            )
+            organizaciones = cursor.fetchall()
 
-        cursor.execute(
-            f"""
-            SELECT id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion
-            FROM organizacion
-            {where_sql}
-            ORDER BY FIELD(estado_verificacion, 'pendiente', 'verificada', 'rechazada', 'inactiva', 'archivada'), nombre
-            """
-        )
-        organizaciones = cursor.fetchall()
-
-        return jsonify(organizaciones), 200
+            return jsonify(organizaciones), 200
 
     except Exception:
         logging.exception("Error al listar organizaciones")
         return jsonify({"error": "Error al obtener organizaciones"}), 500
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
 
 
 # Para el detalle
 @organizacion_bp.route("/organizaciones/<int:id_organizacion>", methods=["GET"])
 def obtener_detalle_organizacion(id_organizacion):
-    conn = None
-    cursor = None
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
+        with db_cursor() as (conn, cursor):
+            cursor.execute(
+                """
+                SELECT id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion
+                FROM organizacion
+                WHERE id_organizacion = %s AND estado_verificacion = 'verificada'
+                """,
+                (id_organizacion,),
+            )
+            organizacion = cursor.fetchone()
 
-        cursor.execute(
-            """
-            SELECT id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion
-            FROM organizacion
-            WHERE id_organizacion = %s AND estado_verificacion = 'verificada'
-            """,
-            (id_organizacion,),
-        )
-        organizacion = cursor.fetchone()
+            if not organizacion:
+                return jsonify({"error": "Organización no encontrada"}), 404
 
-        if not organizacion:
-            return jsonify({"error": "Organización no encontrada"}), 404
+            cursor.execute(
+                """
+                SELECT id_publicacion, titulo, descripcion, cantidad_necesaria, cantidad_recibida, estado
+                FROM publicacion
+                WHERE id_organizacion = %s
+                ORDER BY fecha_publicacion DESC
+                """,
+                (id_organizacion,),
+            )
+            publicaciones = cursor.fetchall()
 
-        cursor.execute(
-            """
-            SELECT id_publicacion, titulo, descripcion, cantidad_necesaria, cantidad_recibida, estado
-            FROM publicacion
-            WHERE id_organizacion = %s
-            ORDER BY fecha_publicacion DESC
-            """,
-            (id_organizacion,),
-        )
-        publicaciones = cursor.fetchall()
-
-        return jsonify({
-            "organizacion": organizacion,
-            "publicaciones": publicaciones
-        }), 200
+            return jsonify({
+                "organizacion": organizacion,
+                "publicaciones": publicaciones
+            }), 200
 
     except Exception:
         logging.exception("Error al obtener detalles de organización")
         return jsonify({"error": "Error al obtener detalles"}), 500
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
+
 
 
 # Rutas de admin

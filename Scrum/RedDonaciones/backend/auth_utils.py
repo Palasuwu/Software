@@ -1,6 +1,6 @@
 # backend/auth_utils.py
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from functools import wraps
 
 import jwt
@@ -19,12 +19,13 @@ def generate_token(id_usuario, rol, id_organizacion=None):
     """Genera un JWT token valido por 7 dias."""
     secret_key = _get_secret_key()
 
+    now = datetime.now(timezone.utc)
     payload = {
         "id_usuario": id_usuario,
         "rol": rol,
         "id_organizacion": id_organizacion,
-        "exp": datetime.utcnow() + timedelta(days=7),
-        "iat": datetime.utcnow()
+        "exp": now + timedelta(days=7),
+        "iat": now
     }
     token = jwt.encode(payload, secret_key, algorithm="HS256")
     return token
@@ -97,3 +98,20 @@ def admin_required(f):
         return f(*args, **kwargs)
 
     return decorated
+
+
+def intermediario_required(f):
+    """Decorador que exige que el usuario sea intermediario."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        _, error_response = _autenticar_request()
+        if error_response:
+            return error_response
+
+        if request.usuario_rol != "intermediario":
+            return jsonify({"error": "Acceso denegado"}), 403
+
+        return f(*args, **kwargs)
+
+    return decorated
+

@@ -1,7 +1,8 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import jwt as pyjwt
+
 
 from app import app
 from auth_utils import generate_token
@@ -39,7 +40,7 @@ def test_sin_token_es_false(monkeypatch):
 def test_token_con_firma_invalida_es_false_no_none(monkeypatch):
     os.environ["JWT_SECRET_KEY"] = SECRET
     token_forjado = pyjwt.encode(
-        {"id_usuario": 99, "rol": "administrador", "exp": datetime.utcnow() + timedelta(days=1)},
+        {"id_usuario": 99, "rol": "administrador", "exp": datetime.now(timezone.utc) + timedelta(days=1)},
         "clave-incorrecta",
         algorithm="HS256"
     )
@@ -51,10 +52,11 @@ def test_token_con_firma_invalida_es_false_no_none(monkeypatch):
 def test_token_expirado_es_false_no_none(monkeypatch):
     os.environ["JWT_SECRET_KEY"] = SECRET
     token_expirado = pyjwt.encode(
-        {"id_usuario": 1, "rol": "administrador", "exp": datetime.utcnow() - timedelta(days=1)},
+        {"id_usuario": 1, "rol": "administrador", "exp": datetime.now(timezone.utc) - timedelta(days=1)},
         SECRET,
         algorithm="HS256"
     )
 
     with app.test_request_context("/organizaciones", headers={"Authorization": f"Bearer {token_expirado}"}):
         assert request_es_admin() is False
+
