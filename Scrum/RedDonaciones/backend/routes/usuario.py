@@ -14,19 +14,41 @@ from db.intentos_login import (
 )
 from auth_utils import generate_token, token_required, admin_required
 
+from utils.validation import (
+    limpiar_espacios,
+    telefono_valido,
+    EMAIL_REGEX,
+    PHONE_REGEX,
+    NAME_REGEX,
+)
+
 usuario_bp = Blueprint("usuario", __name__)
-EMAIL_REGEX = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$")
-PHONE_REGEX = re.compile(r"^[0-9+\-()\s]{8,20}$")
-NAME_REGEX = re.compile(r"^[A-Za-zÀ-ÿ' -]+$")
 
 
-def limpiar_espacios(value):
-    return re.sub(r"\s+", " ", (value or "").strip())
-
-
-def telefono_valido(value):
-    telefono = (value or "").strip()
-    return bool(PHONE_REGEX.match(telefono)) and len(re.findall(r"\d", telefono)) >= 8
+def _cargar_perfil_usuario(cursor, id_usuario, rol):
+    """Carga los datos específicos del perfil según el rol del usuario."""
+    if rol == "donante":
+        cursor.execute(
+            """
+            SELECT departamento, municipio, zona, direccion_detalle
+            FROM donante
+            WHERE id_usuario = %s
+            """,
+            (id_usuario,)
+        )
+        return cursor.fetchone() or {}
+    elif rol == "intermediario":
+        cursor.execute(
+            """
+            SELECT i.id_organizacion, i.cargo, o.nombre AS organizacion_nombre
+            FROM intermediario i
+            INNER JOIN organizacion o ON o.id_organizacion = i.id_organizacion
+            WHERE i.id_usuario = %s
+            """,
+            (id_usuario,)
+        )
+        return cursor.fetchone() or {}
+    return {}
 
 
 def validar_usuario_base(nombre, correo, telefono):
@@ -122,29 +144,7 @@ def obtener_usuario_por_id(id_usuario):
         if not usuario:
             return jsonify({"error": "Usuario no encontrado"}), 404
 
-        if usuario["rol"] == "donante":
-            cursor.execute(
-                """
-                SELECT departamento, municipio, zona, direccion_detalle
-                FROM donante
-                WHERE id_usuario = %s
-                """,
-                (id_usuario,)
-            )
-            usuario["perfil"] = cursor.fetchone() or {}
-        elif usuario["rol"] == "intermediario":
-            cursor.execute(
-                """
-                SELECT i.id_organizacion, i.cargo, o.nombre AS organizacion_nombre
-                FROM intermediario i
-                INNER JOIN organizacion o ON o.id_organizacion = i.id_organizacion
-                WHERE i.id_usuario = %s
-                """,
-                (id_usuario,)
-            )
-            usuario["perfil"] = cursor.fetchone() or {}
-        else:
-            usuario["perfil"] = {}
+        usuario["perfil"] = _cargar_perfil_usuario(cursor, id_usuario, usuario["rol"])
 
         return jsonify(usuario), 200
 
@@ -282,29 +282,7 @@ def actualizar_usuario(id_usuario):
         )
         usuario = cursor.fetchone()
 
-        if usuario["rol"] == "donante":
-            cursor.execute(
-                """
-                SELECT departamento, municipio, zona, direccion_detalle
-                FROM donante
-                WHERE id_usuario = %s
-                """,
-                (id_usuario,)
-            )
-            usuario["perfil"] = cursor.fetchone() or {}
-        elif usuario["rol"] == "intermediario":
-            cursor.execute(
-                """
-                SELECT i.id_organizacion, i.cargo, o.nombre AS organizacion_nombre
-                FROM intermediario i
-                INNER JOIN organizacion o ON o.id_organizacion = i.id_organizacion
-                WHERE i.id_usuario = %s
-                """,
-                (id_usuario,)
-            )
-            usuario["perfil"] = cursor.fetchone() or {}
-        else:
-            usuario["perfil"] = {}
+        usuario["perfil"] = _cargar_perfil_usuario(cursor, id_usuario, usuario["rol"])
 
         return jsonify({
             "message": "Usuario actualizado",
