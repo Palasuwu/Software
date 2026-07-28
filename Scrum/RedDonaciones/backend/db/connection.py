@@ -1,7 +1,7 @@
-# Este archivo se encarga de establecer la conexión con la base de datos MySQL utilizando las variables de entorno para la configuración
-
 import os
+from contextlib import contextmanager
 import mysql.connector
+
 
 def get_db_connection():
     return mysql.connector.connect(
@@ -11,3 +11,15 @@ def get_db_connection():
         database=os.getenv("DB_NAME"),
         charset='utf8mb4'
     )
+
+
+@contextmanager
+def db_cursor(dictionary=True):
+    """Context manager que maneja la apertura y cierre automatico de conexion y cursor."""
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=dictionary)
+    try:
+        yield conn, cursor
+    finally:
+        cursor.close()
+        conn.close()
