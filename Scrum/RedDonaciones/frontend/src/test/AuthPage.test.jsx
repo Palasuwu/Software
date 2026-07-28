@@ -1,11 +1,11 @@
 /**
  * =============================================================================
- * LoginPage.test.jsx
+ * AuthPage.test.jsx
  * -----------------------------------------------------------------------------
  * - fetch() es reemplazado mediante mocks (vi.stubGlobal).
  * - Nunca se consulta el backend real.
  * - Nunca se modifica la base de datos.
- * -Solo se prueba la lógica del componente LoginPage y su interacción con el usuario.
+ * - Solo se prueba la lógica del componente AuthPage (LoginForm) y su interacción con el usuario.
  * =============================================================================
  */
 
@@ -22,10 +22,10 @@ import {
     createMemoryRouter
 } from "react-router-dom";
 
-import LoginPage from "../pages/LoginPage";
+import AuthPage from "../pages/AuthPage";
 
 
-describe("LoginPage", () => {
+describe("AuthPage - LoginForm", () => {
 
     /**
      * -------------------------------------------------------------------------
@@ -46,27 +46,26 @@ describe("LoginPage", () => {
 
     /**
      * -------------------------------------------------------------------------
-     * CASO 1: Verifica que el formulario se renderice correctamente.
-     *
-     * Nota: Si cambia el diseño del Login o el texto de los componentes,este test deberá actualizarse.
+     * CASO 1: Verifica que el formulario de login se renderice correctamente.
+     * Nota: Si cambia el diseño del Login o el texto de los componentes, este test deberá actualizarse.
      * -------------------------------------------------------------------------
      */
     it("renderiza correctamente el formulario de inicio de sesión", () => {
 
         render(
             <MemoryRouter>
-                <LoginPage />
+                <AuthPage defaultMode="login" />
             </MemoryRouter>
         );
 
         expect(
             screen.getByRole("heading", {
-                name: /iniciar sesion/i
+                name: /bienvenido de vuelta/i
             })
         ).toBeInTheDocument();
 
         expect(
-            screen.getByLabelText(/correo/i)
+            screen.getByLabelText(/correo electronico/i)
         ).toBeInTheDocument();
 
         expect(
@@ -98,7 +97,7 @@ describe("LoginPage", () => {
 
         render(
             <MemoryRouter>
-                <LoginPage />
+                <AuthPage defaultMode="login" />
             </MemoryRouter>
         );
 
@@ -137,12 +136,12 @@ describe("LoginPage", () => {
 
         render(
             <MemoryRouter>
-                <LoginPage />
+                <AuthPage defaultMode="login" />
             </MemoryRouter>
         );
 
         await user.type(
-            screen.getByLabelText(/correo/i),
+            screen.getByLabelText(/correo electronico/i),
             "correo-invalido"
         );
 
@@ -173,7 +172,7 @@ describe("LoginPage", () => {
      * - Se invoque correctamente el callback
      * - Se almacene la sesión
      * - Se guarde el token
-     * - Se redirija al Home
+     * - Se redirija al perfil
      * -------------------------------------------------------------------------
      */
     it("guarda la sesión y redirige correctamente después de un login exitoso", async () => {
@@ -202,20 +201,21 @@ describe("LoginPage", () => {
         const router = createMemoryRouter(
             [
                 {
-                    path: "/login",
+                    path: "/auth",
                     element: (
-                        <LoginPage
+                        <AuthPage
                             onAuthSuccess={onAuthSuccess}
+                            defaultMode="login"
                         />
                     )
                 },
                 {
-                    path: "/HomePage",
-                    element: <div>Home page</div>
+                    path: "/perfil",
+                    element: <div>Perfil page</div>
                 }
             ],
             {
-                initialEntries: ["/login"]
+                initialEntries: ["/auth"]
             }
         );
 
@@ -224,7 +224,7 @@ describe("LoginPage", () => {
         );
 
         await user.type(
-            screen.getByLabelText(/correo/i),
+            screen.getByLabelText(/correo electronico/i),
             "ana@test.com"
         );
 
@@ -259,7 +259,7 @@ describe("LoginPage", () => {
 
         expect(
             router.state.location.pathname
-        ).toBe("/HomePage");
+        ).toBe("/perfil");
 
     });
 
