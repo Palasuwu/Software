@@ -68,6 +68,27 @@ def validar_usuario_base(nombre, correo, telefono):
     return errores
 
 
+def validar_datos_donante(data):
+    departamento = limpiar_espacios(data.get("departamento"))
+    municipio = limpiar_espacios(data.get("municipio"))
+    zona = (data.get("zona") or "").strip()
+    direccion_detalle = limpiar_espacios(data.get("direccion_detalle"))
+
+    if not departamento or not municipio or not zona or not direccion_detalle:
+        return None, "Faltan datos obligatorios para donante"
+    if not zona.isdigit() or len(zona) > 2:
+        return None, "La zona debe ser un numero valido"
+    if len(direccion_detalle) < 8:
+        return None, "La direccion debe ser mas especifica"
+
+    return {
+        "departamento": departamento,
+        "municipio": municipio,
+        "zona": zona,
+        "direccion_detalle": direccion_detalle,
+    }, None
+
+
 def validar_password_registro(password):
     if len(password) < 8:
         return "El password debe tener al menos 8 caracteres"
@@ -204,20 +225,10 @@ def actualizar_usuario(id_usuario):
         )
 
         if rol == "donante":
-            departamento = limpiar_espacios(data.get("departamento"))
-            municipio = limpiar_espacios(data.get("municipio"))
-            zona = (data.get("zona") or "").strip()
-            direccion_detalle = limpiar_espacios(data.get("direccion_detalle"))
-
-            if not departamento or not municipio or not zona or not direccion_detalle:
+            datos_donante, error_donante = validar_datos_donante(data)
+            if error_donante:
                 conn.rollback()
-                return jsonify({"error": "Faltan datos obligatorios para donante"}), 400
-            if not zona.isdigit() or len(zona) > 2:
-                conn.rollback()
-                return jsonify({"error": "La zona debe ser un numero valido"}), 400
-            if len(direccion_detalle) < 8:
-                conn.rollback()
-                return jsonify({"error": "La direccion debe ser mas especifica"}), 400
+                return jsonify({"error": error_donante}), 400
 
             cursor.execute(
                 """
@@ -228,7 +239,13 @@ def actualizar_usuario(id_usuario):
                     direccion_detalle = %s
                 WHERE id_usuario = %s
                 """,
-                (departamento, municipio, zona, direccion_detalle, id_usuario)
+                (
+                    datos_donante["departamento"],
+                    datos_donante["municipio"],
+                    datos_donante["zona"],
+                    datos_donante["direccion_detalle"],
+                    id_usuario,
+                )
             )
 
         elif rol == "intermediario":
@@ -432,21 +449,10 @@ def crear_usuario():
         if password_error:
             return jsonify({"error": password_error}), 400
 
-        departamento = limpiar_espacios(data.get("departamento"))
-        municipio = limpiar_espacios(data.get("municipio"))
-        zona = (data.get("zona") or "").strip()
-        direccion_detalle = limpiar_espacios(data.get("direccion_detalle"))
-
-        id_organizacion = data.get("id_organizacion")
-        cargo = limpiar_espacios(data.get("cargo"))
-
         if rol == "donante":
-            if not departamento or not municipio or not zona or not direccion_detalle:
-                return jsonify({"error": "Faltan datos obligatorios para donante"}), 400
-            if not zona.isdigit() or len(zona) > 2:
-                return jsonify({"error": "La zona debe ser un numero valido"}), 400
-            if len(direccion_detalle) < 8:
-                return jsonify({"error": "La direccion debe ser mas especifica"}), 400
+            datos_donante, error_donante = validar_datos_donante(data)
+            if error_donante:
+                return jsonify({"error": error_donante}), 400
 
         if rol == "intermediario":
             if not id_organizacion or not cargo:
@@ -479,10 +485,10 @@ def crear_usuario():
             """
             cursor.execute(sql_donante, (
                 id_usuario,
-                departamento,
-                municipio,
-                zona,
-                direccion_detalle
+                datos_donante["departamento"],
+                datos_donante["municipio"],
+                datos_donante["zona"],
+                datos_donante["direccion_detalle"]
             ))
 
         if rol == "intermediario":
