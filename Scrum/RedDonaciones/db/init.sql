@@ -181,7 +181,8 @@ VALUES
     (1, 'Donante Demo', 'donante.demo@reddonaciones.local', '$2b$12$6sOX9qSrscwr5JS0lxrji.8nfhaUjhHJSGxlEFxaD5Jsi4.uhch2q', '3000000001', 'donante'),
     (2, 'Intermediario Demo', 'inter.demo@reddonaciones.local', '$2b$12$OLdylhqBPU4iMScJAXUGg.tMOCXMKd.cY4aqVmZnAW0c0EoTwzATK', '3000000002', 'intermediario'),
     (3, 'Admin Demo', 'admin.demo@reddonaciones.local', '$2b$12$6sOX9qSrscwr5JS0lxrji.8nfhaUjhHJSGxlEFxaD5Jsi4.uhch2q', '3000000003', 'administrador'),
-    (4, 'Donante Video', 'donante.video@reddonaciones.local', '$2b$12$6sOX9qSrscwr5JS0lxrji.8nfhaUjhHJSGxlEFxaD5Jsi4.uhch2q', '3000000004', 'donante');
+    (4, 'Donante Video', 'donante.video@reddonaciones.local', '$2b$12$6sOX9qSrscwr5JS0lxrji.8nfhaUjhHJSGxlEFxaD5Jsi4.uhch2q', '3000000004', 'donante'),
+    (5, 'Intermediario Refugio', 'inter.refugio@reddonaciones.local', '$2b$12$OLdylhqBPU4iMScJAXUGg.tMOCXMKd.cY4aqVmZnAW0c0EoTwzATK', '3000000005', 'intermediario');
 
 -- ORGANIZACIONES
 INSERT IGNORE INTO organizacion (id_organizacion,nombre,descripcion,direccion,telefono,correo,estado_verificacion, quienes_somos, que_hacemos, como_trabajamos, donde_trabajamos )
@@ -222,7 +223,8 @@ VALUES
 -- INTERMEDIARIO
 INSERT IGNORE INTO intermediario (id_usuario, id_organizacion, cargo)
 VALUES
-    (2, 1, 'Coordinador de Donaciones');
+    (2, 1, 'Coordinador de Donaciones'),
+    (5, 2, 'Coordinador de Donaciones');
 
 -- CATEGORIA
 INSERT IGNORE INTO categoria_articulo (id_categoria, nombre, descripcion)
@@ -256,7 +258,7 @@ INSERT IGNORE INTO publicacion (
     imagen_url
 )
 VALUES
-    (1, 2, 2, 1, 'Ropa de invierno para abril', 'Recoleccion de chaquetas, buzos y pantalones.', 120, 70, '2026-04-01', '2026-04-20', 'activa',
+    (1, 5, 2, 1, 'Ropa de invierno para abril', 'Recoleccion de chaquetas, buzos y pantalones.', 120, 70, '2026-04-01', '2026-04-20', 'activa',
      'https://placehold.co/600x340/d4c5a9/5c3d1e?text=Asilo+El+Refugio'),
     (2, 2, 1, 1, 'Jornada de ropa infantil', 'Donaciones de ropa para ninos.', 90, 90, '2026-03-15', '2026-03-30', 'finalizada',
      'https://placehold.co/600x340/b8d5c8/1e3d2e?text=Hogar+La+Esperanza');
