@@ -32,7 +32,17 @@ CREATE TABLE organizacion (
     direccion VARCHAR(200) NOT NULL,
     telefono VARCHAR(50) NOT NULL UNIQUE,
     correo VARCHAR(200) NOT NULL UNIQUE,
-    estado_verificacion VARCHAR(200) NOT NULL
+    estado_verificacion VARCHAR(200) NOT NULL,
+
+    -- Informacion institucional
+    quienes_somos TEXT NULL,
+    que_hacemos TEXT NULL,
+    como_trabajamos TEXT NULL,
+    donde_trabajamos TEXT NULL,
+
+    -- Visual
+    url_logo VARCHAR(500) NULL,
+    imagen_portada VARCHAR(500) NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
@@ -116,6 +126,16 @@ CREATE TABLE donacion (
     cantidad_donada INT NOT NULL CHECK (cantidad_donada > 0),
     foto LONGBLOB,
     fecha_donacion DATE NOT NULL,
+
+    -- Estado 
+    estado ENUM(
+        'pendiente',
+        'recibida',
+        'en_proceso',
+        'entregada',
+        'rechazada'
+    ) NOT NULL DEFAULT 'pendiente',
+
     FOREIGN KEY (id_donante) REFERENCES donante(id_usuario),
     FOREIGN KEY (id_publicacion) REFERENCES publicacion(id_publicacion)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -164,10 +184,34 @@ VALUES
     (4, 'Donante Video', 'donante.video@reddonaciones.local', '$2b$12$6sOX9qSrscwr5JS0lxrji.8nfhaUjhHJSGxlEFxaD5Jsi4.uhch2q', '3000000004', 'donante');
 
 -- ORGANIZACIONES
-INSERT IGNORE INTO organizacion (id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion)
+INSERT IGNORE INTO organizacion (id_organizacion,nombre,descripcion,direccion,telefono,correo,estado_verificacion, quienes_somos, que_hacemos, como_trabajamos, donde_trabajamos )
 VALUES
-    (1, 'Hogar de Ninos La Esperanza', 'Apoyo integral para niños en situación de vulnerabilidad.', 'Zona Centro, Ciudad', '3100000001', 'contacto@laesperanza.org', 'verificada'),
-    (2, 'Asilo de Ancianos El Refugio', 'Cuidado y apoyo para adultos mayores en situación de vulnerabilidad.', 'Barrio San Juan, Ciudad', '3100000002', 'contacto@elrefugio.org', 'verificada');
+(
+    1,
+    'Hogar de Ninos La Esperanza',
+    'Apoyo integral para niños en situación de vulnerabilidad.',
+    'Zona Centro, Ciudad',
+    '3100000001',
+    'contacto@laesperanza.org',
+    'verificada',
+    'Somos una organización dedicada a brindar apoyo y acompañamiento a niños y familias en situación de vulnerabilidad.',
+    'Organizamos campañas de donación para recolectar ropa, alimentos y otros artículos esenciales destinados a niños y familias que los necesitan.',
+    'Trabajamos en coordinación con donantes e intermediarios para identificar necesidades, organizar campañas y gestionar la recepción y entrega de las donaciones.',
+    'Desarrollamos nuestras actividades principalmente en comunidades de la Ciudad de Guatemala y áreas cercanas.'
+),
+(
+    2,
+    'Asilo de Ancianos El Refugio',
+    'Cuidado y apoyo para adultos mayores en situación de vulnerabilidad.',
+    'Barrio San Juan, Ciudad',
+    '3100000002',
+    'contacto@elrefugio.org',
+    'verificada',
+    'Somos una organización dedicada al cuidado y bienestar de adultos mayores que requieren acompañamiento y apoyo.',
+    'Brindamos atención a adultos mayores y coordinamos campañas para recolectar ropa, artículos de cuidado personal y otros recursos necesarios para su bienestar.',
+    'Trabajamos con el apoyo de donantes y voluntarios, identificando las necesidades de nuestros residentes y coordinando la recepción y distribución de las donaciones.',
+    'Realizamos nuestras actividades en la Ciudad de Guatemala y apoyamos principalmente a adultos mayores de comunidades cercanas.'
+);
 
 -- DONANTE
 INSERT IGNORE INTO donante (id_usuario, departamento, municipio, zona, direccion_detalle)
@@ -224,24 +268,13 @@ UPDATE publicacion SET imagen_url = 'https://placehold.co/600x340/b8d5c8/1e3d2e?
     WHERE id_publicacion = 2 AND (imagen_url IS NULL OR imagen_url = '');
 
 -- DONACIONES
-INSERT IGNORE INTO donacion (
-    id_donacion,
-    id_donante,
-    id_publicacion,
-    descripcion,
-    nombre_contacto,
-    telefono_contacto,
-    hora_preferida,
-    nota,
-    cantidad_donada,
-    fecha_donacion
+INSERT IGNORE INTO donacion (id_donacion, id_donante, id_publicacion, descripcion, nombre_contacto, telefono_contacto, hora_preferida, nota, cantidad_donada, fecha_donacion, estado
 )
 VALUES
-    (1, 1, 1, 'Entregue varias prendas.', 'Donante Demo', '3000000001', '09:00:00', 'Llevo bolsas clasificadas.', 20, '2026-04-05'),
-    (2, 1, 2, 'Aporte ropa infantil.', 'Donante Demo', '3000000001', '10:30:00', 'Entrego en recepcion.', 20, '2026-03-28'),
-    (3, 4, 1, 'Entregue chaquetas y bufandas.', 'Donante Video', '3000000004', '08:30:00', 'Material en 2 cajas.', 25, '2026-04-10'),
-    (4, 4, 2, 'Entregue ropa para ninos.', 'Donante Video', '3000000004', '11:00:00', 'Solicito apoyo para descarga.', 15, '2026-03-25');
-
+    (1, 1, 1, 'Entregue varias prendas.', 'Donante Demo', '3000000001', '09:00:00', 'Llevo bolsas clasificadas.', 20, '2026-04-05', 'pendiente'),
+    (2, 1, 2, 'Aporte ropa infantil.', 'Donante Demo', '3000000001', '10:30:00', 'Entrego en recepcion.', 20, '2026-03-28', 'entregada'),
+    (3, 4, 1, 'Entregue chaquetas y bufandas.', 'Donante Video', '3000000004', '08:30:00', 'Material en 2 cajas.', 25, '2026-04-10', 'en_proceso' ),
+    (4, 4, 2, 'Entregue ropa para ninos.', 'Donante Video', '3000000004', '11:00:00', 'Solicito apoyo para descarga.', 15, '2026-03-25', 'recibida');
 
 
 -- Relacionar publicaciones con articulos a traves de la tabla publicacion_articulo
