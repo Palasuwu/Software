@@ -5,7 +5,7 @@ from flask import Blueprint, jsonify, request
 from auth_utils import token_required
 from db.connection import get_db_connection, db_cursor
 from db.notificaciones import asegurar_tabla_notificaciones, crear_notificacion
-
+from services.donacion_service import (cambiar_estado_donacion, obtener_donacion_estado, validar_estado_donacion, )
 donacion_bp = Blueprint("donacion", __name__)
 
 # Ruta para obtener donaciones
@@ -44,6 +44,7 @@ def listar_donaciones():
                     d.descripcion,
                     d.nombre_contacto,
                     d.telefono_contacto,
+                    d.estado AS donacion_estado,
                     DATE_FORMAT(
                         d.hora_preferida,
                         '%H:%i'
@@ -54,7 +55,6 @@ def listar_donaciones():
                         d.fecha_donacion,
                         '%Y-%m-%d'
                     ) AS fecha_donacion,
-
                     p.titulo AS publicacion_titulo,
                     p.descripcion AS publicacion_descripcion,
                     p.estado AS publicacion_estado,
@@ -64,32 +64,23 @@ def listar_donaciones():
                         p.fecha_limite,
                         '%Y-%m-%d'
                     ) AS fecha_limite,
-
                     o.nombre AS organizacion_nombre,
                     o.direccion AS organizacion_direccion,
-
                     c.nombre AS categoria
 
                 FROM donacion d
-
                 JOIN publicacion p
                     ON p.id_publicacion = d.id_publicacion
-
                 JOIN organizacion o
                     ON o.id_organizacion = p.id_organizacion
-
                 LEFT JOIN articulo a
                     ON a.id_articulo = p.id_articulo
-
                 LEFT JOIN categoria_articulo c
                     ON c.id_categoria = a.id_categoria
-
                 WHERE (%s IS NULL OR d.id_donante = %s)
-
                 ORDER BY
                     d.fecha_donacion DESC,
                     d.id_donacion DESC
-
                 LIMIT 50
             """
 
@@ -121,6 +112,7 @@ def obtener_detalle_donacion(id_donacion):
                     d.descripcion,
                     d.nombre_contacto,
                     d.telefono_contacto,
+                    d.estado AS donacion_estado,
                     DATE_FORMAT(
                         d.hora_preferida,
                         '%H:%i'
@@ -329,8 +321,6 @@ def crear_donacion():
             }), 400
 
         # Validaciones previas
-        # Se mantienen para conservar exactamente los mensajes actuales de la API.
-        # NO son la protección contra concurrencia.
         restante = (
             publicacion["cantidad_necesaria"]
             - publicacion["cantidad_recibida"]
@@ -352,7 +342,7 @@ def crear_donacion():
             }), 400
 
         # ACTUALIZACION ATOMICA
-        # Esta es la protección definitiva contra la condición de carrera.
+        # Esta es la protección contra la condición de carrera.
         # Solamente actualizará la publicación si todavía existe suficiente cantidad disponible EN EL MOMENTO DEL UPDATE
         # Dos solicitudes concurrentes no pueden hacer que cantidad_recibida supere cantidad_necesaria.
         update_sql = """
@@ -418,7 +408,6 @@ def crear_donacion():
         id_donacion = cursor.lastrowid
 
         # Notificaciones
-
         asegurar_tabla_notificaciones(cursor)
         crear_notificacion(
             cursor,
@@ -482,42 +471,196 @@ def obtener_estado_donacion(id_donacion):
             connection_factory=get_db_connection
         ) as (conn, cursor):
 
-            #Actualmente devuelve p.estado (estado de la publicación).
-            # Se debe adaptar al estado de donación
-            sql = """
-                SELECT
-                    d.id_donacion,
-                    d.id_donante,
-                    d.id_publicacion,
-                    p.estado
-                FROM donacion d
-                JOIN publicacion p
-                    ON p.id_publicacion = d.id_publicacion
-                WHERE d.id_donacion = %s
-            """
-            cursor.execute(sql, (id_donacion,))
-            donacion = cursor.fetchone()
+            donacion = obtener_donacion_estado(
+                cursor,
+                id_donacion
+            )
 
             if not donacion:
                 return jsonify({
                     "error": "Donación no encontrada"
                 }), 404
 
-            if (
-                request.usuario_rol != "administrador"
-                and donacion["id_donante"] != request.usuario_id
-            ):
-                return jsonify({
-                    "error": "No autorizado para consultar esta donacion"
-                }), 403
+            # ADMINISTRADOR: Puede consultar cualquier donación.
+            if request.usuario_rol == "administrador":
+                return jsonify(donacion), 200
 
-            return jsonify(donacion), 200
+            # DONANTE: Solamente puede consultar sus donaciones.
+            if request.usuario_rol == "donante":
+                if (
+                    donacion["id_donante"]
+                    != request.usuario_id
+                ):
+                    return jsonify({
+                        "error": (
+                            "No autorizado para consultar "
+                            "esta donación"
+                        )
+                    }), 403
+
+                return jsonify(donacion), 200
+
+            # INTERMEDIARIO: Solamente puede consultar donaciones pertenecientes a su organización actual
+            if request.usuario_rol == "intermediario":
+                cursor.execute(
+                    """
+                    SELECT id_organizacion
+                    FROM intermediario
+                    WHERE id_usuario = %s
+                    """,
+                    (request.usuario_id,)
+                )
+
+                intermediario = cursor.fetchone()
+
+                if not intermediario:
+                    return jsonify({
+                        "error": "Acceso denegado"
+                    }), 403
+
+                if (
+                    donacion["id_organizacion"]
+                    != intermediario["id_organizacion"]
+                ):
+                    return jsonify({
+                        "error": "Donación no encontrada"
+                    }), 404
+
+                return jsonify(donacion), 200
+
+            # Cualquier otro rol
+            return jsonify({
+                "error": "Acceso denegado"
+            }), 403
 
     except Exception:
         logging.exception(
             "Error al obtener estado de donacion %s",
             id_donacion
         )
+
         return jsonify({
-            "error": "Error al obtener el estado de la donación"
+            "error": (
+                "Error al obtener el estado "
+                "de la donación"
+            )
+        }), 500
+
+# -- Editar estado: admin e intermediario
+@donacion_bp.route(
+    "/donaciones/<int:id_donacion>/estado",
+    methods=["PUT"]
+)
+@token_required
+def actualizar_estado_donacion(id_donacion):
+    try:
+        # Solamente administrador e intermediario pueden gestionar estados
+        if request.usuario_rol not in ("administrador", "intermediario" ):
+            return jsonify({
+                "error": (
+                    "No autorizado para actualizar "
+                    "el estado de la donación"
+                )
+            }), 403
+
+        data = request.get_json()
+
+        if not data:
+            return jsonify({
+                "error": "No se enviaron datos"
+            }), 400
+
+        nuevo_estado = validar_estado_donacion(
+            data.get("estado")
+        )
+
+        if not nuevo_estado:
+            return jsonify({
+                "error": (
+                    "Estado inválido. Usa pendiente, "
+                    "recibida, en_proceso, entregada "
+                    "o rechazada"
+                )
+            }), 400
+
+        with db_cursor(
+            connection_factory=get_db_connection
+        ) as (conn, cursor):
+
+            # Primero obtenemos la donación para validar permisos antes de modificarla.
+            donacion = obtener_donacion_estado(cursor, id_donacion)
+            if not donacion:
+                return jsonify({
+                    "error": "Donación no encontrada"
+                }), 404
+
+            # PERMISOS DEL INTERMEDIARIO
+            if request.usuario_rol == "intermediario":
+                cursor.execute(
+                    """
+                    SELECT id_organizacion
+                    FROM intermediario
+                    WHERE id_usuario = %s
+                    """,
+                    (request.usuario_id,)
+                )
+
+                intermediario = cursor.fetchone()
+
+                if not intermediario:
+                    return jsonify({
+                        "error": (
+                            "El intermediario no está "
+                            "asociado a una organización"
+                        )
+                    }), 403
+
+                id_organizacion_actual = (
+                    intermediario["id_organizacion"]
+                )
+
+                if (
+                    donacion["id_organizacion"]
+                    != id_organizacion_actual
+                ):
+                    return jsonify({
+                        "error": "Donación no encontrada"
+                    }), 404
+
+            # Cambio de estado
+            resultado, error, codigo = ( cambiar_estado_donacion( cursor, id_donacion, nuevo_estado) )
+
+            if error:
+                return jsonify({
+                    "error": error
+                }), codigo
+
+            conn.commit()
+
+            return jsonify({
+                "message": (
+                    "Estado de donación actualizado"
+                ),
+                "donacion": {
+                    "id_donacion": (
+                        resultado["id_donacion"]
+                    ),
+                    "estado_anterior": (
+                        resultado["estado_anterior"]
+                    ),
+                    "estado": resultado["estado"]
+                }
+            }), 200
+
+    except Exception:
+        logging.exception(
+            "Error al actualizar estado de donacion %s",
+            id_donacion
+        )
+
+        return jsonify({
+            "error": (
+                "No se pudo actualizar "
+                "el estado de la donación"
+            )
         }), 500
