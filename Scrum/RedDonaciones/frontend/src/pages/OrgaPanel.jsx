@@ -3,10 +3,11 @@
 // (piezas compartidas con AdminPanel: SkeletonRows, adminHelpers, icons).
 import React from 'react'
 import { apiGet, apiPut, apiPost } from '../utils/api'
-import { IconCampaigns, IconUsers, IconPlus, IconDonation } from '../components/icons'
+import { IconCampaigns, IconUsers, IconPlus, IconDonation, IconUser } from '../components/icons'
 import OrgaCampaignsTable from './orga/OrgaCampaignsTable'
 import OrgaIntermediariosTable from './orga/OrgaIntermediariosTable'
 import OrgaDonacionesTable from './orga/OrgaDonacionesTable'
+import OrgaPerfilInstitucionalForm from './orga/OrgaPerfilInstitucionalForm'
 import OrgaCampaignFormModal from './orga/OrgaCampaignFormModal'
 import { donationStatusLabel } from './admin/adminHelpers'
 import './admin/admin-panel.css'
@@ -337,6 +338,15 @@ export default function OrgaPanel() {
             <IconDonation className="admin-svg-icon" />
             <span>Donaciones</span>
           </button>
+
+          <button
+            type="button"
+            className={`admin-tab-button ${activeTab === 'perfil' ? 'active' : ''}`}
+            onClick={() => setActiveTab('perfil')}
+          >
+            <IconUser className="admin-svg-icon" />
+            <span>Perfil Institucional</span>
+          </button>
         </aside>
 
         <section className="admin-content-panel">
@@ -449,6 +459,24 @@ export default function OrgaPanel() {
                 onToggleOne={toggleDonacionSelected}
                 onToggleAll={toggleAllDonacionesSelected}
               />
+            </>
+          )}
+
+          {activeTab === 'perfil' && (
+            <>
+              <div className="admin-section-head">
+                <div>
+                  <h2>Perfil Institucional</h2>
+
+                  <p>
+                    Cuéntale a los donantes quiénes son y cómo trabajan.
+                  </p>
+                </div>
+              </div>
+
+              <div className="admin-form-panel">
+                <OrgaPerfilInstitucionalForm />
+              </div>
             </>
           )}
         </section>

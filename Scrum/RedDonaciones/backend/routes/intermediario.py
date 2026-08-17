@@ -450,3 +450,104 @@ def actualizar_estado_donaciones_masivo():
                 "No se pudo actualizar el estado de las donaciones"
             )
         }), 500
+
+
+# OBTENER PERFIL INSTITUCIONAL DE LA ORGANIZACIÓN
+@intermediario_bp.route(
+    "/intermediario/organizacion",
+    methods=["GET"]
+)
+@intermediario_required
+def obtener_perfil_institucional():
+    try:
+        with db_cursor(
+            connection_factory=get_db_connection
+        ) as (conn, cursor):
+
+            cursor.execute(
+                """
+                SELECT
+                    id_organizacion,
+                    nombre,
+                    quienes_somos,
+                    que_hacemos,
+                    como_trabajamos,
+                    donde_trabajamos
+                FROM organizacion
+                WHERE id_organizacion = %s
+                """,
+                (request.id_organizacion,)
+            )
+
+            organizacion = cursor.fetchone()
+
+            if not organizacion:
+                return jsonify({
+                    "error": "Organización no encontrada"
+                }), 404
+
+            return jsonify(organizacion), 200
+
+    except Exception:
+        logging.exception(
+            "Error al obtener perfil institucional"
+        )
+
+        return jsonify({
+            "error": "No se pudo obtener el perfil institucional"
+        }), 500
+
+
+# ACTUALIZAR PERFIL INSTITUCIONAL DE LA ORGANIZACIÓN
+@intermediario_bp.route(
+    "/intermediario/organizacion",
+    methods=["PUT"]
+)
+@intermediario_required
+def actualizar_perfil_institucional():
+    try:
+        data = request.get_json()
+
+        if not data:
+            return jsonify({
+                "error": "No se enviaron datos"
+            }), 400
+
+        campos = (
+            (data.get("quienes_somos") or "").strip() or None,
+            (data.get("que_hacemos") or "").strip() or None,
+            (data.get("como_trabajamos") or "").strip() or None,
+            (data.get("donde_trabajamos") or "").strip() or None,
+        )
+
+        with db_cursor(
+            connection_factory=get_db_connection
+        ) as (conn, cursor):
+
+            cursor.execute(
+                """
+                UPDATE organizacion
+                SET
+                    quienes_somos = %s,
+                    que_hacemos = %s,
+                    como_trabajamos = %s,
+                    donde_trabajamos = %s
+                WHERE id_organizacion = %s
+                """,
+                campos + (request.id_organizacion,)
+            )
+
+            conn.commit()
+
+            return jsonify({
+                "message": "Perfil institucional actualizado"
+            }), 200
+
+    except Exception:
+        logging.exception(
+            "Error al actualizar perfil institucional"
+        )
+
+        return jsonify({
+            "error": "No se pudo actualizar el perfil institucional"
+        }), 500

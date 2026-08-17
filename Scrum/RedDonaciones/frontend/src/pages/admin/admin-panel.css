@@ -928,3 +928,9 @@
     color: var(--warning);
     font-size: 0.85rem;
 }
+
+/* Contenedor de formularios que viven directamente en una pestaña (no en modal) */
+.admin-form-panel {
+    padding: 24px;
+    max-width: 640px;
+}
