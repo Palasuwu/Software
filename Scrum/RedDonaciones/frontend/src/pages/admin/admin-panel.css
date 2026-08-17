@@ -875,3 +875,56 @@
 .form-uploading-text {
     color: var(--primary);
 }
+
+/* Tabla de donaciones del panel de organización (6 columnas, con checkbox) */
+.admin-table-donaciones th:nth-child(1),
+.admin-table-donaciones td:nth-child(1) {
+    width: 4%;
+}
+.admin-table-donaciones th:nth-child(2),
+.admin-table-donaciones td:nth-child(2) {
+    width: 28%;
+}
+.admin-table-donaciones th:nth-child(3),
+.admin-table-donaciones td:nth-child(3) {
+    width: 24%;
+}
+.admin-table-donaciones th:nth-child(4),
+.admin-table-donaciones td:nth-child(4) {
+    width: 12%;
+}
+.admin-table-donaciones th:nth-child(5),
+.admin-table-donaciones td:nth-child(5) {
+    width: 16%;
+}
+.admin-table-donaciones th:nth-child(6),
+.admin-table-donaciones td:nth-child(6) {
+    width: 16%;
+}
+
+/* Barra de acción masiva sobre la tabla de donaciones */
+.admin-bulk-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--outline);
+    background: var(--surface-soft);
+}
+
+.admin-bulk-bar-count {
+    color: var(--text-soft);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.admin-bulk-bar-select {
+    max-width: 220px;
+}
+
+.admin-bulk-bar-omitidas {
+    width: 100%;
+    color: var(--warning);
+    font-size: 0.85rem;
+}

@@ -15,6 +15,15 @@ export function campaignStatusLabel(status) {
     return 'Sin estado'
 }
 
+export function donationStatusLabel(status) {
+    if (status === 'pendiente') return 'Pendiente'
+    if (status === 'recibida') return 'Recibida'
+    if (status === 'en_proceso') return 'En proceso'
+    if (status === 'entregada') return 'Entregada'
+    if (status === 'rechazada') return 'Rechazada'
+    return 'Sin estado'
+}
+
 export function formatDate(value) {
     if (!value) return 'Sin fecha'
 

@@ -3,11 +3,15 @@
 // (piezas compartidas con AdminPanel: SkeletonRows, adminHelpers, icons).
 import React from 'react'
 import { apiGet, apiPut, apiPost } from '../utils/api'
-import { IconCampaigns, IconUsers, IconPlus } from '../components/icons'
+import { IconCampaigns, IconUsers, IconPlus, IconDonation } from '../components/icons'
 import OrgaCampaignsTable from './orga/OrgaCampaignsTable'
 import OrgaIntermediariosTable from './orga/OrgaIntermediariosTable'
+import OrgaDonacionesTable from './orga/OrgaDonacionesTable'
 import OrgaCampaignFormModal from './orga/OrgaCampaignFormModal'
+import { donationStatusLabel } from './admin/adminHelpers'
 import './admin/admin-panel.css'
+
+const ESTADOS_DONACION = ['pendiente', 'recibida', 'en_proceso', 'entregada', 'rechazada']
 
 const CAMP_INITIAL_FORM = {
   titulo: '',
@@ -40,6 +44,14 @@ export default function OrgaPanel() {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [modalError, setModalError] = React.useState('')
   const [articulos, setArticulos] = React.useState([])
+
+  const [donaciones, setDonaciones] = React.useState([])
+  const [loadingDonaciones, setLoadingDonaciones] = React.useState(true)
+  const [donacionesError, setDonacionesError] = React.useState('')
+  const [selectedDonacionIds, setSelectedDonacionIds] = React.useState(() => new Set())
+  const [estadoMasivo, setEstadoMasivo] = React.useState('recibida')
+  const [aplicandoMasivo, setAplicandoMasivo] = React.useState(false)
+  const [omitidasMasivo, setOmitidasMasivo] = React.useState([])
 
   React.useEffect(() => {
     if (!successMessage) return
@@ -88,6 +100,21 @@ export default function OrgaPanel() {
     }
   }, [])
 
+  const loadDonaciones = React.useCallback(async () => {
+    setLoadingDonaciones(true)
+    setDonacionesError('')
+
+    try {
+      const data = await apiGet('/api/intermediario/donaciones')
+      setDonaciones(Array.isArray(data) ? data : [])
+      setSelectedDonacionIds(new Set())
+    } catch (error) {
+      setDonacionesError(error.message || 'No se pudieron cargar las donaciones')
+    } finally {
+      setLoadingDonaciones(false)
+    }
+  }, [])
+
   React.useEffect(() => {
     loadCampaigns()
     loadArticulos()
@@ -97,7 +124,55 @@ export default function OrgaPanel() {
     if (activeTab === 'intermediarios') {
       loadIntermediarios()
     }
-  }, [activeTab, loadIntermediarios])
+
+    if (activeTab === 'donaciones') {
+      loadDonaciones()
+    }
+  }, [activeTab, loadIntermediarios, loadDonaciones])
+
+  const toggleDonacionSelected = (idDonacion, checked) => {
+    setSelectedDonacionIds((previous) => {
+      const next = new Set(previous)
+
+      if (checked) {
+        next.add(idDonacion)
+      } else {
+        next.delete(idDonacion)
+      }
+
+      return next
+    })
+  }
+
+  const toggleAllDonacionesSelected = (checked) => {
+    setSelectedDonacionIds(
+      checked ? new Set(donaciones.map((d) => d.id_donacion)) : new Set()
+    )
+  }
+
+  const aplicarEstadoMasivo = async () => {
+    if (selectedDonacionIds.size === 0) return
+
+    setAplicandoMasivo(true)
+    setOmitidasMasivo([])
+    setDonacionesError('')
+
+    try {
+      const resultado = await apiPut('/api/intermediario/donaciones/estado', {
+        ids_donacion: Array.from(selectedDonacionIds),
+        estado: estadoMasivo
+      })
+
+      setOmitidasMasivo(resultado.omitidas || [])
+      setSuccessMessage(resultado.message || 'Estados actualizados')
+
+      await loadDonaciones()
+    } catch (error) {
+      setDonacionesError(error.message || 'No se pudo actualizar el estado de las donaciones')
+    } finally {
+      setAplicandoMasivo(false)
+    }
+  }
 
   const openCreateCampaign = () => {
     setCampForm(CAMP_INITIAL_FORM)
@@ -253,10 +328,19 @@ export default function OrgaPanel() {
             <IconUsers className="admin-svg-icon" />
             <span>Intermediarios</span>
           </button>
+
+          <button
+            type="button"
+            className={`admin-tab-button ${activeTab === 'donaciones' ? 'active' : ''}`}
+            onClick={() => setActiveTab('donaciones')}
+          >
+            <IconDonation className="admin-svg-icon" />
+            <span>Donaciones</span>
+          </button>
         </aside>
 
         <section className="admin-content-panel">
-          {activeTab === 'campanas' ? (
+          {activeTab === 'campanas' && (
             <>
               <div className="admin-section-head">
                 <div>
@@ -287,7 +371,9 @@ export default function OrgaPanel() {
                 onStatusChange={handleChangeCampaignStatus}
               />
             </>
-          ) : (
+          )}
+
+          {activeTab === 'intermediarios' && (
             <>
               <div className="admin-section-head">
                 <div>
@@ -304,6 +390,64 @@ export default function OrgaPanel() {
                 loadingIntermediarios={loadingIntermediarios}
                 intermediariosError={intermediariosError}
                 onRetry={loadIntermediarios}
+              />
+            </>
+          )}
+
+          {activeTab === 'donaciones' && (
+            <>
+              <div className="admin-section-head">
+                <div>
+                  <h2>Donaciones</h2>
+
+                  <p>
+                    Selecciona donaciones y actualiza su estado en bloque.
+                  </p>
+                </div>
+              </div>
+
+              <div className="admin-bulk-bar">
+                <span className="admin-bulk-bar-count">
+                  {selectedDonacionIds.size} seleccionada(s)
+                </span>
+
+                <select
+                  className="form-select admin-bulk-bar-select"
+                  value={estadoMasivo}
+                  onChange={(e) => setEstadoMasivo(e.target.value)}
+                  disabled={aplicandoMasivo}
+                >
+                  {ESTADOS_DONACION.map((estado) => (
+                    <option key={estado} value={estado}>
+                      {donationStatusLabel(estado)}
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  type="button"
+                  className="admin-primary-action"
+                  disabled={selectedDonacionIds.size === 0 || aplicandoMasivo}
+                  onClick={aplicarEstadoMasivo}
+                >
+                  {aplicandoMasivo ? 'Aplicando...' : 'Aplicar a seleccionadas'}
+                </button>
+
+                {omitidasMasivo.length > 0 && (
+                  <div className="admin-bulk-bar-omitidas">
+                    {omitidasMasivo.length} donación(es) no se actualizaron: {omitidasMasivo.map((o) => `#${o.id_donacion} (${o.motivo})`).join(', ')}
+                  </div>
+                )}
+              </div>
+
+              <OrgaDonacionesTable
+                donaciones={donaciones}
+                loadingDonaciones={loadingDonaciones}
+                donacionesError={donacionesError}
+                selectedIds={selectedDonacionIds}
+                onRetry={loadDonaciones}
+                onToggleOne={toggleDonacionSelected}
+                onToggleAll={toggleAllDonacionesSelected}
               />
             </>
           )}

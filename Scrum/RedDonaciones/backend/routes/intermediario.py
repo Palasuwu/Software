@@ -5,6 +5,7 @@ from flask import Blueprint, jsonify, request
 from auth_utils import intermediario_required
 from db.connection import get_db_connection, db_cursor
 from services.publicacion_service import (articulo_existe, actualizar_estado_publicacion_db, crear_publicacion_db, editar_publicacion_db, organizacion_verificada, publicacion_pertenece_a_organizacion, validar_estado_publicacion, validar_publicacion_payload, )
+from services.donacion_service import (validar_estado_donacion, cambiar_estado_donaciones_masivo, )
 
 intermediario_bp = Blueprint("intermediario", __name__)
 
@@ -318,4 +319,134 @@ def editar_publicacion_intermediario(id_publicacion):
 
         return jsonify({
             "error": "No se pudo actualizar la publicación"
+        }), 500
+
+
+# LISTAR DONACIONES DE LA ORGANIZACIÓN
+@intermediario_bp.route(
+    "/intermediario/donaciones",
+    methods=["GET"]
+)
+@intermediario_required
+def obtener_donaciones_intermediario():
+    try:
+        with db_cursor(
+            connection_factory=get_db_connection
+        ) as (conn, cursor):
+
+            sql = """
+                SELECT
+                    d.id_donacion,
+                    d.id_publicacion,
+                    d.nombre_contacto,
+                    d.telefono_contacto,
+                    d.cantidad_donada,
+                    d.estado,
+                    DATE_FORMAT(
+                        d.fecha_donacion,
+                        '%Y-%m-%d'
+                    ) AS fecha_donacion,
+                    p.titulo AS publicacion_titulo,
+                    u.nombre AS donante_nombre
+                FROM donacion d
+                INNER JOIN publicacion p
+                    ON p.id_publicacion = d.id_publicacion
+                INNER JOIN usuario u
+                    ON u.id_usuario = d.id_donante
+                WHERE p.id_organizacion = %s
+                ORDER BY
+                    d.fecha_donacion DESC,
+                    d.id_donacion DESC
+            """
+
+            cursor.execute(
+                sql,
+                (request.id_organizacion,)
+            )
+
+            donaciones = cursor.fetchall()
+
+            return jsonify(donaciones), 200
+
+    except Exception:
+        logging.exception(
+            "Error al obtener donaciones de la organización"
+        )
+
+        return jsonify({
+            "error": "No se pudieron obtener las donaciones"
+        }), 500
+
+
+# ACTUALIZAR ESTADO DE VARIAS DONACIONES A LA VEZ
+@intermediario_bp.route(
+    "/intermediario/donaciones/estado",
+    methods=["PUT"]
+)
+@intermediario_required
+def actualizar_estado_donaciones_masivo():
+    try:
+        data = request.get_json()
+
+        if not data:
+            return jsonify({
+                "error": "No se enviaron datos"
+            }), 400
+
+        ids_donacion = data.get("ids_donacion")
+        nuevo_estado = validar_estado_donacion(data.get("estado"))
+
+        if not isinstance(ids_donacion, list) or not ids_donacion:
+            return jsonify({
+                "error": "Debes indicar al menos una donación"
+            }), 400
+
+        try:
+            ids_donacion = [
+                int(id_donacion) for id_donacion in ids_donacion
+            ]
+        except (ValueError, TypeError):
+            return jsonify({
+                "error": "ids_donacion debe ser una lista de enteros"
+            }), 400
+
+        if not nuevo_estado:
+            return jsonify({
+                "error": (
+                    "Estado inválido. Usa pendiente, "
+                    "recibida, en_proceso, entregada "
+                    "o rechazada"
+                )
+            }), 400
+
+        with db_cursor(
+            connection_factory=get_db_connection
+        ) as (conn, cursor):
+
+            actualizadas, omitidas = cambiar_estado_donaciones_masivo(
+                cursor,
+                ids_donacion,
+                nuevo_estado,
+                request.id_organizacion
+            )
+
+            conn.commit()
+
+            return jsonify({
+                "message": (
+                    f"{len(actualizadas)} donación(es) actualizada(s)"
+                ),
+                "actualizadas": actualizadas,
+                "omitidas": omitidas
+            }), 200
+
+    except Exception:
+        logging.exception(
+            "Error al actualizar estado de donaciones en bloque"
+        )
+
+        return jsonify({
+            "error": (
+                "No se pudo actualizar el estado de las donaciones"
+            )
         }), 500
