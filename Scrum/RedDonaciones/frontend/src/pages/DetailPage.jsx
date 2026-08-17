@@ -52,7 +52,8 @@ export default function DetailPage() {
     fecha: '',
     hora: '',
     nota: '',
-    cantidad: '1'
+    cantidad: '1',
+    compromisoEntrega: false
   })
 
   useEffect(() => {
@@ -78,8 +79,10 @@ export default function DetailPage() {
   const info = data[0]
   const items = data.map(item => ({ name: item.articulo, qty: item.descripcion_detalle }))
 
-  const handleChange = (e) =>
-    setForm(f => ({ ...f, [e.target.name]: e.target.value }))
+  const handleChange = (e) => {
+    const { name, type, value, checked } = e.target
+    setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }))
+  }
 
   const adjustQty = (delta) =>
     setForm(f => ({ ...f, cantidad: String(Math.max(1, Number(f.cantidad) + delta)) }))
@@ -100,6 +103,10 @@ export default function DetailPage() {
     const cantidadDonada = Number(form.cantidad)
     if (!Number.isInteger(cantidadDonada) || cantidadDonada <= 0) {
       setSubmitError('La cantidad a donar debe ser un entero mayor a 0')
+      return
+    }
+    if (!form.compromisoEntrega) {
+      setSubmitError('Confirma tu compromiso de entrega para continuar')
       return
     }
 
@@ -370,6 +377,28 @@ export default function DetailPage() {
                       onChange={handleChange}
                     />
                   </div>
+
+                  <label className={`dp-commitment${form.compromisoEntrega ? ' dp-commitment--checked' : ''}`}>
+                    <input
+                      className="dp-commitment-checkbox"
+                      type="checkbox"
+                      name="compromisoEntrega"
+                      checked={form.compromisoEntrega}
+                      onChange={handleChange}
+                    />
+                    <span className="dp-commitment-control" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </span>
+                    <span className="dp-commitment-copy">
+                      <strong>Confirmo mi compromiso de entrega</strong>
+                      <span>
+                        Me comprometo a entregar los artículos en la fecha y hora indicadas,
+                        o a comunicarme con la organización si necesito reprogramar.
+                      </span>
+                    </span>
+                  </label>
 
                   {submitError && <div className="dp-error">{submitError}</div>}
 
