@@ -110,8 +110,8 @@ export default function CampaignFormModal({
                     </div>
 
                     <div className="form-field">
-                        <label className="form-label">Imagen</label>
-                        <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={onImageChange} disabled={uploadingImage} className={`form-input ${campFormErrors.imagen_url ? 'form-input-invalid' : ''}`} />
+                        <label className="form-label">Imagen (opcional)</label>
+                        <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={onImageChange} disabled={uploadingImage} className={`form-input form-file-input ${campFormErrors.imagen_url ? 'form-input-invalid' : ''}`} />
                         {uploadingImage && <span className="form-error-text form-uploading-text">Subiendo imagen...</span>}
                         {campFormErrors.imagen_url && <span className="form-error-text">{campFormErrors.imagen_url}</span>}
                         {imagePreview && !uploadingImage && (

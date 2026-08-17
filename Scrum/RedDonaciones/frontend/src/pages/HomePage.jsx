@@ -5,7 +5,6 @@ import DonationCard from '../components/DonationCard'
 import HomeFilterSidebar from '../components/HomeFilterSidebar'
 import { apiGet } from '../utils/api'
 import defaultImg from '../assets/Defult.jpg'
-import card1Img from '../assets/Card1.jpg'
 import heroVideo from '../assets/herohome.mp4'
 import './HomePage.css'
 
@@ -26,16 +25,8 @@ function useCountUp(target, duration = 1600) {
   return count
 }
 
-const PUBLICATION_IMAGES = {
-  1: card1Img,
-  2: defaultImg,
-}
-
-function resolvePublicationImage(id, urlFromDb) {
-  if (urlFromDb && urlFromDb.startsWith('/api/uploads/')) return urlFromDb
-  if (PUBLICATION_IMAGES[id]) return PUBLICATION_IMAGES[id]
-  if (urlFromDb && (urlFromDb.startsWith('http://') || urlFromDb.startsWith('https://'))) return urlFromDb
-  return defaultImg
+function resolvePublicationImage(urlFromDb) {
+  return urlFromDb || defaultImg
 }
 
 function StatCard({ value, label }) {
@@ -103,7 +94,7 @@ export default function HomePage({ isAuthenticated }) {
           location: p.direccion,
           organizacion: p.organizacion || 'Sin organización',
           estado: p.estado || 'activa',
-          imagen: resolvePublicationImage(p.id_publicacion, p.imagen_url),
+          imagen: resolvePublicationImage(p.imagen_url),
           progress: p.cantidad_necesaria > 0
             ? Math.min(100, Math.round((p.cantidad_recibida / p.cantidad_necesaria) * 100))
             : 0,

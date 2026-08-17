@@ -2,7 +2,7 @@
 // y las llamadas a la API. La presentacion vive en pages/orga/ y pages/admin/
 // (piezas compartidas con AdminPanel: SkeletonRows, adminHelpers, icons).
 import React from 'react'
-import { apiGet, apiPut, apiPost } from '../utils/api'
+import { apiGet, apiPut, apiPost, apiUpload } from '../utils/api'
 import { IconCampaigns, IconUsers, IconPlus, IconDonation, IconUser } from '../components/icons'
 import OrgaCampaignsTable from './orga/OrgaCampaignsTable'
 import OrgaIntermediariosTable from './orga/OrgaIntermediariosTable'
@@ -45,6 +45,8 @@ export default function OrgaPanel() {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [modalError, setModalError] = React.useState('')
   const [articulos, setArticulos] = React.useState([])
+  const [imagePreview, setImagePreview] = React.useState(null)
+  const [uploadingImage, setUploadingImage] = React.useState(false)
 
   const [donaciones, setDonaciones] = React.useState([])
   const [loadingDonaciones, setLoadingDonaciones] = React.useState(true)
@@ -178,6 +180,7 @@ export default function OrgaPanel() {
   const openCreateCampaign = () => {
     setCampForm(CAMP_INITIAL_FORM)
     setModalError('')
+    setImagePreview(null)
     setModal({ type: 'createCampaign' })
   }
 
@@ -194,6 +197,7 @@ export default function OrgaPanel() {
     })
 
     setModalError('')
+    setImagePreview(publicacion.imagen_url || null)
     setModal({
       type: 'editCampaign',
       publicacion
@@ -209,6 +213,41 @@ export default function OrgaPanel() {
       ...prev,
       [name]: value
     }))
+  }
+
+  const handleImageChange = async (event) => {
+    const file = event.target.files[0]
+    if (!file) return
+
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    const MAX_SIZE = 5 * 1024 * 1024
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setModalError('Formato no permitido. Solo JPG, PNG, GIF o WEBP')
+      event.target.value = ''
+      return
+    }
+
+    if (file.size > MAX_SIZE) {
+      setModalError(`El archivo pesa ${(file.size / 1024 / 1024).toFixed(1)} MB. El máximo es 5 MB`)
+      event.target.value = ''
+      return
+    }
+
+    setModalError('')
+    setImagePreview(URL.createObjectURL(file))
+    setUploadingImage(true)
+
+    try {
+      const result = await apiUpload(file)
+      setCampForm((prev) => ({ ...prev, imagen_url: result.url }))
+    } catch (error) {
+      setModalError(error.message || 'No se pudo subir la imagen')
+      setImagePreview(null)
+      setCampForm((prev) => ({ ...prev, imagen_url: '' }))
+    } finally {
+      setUploadingImage(false)
+    }
   }
 
   const submitCampForm = async (event) => {
@@ -488,6 +527,9 @@ export default function OrgaPanel() {
           campForm={campForm}
           articulos={articulos}
           onChange={handleCampChange}
+          onImageChange={handleImageChange}
+          uploadingImage={uploadingImage}
+          imagePreview={imagePreview}
           onSubmit={submitCampForm}
           onClose={closeModal}
           isSubmitting={isSubmitting}

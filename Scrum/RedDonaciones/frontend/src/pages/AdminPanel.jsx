@@ -335,7 +335,6 @@ export default function AdminPanel({ usuarioSesion }) {
         if (!campForm.id_intermediario) errors.id_intermediario = 'Selecciona un intermediario'
         if (!campForm.id_organizacion) errors.id_organizacion = 'Selecciona una organización'
         if (!campForm.id_articulo) errors.id_articulo = 'Selecciona un artículo'
-        if (!campForm.imagen_url) errors.imagen_url = 'La imagen es obligatoria'
 
         if (Object.keys(errors).length > 0) {
             setCampFormErrors(errors)

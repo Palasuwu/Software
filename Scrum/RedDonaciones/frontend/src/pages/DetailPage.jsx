@@ -5,6 +5,7 @@ import { obtenerUsuarioSesion } from '../utils/session'
 import { apiGet, apiPost } from '../utils/api'
 import Spinner from '../components/Spinner'
 import ErrorView from '../components/ErrorView'
+import defaultImg from '../assets/Defult.jpg'
 import './DetailPage.css'
 
 const EASE_OUT_EXPO = [0.16, 1, 0.3, 1]
@@ -162,6 +163,16 @@ export default function DetailPage() {
 
         {/* ── COLUMNA IZQUIERDA ── */}
         <div className="dp-left">
+
+          {/* Imagen de la campaña */}
+          <div className="dp-cover-wrap">
+            <img
+              className="dp-cover-image"
+              src={info.imagen_url || defaultImg}
+              alt={info.titulo}
+              onError={(e) => { e.currentTarget.src = defaultImg }}
+            />
+          </div>
 
           {/* Hero */}
           <div className="dp-hero">

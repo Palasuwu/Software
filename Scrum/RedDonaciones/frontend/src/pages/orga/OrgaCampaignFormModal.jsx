@@ -9,6 +9,9 @@ export default function OrgaCampaignFormModal({
     campForm,
     articulos,
     onChange,
+    onImageChange,
+    uploadingImage,
+    imagePreview,
     onSubmit,
     onClose,
     isSubmitting,
@@ -117,6 +120,32 @@ export default function OrgaCampaignFormModal({
                                 />
                             </div>
 
+                            <div className="form-field">
+                                <label className="form-label">Imagen (opcional)</label>
+
+                                <input
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/gif,image/webp"
+                                    className="form-input form-file-input"
+                                    onChange={onImageChange}
+                                    disabled={uploadingImage}
+                                />
+
+                                {uploadingImage && (
+                                    <span className="form-error-text form-uploading-text">
+                                        Subiendo imagen...
+                                    </span>
+                                )}
+
+                                {imagePreview && !uploadingImage && (
+                                    <img
+                                        src={imagePreview}
+                                        alt="Vista previa"
+                                        style={{ marginTop: '8px', maxHeight: '120px', borderRadius: '6px', objectFit: 'cover' }}
+                                    />
+                                )}
+                            </div>
+
                         </div>
 
                         <div className="admin-modal-footer">
@@ -131,7 +160,7 @@ export default function OrgaCampaignFormModal({
                             <button
                                 type="submit"
                                 className="btn-confirmar"
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || uploadingImage}
                             >
                                 {isSubmitting ? 'Guardando...' : 'Guardar'}
                             </button>
