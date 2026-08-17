@@ -5,6 +5,9 @@ from flask import Blueprint, jsonify, request
 from auth_utils import token_required
 from db.connection import get_db_connection, db_cursor
 from db.notificaciones import asegurar_tabla_notificaciones
+from services.notificacion_service import (
+    generar_recordatorios_donaciones_pendientes,
+)
 
 
 notificacion_bp = Blueprint("notificacion", __name__)
@@ -19,6 +22,11 @@ def listar_notificaciones():
 
         with db_cursor(connection_factory=get_db_connection) as (conn, cursor):
             asegurar_tabla_notificaciones(cursor)
+            if request.usuario_rol == "donante":
+                generar_recordatorios_donaciones_pendientes(
+                    cursor,
+                    request.usuario_id
+                )
 
             cursor.execute(
                 """
