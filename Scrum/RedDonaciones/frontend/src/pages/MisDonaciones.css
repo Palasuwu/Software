@@ -428,6 +428,13 @@
   font-size: 0.96rem;
 }
 
+.donation-detail-badges-figma {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .estado-activa {
   background: var(--badge-campaign-active-bg);
   color: var(--badge-campaign-active-text);
@@ -444,4 +451,35 @@
   background: var(--badge-campaign-canceled-bg);
   color: var(--badge-campaign-canceled-text);
   border: 1px solid var(--badge-campaign-canceled-border);
+}
+
+/* Estado propio de la donación (pendiente/recibida/en_proceso/entregada/rechazada) */
+.donacion-estado-pendiente {
+  background: var(--badge-donation-pending-bg);
+  color: var(--badge-donation-pending-text);
+  border: 1px solid var(--badge-donation-pending-border);
+}
+
+.donacion-estado-recibida {
+  background: var(--badge-donation-received-bg);
+  color: var(--badge-donation-received-text);
+  border: 1px solid var(--badge-donation-received-border);
+}
+
+.donacion-estado-en_proceso {
+  background: var(--badge-donation-inprogress-bg);
+  color: var(--badge-donation-inprogress-text);
+  border: 1px solid var(--badge-donation-inprogress-border);
+}
+
+.donacion-estado-entregada {
+  background: var(--badge-donation-delivered-bg);
+  color: var(--badge-donation-delivered-text);
+  border: 1px solid var(--badge-donation-delivered-border);
+}
+
+.donacion-estado-rechazada {
+  background: var(--badge-donation-rejected-bg);
+  color: var(--badge-donation-rejected-text);
+  border: 1px solid var(--badge-donation-rejected-border);
 }

@@ -40,6 +40,18 @@ function formatearCantidad(valor) {
   return numero.toLocaleString('es-CO')
 }
 
+const ETIQUETAS_ESTADO_DONACION = {
+  pendiente: 'Pendiente',
+  recibida: 'Recibida',
+  en_proceso: 'En proceso',
+  entregada: 'Entregada',
+  rechazada: 'Rechazada'
+}
+
+function formatearEstadoDonacion(estado) {
+  return ETIQUETAS_ESTADO_DONACION[estado] || 'Pendiente'
+}
+
 export default function MisDonacionesPage() {
   const navigate = useNavigate()
   const [donaciones, setDonaciones] = useState([])
@@ -173,6 +185,7 @@ export default function MisDonacionesPage() {
             <div className="donations-list-figma">
               {donacionesFiltradas.map((donacion) => {
                 const estado = donacion.publicacion_estado || 'activa'
+                const estadoDonacion = donacion.donacion_estado || 'pendiente'
                 const progreso = calcularProgreso(
                   donacion.cantidad_recibida,
                   donacion.cantidad_necesaria
@@ -185,6 +198,10 @@ export default function MisDonacionesPage() {
                         <h3 className="donation-row-title-figma">
                           {donacion.publicacion_titulo || 'Publicacion sin titulo'}
                         </h3>
+
+                        <span className={`status-badge donation-row-status-figma donacion-estado-${estadoDonacion}`}>
+                          {formatearEstadoDonacion(estadoDonacion)}
+                        </span>
 
                         <span className={`status-badge donation-row-status-figma estado-${estado}`}>
                           {estado}

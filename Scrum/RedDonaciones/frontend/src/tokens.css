@@ -68,6 +68,24 @@
   --badge-campaign-canceled-text:    #a8423a;
   --badge-campaign-canceled-border:  #edc8c5;
 
+  /* ── Badges de estado de donación (flujo propio de la donación:
+     pendiente → recibida → en_proceso → entregada/rechazada) ── */
+  --badge-donation-pending-bg:      #fff8ea;
+  --badge-donation-pending-text:    #c8892a;
+  --badge-donation-pending-border:  #f0dfb5;
+  --badge-donation-received-bg:      #eef5fa;
+  --badge-donation-received-text:    #2f5a78;
+  --badge-donation-received-border:  #cbdced;
+  --badge-donation-inprogress-bg:      #fff7e4;
+  --badge-donation-inprogress-text:    #a9762c;
+  --badge-donation-inprogress-border:  #ecd6a1;
+  --badge-donation-delivered-bg:      #eaf4ed;
+  --badge-donation-delivered-text:    #2e7a47;
+  --badge-donation-delivered-border:  #c0deca;
+  --badge-donation-rejected-bg:      #fdf1f0;
+  --badge-donation-rejected-text:    #a8423a;
+  --badge-donation-rejected-border:  #edc8c5;
+
   /* ── Badges de rol de usuario (panel admin). El rol
      "administrador" reusa --primary-soft por ser el mismo valor ── */
   --role-intermediario-bg:     #fff7e8;

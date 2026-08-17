@@ -39,6 +39,18 @@ function formatearCantidad(valor) {
     return numero.toLocaleString('es-CO')
 }
 
+const ETIQUETAS_ESTADO_DONACION = {
+    pendiente: 'Pendiente',
+    recibida: 'Recibida',
+    en_proceso: 'En proceso',
+    entregada: 'Entregada',
+    rechazada: 'Rechazada'
+}
+
+function formatearEstadoDonacion(estado) {
+    return ETIQUETAS_ESTADO_DONACION[estado] || 'Pendiente'
+}
+
 export default function DonationHistoryDetailPage() {
     const navigate = useNavigate()
     const { idDonacion } = useParams()
@@ -104,6 +116,13 @@ export default function DonationHistoryDetailPage() {
 
             <div className="stats-grid stats-grid-figma">
                 <article className="stat-card stat-card-figma">
+                    <p className="stat-label stat-label-figma">Estado de tu donacion</p>
+                    <p className="stat-value stat-value-figma">
+                        {formatearEstadoDonacion(detalle.donacion_estado)}
+                    </p>
+                </article>
+
+                <article className="stat-card stat-card-figma">
                     <p className="stat-label stat-label-figma">Estado de la campana</p>
                     <p className="stat-value stat-value-figma">{detalle.publicacion_estado}</p>
                 </article>
@@ -132,9 +151,15 @@ export default function DonationHistoryDetailPage() {
                                 <p className="donation-detail-eyebrow-figma">Campana</p>
                                 <h3 className="donation-row-title-figma">Seguimiento del progreso</h3>
                             </div>
-                            <span className={`status-badge donation-row-status-figma estado-${detalle.publicacion_estado || 'activa'}`}>
-                                {detalle.publicacion_estado}
-                            </span>
+                            <div className="donation-detail-badges-figma">
+                                <span className={`status-badge donation-row-status-figma donacion-estado-${detalle.donacion_estado || 'pendiente'}`}>
+                                    {formatearEstadoDonacion(detalle.donacion_estado)}
+                                </span>
+
+                                <span className={`status-badge donation-row-status-figma estado-${detalle.publicacion_estado || 'activa'}`}>
+                                    {detalle.publicacion_estado}
+                                </span>
+                            </div>
                         </div>
 
                         <div className="donation-row-progress-card-figma donation-row-progress-card-detail-figma">

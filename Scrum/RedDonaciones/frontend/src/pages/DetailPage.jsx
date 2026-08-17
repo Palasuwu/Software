@@ -259,7 +259,7 @@ export default function DetailPage() {
                   </svg>
                 </div>
                 <h3>Donación registrada</h3>
-                <p>Te redirigimos a tu historial...</p>
+                <p>Tu donación quedó en estado <strong>pendiente</strong>. Te redirigimos a tu historial...</p>
               </div>
             ) : (
               <>
