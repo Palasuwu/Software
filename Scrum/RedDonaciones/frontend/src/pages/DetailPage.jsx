@@ -5,6 +5,7 @@ import { obtenerUsuarioSesion } from '../utils/session'
 import { apiGet, apiPost } from '../utils/api'
 import Spinner from '../components/Spinner'
 import ErrorView from '../components/ErrorView'
+import CauseContext from '../components/CauseContext'
 import defaultImg from '../assets/Defult.jpg'
 import './DetailPage.css'
 
@@ -190,6 +191,11 @@ export default function DetailPage() {
             <h1 className="dp-title">{info.titulo}</h1>
             <p className="dp-desc">{info.descripcion}</p>
           </div>
+
+          <CauseContext
+            categoria={info.categoria}
+            organizacion={info.organizacion}
+          />
 
           {/* Stats */}
           <div className="dp-stats">
