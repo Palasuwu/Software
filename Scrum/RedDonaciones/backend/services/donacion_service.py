@@ -1,5 +1,7 @@
 # Lógica y validaciones compartidas para donaciones
 
+from db.notificaciones import asegurar_tabla_notificaciones, crear_notificacion
+
 ESTADOS_DONACION = (
     "pendiente",
     "recibida",
@@ -24,6 +26,14 @@ TRANSICIONES_DONACION = {
     },
     "entregada": set(),
     "rechazada": set()
+}
+
+NOMBRES_ESTADO_DONACION = {
+    "pendiente": "pendiente",
+    "recibida": "recibida",
+    "en_proceso": "en proceso",
+    "entregada": "entregada",
+    "rechazada": "rechazada"
 }
 
 # Normaliza y valida un estado de donación.
@@ -85,6 +95,29 @@ def actualizar_estado_donacion_db(cursor, id_donacion, nuevo_estado ):
     )
 
 
+def crear_notificacion_cambio_estado(
+    cursor,
+    donacion,
+    estado_anterior,
+    nuevo_estado
+):
+    asegurar_tabla_notificaciones(cursor)
+    estado_anterior = NOMBRES_ESTADO_DONACION[estado_anterior]
+    estado_nuevo = NOMBRES_ESTADO_DONACION[nuevo_estado]
+
+    crear_notificacion(
+        cursor,
+        donacion["id_donante"],
+        "estado_donacion",
+        "Estado de donación actualizado",
+        (
+            f"Tu donación para {donacion['publicacion_titulo']} "
+            f"cambió de {estado_anterior} a {estado_nuevo}."
+        ),
+        f"/donaciones/{donacion['id_donacion']}"
+    )
+
+
 #  Valida y realiza el cambio de estado de una donación.
 # Retorna: donacion actualizada, error, codigo_http
 def cambiar_estado_donacion(cursor,id_donacion,nuevo_estado ):
@@ -114,6 +147,12 @@ def cambiar_estado_donacion(cursor,id_donacion,nuevo_estado ):
         )
 
     actualizar_estado_donacion_db(cursor, id_donacion, nuevo_estado)
+    crear_notificacion_cambio_estado(
+        cursor,
+        donacion,
+        estado_actual,
+        nuevo_estado
+    )
 
     return {
         "id_donacion": id_donacion,
@@ -173,6 +212,12 @@ def cambiar_estado_donaciones_masivo(
             continue
 
         actualizar_estado_donacion_db(cursor, id_donacion, nuevo_estado)
+        crear_notificacion_cambio_estado(
+            cursor,
+            donacion,
+            estado_actual,
+            nuevo_estado
+        )
 
         actualizadas.append({
             "id_donacion": id_donacion,
