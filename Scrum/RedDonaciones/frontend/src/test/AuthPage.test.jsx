@@ -18,8 +18,8 @@ import {
 import userEvent from "@testing-library/user-event";
 import {
     MemoryRouter,
-    RouterProvider,
-    createMemoryRouter
+    Route,
+    Routes
 } from "react-router-dom";
 
 import AuthPage from "../pages/AuthPage";
@@ -198,29 +198,24 @@ describe("AuthPage - LoginForm", () => {
             })
         );
 
-        const router = createMemoryRouter(
-            [
-                {
-                    path: "/auth",
-                    element: (
-                        <AuthPage
-                            onAuthSuccess={onAuthSuccess}
-                            defaultMode="login"
-                        />
-                    )
-                },
-                {
-                    path: "/perfil",
-                    element: <div>Perfil page</div>
-                }
-            ],
-            {
-                initialEntries: ["/auth"]
-            }
-        );
-
         render(
-            <RouterProvider router={router} />
+            <MemoryRouter initialEntries={["/auth"]}>
+                <Routes>
+                    <Route
+                        path="/auth"
+                        element={
+                            <AuthPage
+                                onAuthSuccess={onAuthSuccess}
+                                defaultMode="login"
+                            />
+                        }
+                    />
+                    <Route
+                        path="/perfil"
+                        element={<div>Perfil page</div>}
+                    />
+                </Routes>
+            </MemoryRouter>
         );
 
         await user.type(
@@ -240,13 +235,11 @@ describe("AuthPage - LoginForm", () => {
         );
 
         await waitFor(() => {
-
             expect(onAuthSuccess).toHaveBeenCalledWith(
                 expect.objectContaining({
                     correo: "ana@test.com"
                 })
             );
-
         });
 
         expect(
@@ -258,8 +251,8 @@ describe("AuthPage - LoginForm", () => {
         ).toBeTruthy();
 
         expect(
-            router.state.location.pathname
-        ).toBe("/perfil");
+            await screen.findByText("Perfil page")
+        ).toBeInTheDocument();
 
     });
 
