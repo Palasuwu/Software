@@ -10,7 +10,13 @@ export default function OrgFormModal({
     onSubmit,
     onClose,
     isSubmitting,
-    modalError
+    modalError,
+    logoPreview,
+    portadaPreview,
+    uploadingLogo,
+    uploadingPortada,
+    onLogoChange,
+    onPortadaChange
 }) {
     return (
         <AdminModal
@@ -106,6 +112,24 @@ export default function OrgFormModal({
                             <option value="inactiva">Inactiva</option>
                             <option value="archivada">Archivada</option>
                         </select>
+                    </div>
+
+                    <div className="form-field">
+                        <label className="form-label">Logo (opcional)</label>
+                        <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={onLogoChange} disabled={uploadingLogo} className="form-input form-file-input" />
+                        {uploadingLogo && <span className="form-error-text form-uploading-text">Subiendo logo...</span>}
+                        {logoPreview && !uploadingLogo && (
+                            <img src={logoPreview} alt="Vista previa del logo" style={{ marginTop: '8px', maxHeight: '80px', borderRadius: '999px', objectFit: 'cover' }} />
+                        )}
+                    </div>
+
+                    <div className="form-field">
+                        <label className="form-label">Portada (opcional)</label>
+                        <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={onPortadaChange} disabled={uploadingPortada} className="form-input form-file-input" />
+                        {uploadingPortada && <span className="form-error-text form-uploading-text">Subiendo portada...</span>}
+                        {portadaPreview && !uploadingPortada && (
+                            <img src={portadaPreview} alt="Vista previa de la portada" style={{ marginTop: '8px', maxHeight: '120px', borderRadius: '6px', objectFit: 'cover' }} />
+                        )}
                     </div>
                 </div>
             </form>

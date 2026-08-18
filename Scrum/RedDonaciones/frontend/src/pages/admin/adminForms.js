@@ -47,8 +47,26 @@ export function buildOrgPayload(form) {
         direccion: cleanSpaces(form.direccion),
         telefono: form.telefono.trim(),
         correo: form.correo.trim().toLowerCase(),
-        estado_verificacion: form.estado_verificacion
+        estado_verificacion: form.estado_verificacion,
+        // Ya son URLs generadas por /api/upload, no texto libre: se pasan tal cual.
+        url_logo: form.url_logo || '',
+        imagen_portada: form.imagen_portada || ''
     }
+}
+
+const IMAGE_ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+const IMAGE_MAX_SIZE = 5 * 1024 * 1024
+
+// Valida un archivo de imagen antes de subirlo con apiUpload.
+// Devuelve un mensaje de error, o null si el archivo es valido.
+export function validateImageFile(file) {
+    if (!IMAGE_ALLOWED_TYPES.includes(file.type)) {
+        return 'Formato no permitido. Solo JPG, PNG, GIF o WEBP'
+    }
+    if (file.size > IMAGE_MAX_SIZE) {
+        return `El archivo pesa ${(file.size / 1024 / 1024).toFixed(1)} MB. El máximo es 5 MB`
+    }
+    return null
 }
 
 export function validateOrgForm(form) {

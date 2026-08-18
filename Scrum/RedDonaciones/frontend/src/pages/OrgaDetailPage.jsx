@@ -6,6 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { apiGet } from '../utils/api'
 import Spinner from '../components/Spinner'
 import ErrorView from '../components/ErrorView'
+import { IconOrganizacion } from '../components/icons'
 import './Organizaciones.css'
 
 function estadoLabel(estado) {
@@ -17,15 +18,6 @@ function estadoLabel(estado) {
   }
   return labels[estado] || estado || 'Sin estado'
 }
-
-const ICONO_ORGANIZACION = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M6 21V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v17" />
-    <path d="M15 21V10a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v11" />
-    <path d="M3 21h18" />
-    <path d="M9 7h1M9 11h1M9 15h1" />
-  </svg>
-)
 
 const SECCIONES_INSTITUCIONALES = [
   {
@@ -80,11 +72,13 @@ function OrgaDetailPage() {
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState(null)
   const [logoRoto, setLogoRoto] = React.useState(false)
+  const [portadaRota, setPortadaRota] = React.useState(false)
 
   React.useEffect(() => {
     setLoading(true)
     setError(null)
     setLogoRoto(false)
+    setPortadaRota(false)
 
     apiGet(`/api/organizaciones/${id}`)
       .then((data) => {
@@ -105,6 +99,7 @@ function OrgaDetailPage() {
   if (!organizacion) return <div className="empty-box">Organización no encontrada</div>
 
   const mostrarLogo = Boolean(organizacion.url_logo) && !logoRoto
+  const mostrarPortada = Boolean(organizacion.imagen_portada) && !portadaRota
   const seccionesConContenido = SECCIONES_INSTITUCIONALES.filter(
     (seccion) => organizacion[seccion.campo] && organizacion[seccion.campo].trim()
   )
@@ -120,7 +115,15 @@ function OrgaDetailPage() {
 
       {/* ── HEADER ── */}
       <div className="org-detail-header">
-        <div className="org-detail-heading">
+        <div className="org-detail-cover">
+          {mostrarPortada && (
+            <img
+              src={organizacion.imagen_portada}
+              alt=""
+              onError={() => setPortadaRota(true)}
+            />
+          )}
+
           <div className="org-detail-logo">
             {mostrarLogo
               ? (
@@ -130,34 +133,33 @@ function OrgaDetailPage() {
                   onError={() => setLogoRoto(true)}
                 />
               )
-              : ICONO_ORGANIZACION}
-          </div>
-
-          <div className="org-detail-heading-copy">
-            <div className="org-detail-status">
-              <span className={`org-status org-status-${organizacion.estado_verificacion}`}>
-                {estadoLabel(organizacion.estado_verificacion)}
-              </span>
-            </div>
-            <h1 className="org-detail-title">{organizacion.nombre}</h1>
+              : <IconOrganizacion />}
           </div>
         </div>
 
-        <p className="org-detail-desc">{organizacion.descripcion}</p>
+        <div className="org-detail-body">
+          <div className="org-detail-status">
+            <span className={`org-status org-status-${organizacion.estado_verificacion}`}>
+              {estadoLabel(organizacion.estado_verificacion)}
+            </span>
+          </div>
+          <h1 className="org-detail-title">{organizacion.nombre}</h1>
+          <p className="org-detail-desc">{organizacion.descripcion}</p>
 
-        {/* Info de contacto */}
-        <div className="org-detail-contact">
-          <div className="org-detail-contact-item">
-            <span className="org-detail-contact-label">Ubicación</span>
-            <span className="org-detail-contact-value">{organizacion.direccion}</span>
-          </div>
-          <div className="org-detail-contact-item">
-            <span className="org-detail-contact-label">Teléfono</span>
-            <span className="org-detail-contact-value">{organizacion.telefono}</span>
-          </div>
-          <div className="org-detail-contact-item">
-            <span className="org-detail-contact-label">Correo</span>
-            <span className="org-detail-contact-value">{organizacion.correo}</span>
+          {/* Info de contacto */}
+          <div className="org-detail-contact">
+            <div className="org-detail-contact-item">
+              <span className="org-detail-contact-label">Ubicación</span>
+              <span className="org-detail-contact-value">{organizacion.direccion}</span>
+            </div>
+            <div className="org-detail-contact-item">
+              <span className="org-detail-contact-label">Teléfono</span>
+              <span className="org-detail-contact-value">{organizacion.telefono}</span>
+            </div>
+            <div className="org-detail-contact-item">
+              <span className="org-detail-contact-label">Correo</span>
+              <span className="org-detail-contact-value">{organizacion.correo}</span>
+            </div>
           </div>
         </div>
       </div>

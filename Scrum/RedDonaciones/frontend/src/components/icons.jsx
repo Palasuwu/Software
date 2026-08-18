@@ -164,3 +164,16 @@ export function IconBell({ className = '', ...props }) {
     </svg>
   )
 }
+
+// Respaldo de logo cuando la organizacion no tiene url_logo. Usado por
+// OrgaDetailPage y OrganizacionesPage.
+export function IconOrganizacion({ className = '', ...props }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <path d="M6 21V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v17" />
+      <path d="M15 21V10a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v11" />
+      <path d="M3 21h18" />
+      <path d="M9 7h1M9 11h1M9 15h1" />
+    </svg>
+  )
+}

@@ -5,6 +5,7 @@ import { apiGet } from '../utils/api'
 import { useNavigate } from 'react-router-dom'
 import Spinner from '../components/Spinner'
 import ErrorView from '../components/ErrorView'
+import { IconOrganizacion } from '../components/icons'
 import './Organizaciones.css'
 
 function estadoLabel(estado) {
@@ -16,6 +17,53 @@ function estadoLabel(estado) {
   }
 
   return labels[estado] || estado || 'Sin estado'
+}
+
+function OrgDirectoryCard({ org, onOpen }) {
+  const [logoRoto, setLogoRoto] = React.useState(false)
+  const [portadaRota, setPortadaRota] = React.useState(false)
+
+  const mostrarLogo = Boolean(org.url_logo) && !logoRoto
+  const mostrarPortada = Boolean(org.imagen_portada) && !portadaRota
+
+  return (
+    <article className="org-directory-card" onClick={onOpen} style={{ cursor: 'pointer' }}>
+      <div className="org-directory-cover">
+        {mostrarPortada && (
+          <img src={org.imagen_portada} alt="" onError={() => setPortadaRota(true)} />
+        )}
+        <div className="org-directory-avatar">
+          {mostrarLogo
+            ? <img src={org.url_logo} alt={`Logo de ${org.nombre}`} onError={() => setLogoRoto(true)} />
+            : <IconOrganizacion />}
+        </div>
+      </div>
+
+      <div className="org-directory-card-body">
+        <div className="org-admin-row-title">
+          <h3>{org.nombre}</h3>
+          <span className={`org-status org-status-${org.estado_verificacion}`}>
+            {estadoLabel(org.estado_verificacion)}
+          </span>
+        </div>
+        <p>{org.descripcion || 'Sin descripcion registrada.'}</p>
+        <div className="org-admin-meta">
+          <span>{org.direccion || 'Sin direccion'}</span>
+          <span>{org.telefono || 'Sin telefono'}</span>
+          <span> {org.correo || 'Sin correo'}</span>
+        </div>
+        <button
+          className="campaign-button"
+          onClick={(e) => {
+            e.stopPropagation()
+            onOpen()
+          }}
+        >
+          Ver más
+        </button>
+      </div>
+    </article>
+  )
 }
 
 function OrganizacionesPage() {
@@ -56,34 +104,11 @@ function OrganizacionesPage() {
         )}
 
         {!loading && !error && organizaciones.map((org) => (
-          <article
-            className="org-directory-card"
+          <OrgDirectoryCard
             key={org.id_organizacion}
-            onClick={() => navigate(`/organizaciones/${org.id_organizacion}`)}
-            style={{ cursor: 'pointer' }}
-          >
-            <div className="org-admin-row-title">
-              <h3>{org.nombre}</h3>
-              <span className={`org-status org-status-${org.estado_verificacion}`}>
-                {estadoLabel(org.estado_verificacion)}
-              </span>
-            </div>
-            <p>{org.descripcion || 'Sin descripcion registrada.'}</p>
-            <div className="org-admin-meta">
-              <span>{org.direccion || 'Sin direccion'}</span>
-              <span>{org.telefono || 'Sin telefono'}</span>
-              <span> {org.correo || 'Sin correo'}</span>
-            </div>
-            <button
-              className="campaign-button"
-              onClick={(e) => {
-                e.stopPropagation()
-                navigate(`/organizaciones/${org.id_organizacion}`)
-              }}
-            >
-              Ver más
-            </button>
-          </article>
+            org={org}
+            onOpen={() => navigate(`/organizaciones/${org.id_organizacion}`)}
+          />
         ))}
       </section>
     </div>

@@ -10,7 +10,8 @@ import {
     buildOrgPayload,
     validateOrgForm,
     buildUserPayload,
-    validateUserForm
+    validateUserForm,
+    validateImageFile
 } from './admin/adminForms'
 import { campaignStatusLabel, donationStatusLabel } from './admin/adminHelpers'
 import AdminUsersTable from './admin/AdminUsersTable'
@@ -49,9 +50,15 @@ export default function AdminPanel({ usuarioSesion }) {
         direccion: '',
         telefono: '',
         correo: '',
-        estado_verificacion: 'pendiente'
+        estado_verificacion: 'pendiente',
+        url_logo: '',
+        imagen_portada: ''
     })
     const [orgFormErrors, setOrgFormErrors] = React.useState({})
+    const [orgLogoPreview, setOrgLogoPreview] = React.useState(null)
+    const [orgPortadaPreview, setOrgPortadaPreview] = React.useState(null)
+    const [uploadingOrgLogo, setUploadingOrgLogo] = React.useState(false)
+    const [uploadingOrgPortada, setUploadingOrgPortada] = React.useState(false)
     const [successMessage, setSuccessMessage] = React.useState('')
     const [modal, setModal] = React.useState(null)
     const [userForm, setUserForm] = React.useState(USER_INITIAL_FORM)
@@ -352,9 +359,13 @@ export default function AdminPanel({ usuarioSesion }) {
             direccion: '',
             telefono: '',
             correo: '',
-            estado_verificacion: 'pendiente'
+            estado_verificacion: 'pendiente',
+            url_logo: '',
+            imagen_portada: ''
         })
         setOrgFormErrors({})
+        setOrgLogoPreview(null)
+        setOrgPortadaPreview(null)
         setModal({ type: 'createOrg' })
     }
 
@@ -467,9 +478,67 @@ export default function AdminPanel({ usuarioSesion }) {
             direccion: org.direccion || '',
             telefono: org.telefono || '',
             correo: org.correo || '',
-            estado_verificacion: org.estado_verificacion || 'pendiente'
+            estado_verificacion: org.estado_verificacion || 'pendiente',
+            url_logo: org.url_logo || '',
+            imagen_portada: org.imagen_portada || ''
         })
+        setOrgLogoPreview(org.url_logo || null)
+        setOrgPortadaPreview(org.imagen_portada || null)
         setModal({ type: 'editOrg', org })
+    }
+
+    const handleOrgLogoChange = async (event) => {
+        const file = event.target.files[0]
+        if (!file) return
+
+        const validationError = validateImageFile(file)
+        if (validationError) {
+            setModalError(validationError)
+            event.target.value = ''
+            return
+        }
+
+        setOrgLogoPreview(URL.createObjectURL(file))
+        setUploadingOrgLogo(true)
+        setModalError(null)
+
+        try {
+            const result = await apiUpload(file)
+            setOrgForm((prev) => ({ ...prev, url_logo: result.url }))
+        } catch (error) {
+            setModalError(error.message || 'No se pudo subir el logo')
+            setOrgLogoPreview(null)
+            setOrgForm((prev) => ({ ...prev, url_logo: '' }))
+        } finally {
+            setUploadingOrgLogo(false)
+        }
+    }
+
+    const handleOrgPortadaChange = async (event) => {
+        const file = event.target.files[0]
+        if (!file) return
+
+        const validationError = validateImageFile(file)
+        if (validationError) {
+            setModalError(validationError)
+            event.target.value = ''
+            return
+        }
+
+        setOrgPortadaPreview(URL.createObjectURL(file))
+        setUploadingOrgPortada(true)
+        setModalError(null)
+
+        try {
+            const result = await apiUpload(file)
+            setOrgForm((prev) => ({ ...prev, imagen_portada: result.url }))
+        } catch (error) {
+            setModalError(error.message || 'No se pudo subir la portada')
+            setOrgPortadaPreview(null)
+            setOrgForm((prev) => ({ ...prev, imagen_portada: '' }))
+        } finally {
+            setUploadingOrgPortada(false)
+        }
     }
 
     const handleOrgChange = (event) => {
@@ -757,6 +826,12 @@ export default function AdminPanel({ usuarioSesion }) {
                     onClose={closeModal}
                     isSubmitting={isSubmitting}
                     modalError={modalError}
+                    logoPreview={orgLogoPreview}
+                    portadaPreview={orgPortadaPreview}
+                    uploadingLogo={uploadingOrgLogo}
+                    uploadingPortada={uploadingOrgPortada}
+                    onLogoChange={handleOrgLogoChange}
+                    onPortadaChange={handleOrgPortadaChange}
                 />
             )
         }

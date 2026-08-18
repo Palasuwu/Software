@@ -65,7 +65,6 @@
   box-shadow: var(--shadow-sm);
   transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
   cursor: pointer;
-  padding: 22px;
 }
 
 .org-directory-card:hover {
@@ -74,7 +73,53 @@
   border-color: var(--primary-muted);
 }
 
-.org-directory-card p {
+/* ---- Portada + avatar superpuesto ---- */
+.org-directory-cover {
+  position: relative;
+  height: 110px;
+  background: linear-gradient(135deg, var(--hero-gradient-start) 0%, var(--hero-gradient-end-panel) 100%);
+}
+
+.org-directory-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.org-directory-avatar {
+  position: absolute;
+  left: 20px;
+  bottom: -28px;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 3px solid var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.org-directory-avatar svg {
+  width: 22px;
+  height: 22px;
+}
+
+.org-directory-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.org-directory-card-body {
+  padding: 40px 22px 22px;
+}
+
+.org-directory-card-body p {
   margin: 0 0 18px;
   color: var(--text-soft);
   font-size: 0.98rem;
@@ -157,22 +202,32 @@
    ORGANIZATION DETAIL PAGE — org-detail-* namespace
    ============================================================ */
 .org-detail-header {
-  background: linear-gradient(135deg, var(--primary-soft) 0%, var(--secondary-soft) 100%);
   border: 1px solid var(--outline);
   border-radius: var(--radius-lg);
-  padding: 40px;
+  overflow: hidden;
   margin-bottom: 36px;
   box-shadow: var(--shadow-sm);
+  background: var(--surface);
 }
 
-.org-detail-heading {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 18px;
+/* ---- Portada + avatar superpuesto (estilo banner de perfil) ---- */
+.org-detail-cover {
+  position: relative;
+  height: 220px;
+  background: linear-gradient(135deg, var(--hero-gradient-start) 0%, var(--hero-gradient-end-panel) 100%);
+}
+
+.org-detail-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .org-detail-logo {
+  position: absolute;
+  left: 40px;
+  bottom: -44px;
   width: 88px;
   height: 88px;
   border-radius: 999px;
@@ -183,6 +238,8 @@
   justify-content: center;
   flex-shrink: 0;
   overflow: hidden;
+  border: 4px solid var(--surface);
+  box-shadow: var(--shadow-sm);
 }
 
 .org-detail-logo svg {
@@ -196,8 +253,8 @@
   object-fit: cover;
 }
 
-.org-detail-heading-copy {
-  min-width: 0;
+.org-detail-body {
+  padding: 60px 40px 40px;
 }
 
 .org-detail-status {
@@ -316,8 +373,12 @@
 }
 
 @media (max-width: 768px) {
-  .org-detail-header {
-    padding: 28px;
+  .org-detail-cover {
+    height: 140px;
+  }
+
+  .org-detail-body {
+    padding: 48px 24px 28px;
   }
 
   .org-detail-title {
@@ -328,13 +389,12 @@
     grid-template-columns: 1fr;
   }
 
-  .org-detail-heading {
-    gap: 14px;
-  }
-
   .org-detail-logo {
+    left: 24px;
+    bottom: -32px;
     width: 64px;
     height: 64px;
+    border-width: 3px;
   }
 
   .org-detail-logo svg {
