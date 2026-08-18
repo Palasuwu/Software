@@ -3,7 +3,7 @@
 // pages/admin/ y recibe todo por props.
 import React from 'react'
 import { apiDelete, apiGet, apiPost, apiPut, apiUpload } from '../utils/api'
-import { IconUsers, IconCampaigns, IconPlus } from '../components/icons'
+import { IconUsers, IconCampaigns, IconPlus, IconDonation } from '../components/icons'
 import {
     USER_INITIAL_FORM,
     CAMP_INITIAL_FORM,
@@ -12,10 +12,11 @@ import {
     buildUserPayload,
     validateUserForm
 } from './admin/adminForms'
-import { campaignStatusLabel } from './admin/adminHelpers'
+import { campaignStatusLabel, donationStatusLabel } from './admin/adminHelpers'
 import AdminUsersTable from './admin/AdminUsersTable'
 import AdminOrgsTable from './admin/AdminOrgsTable'
 import AdminCampaignsTable from './admin/AdminCampaignsTable'
+import AdminDonacionesTable from './admin/AdminDonacionesTable'
 import AdminModal from './admin/AdminModal'
 import UserFormModal from './admin/UserFormModal'
 import CampaignFormModal from './admin/CampaignFormModal'
@@ -23,6 +24,8 @@ import OrgFormModal from './admin/OrgFormModal'
 import TempPasswordModal from './admin/TempPasswordModal'
 import ConfirmationModal from './admin/ConfirmationModal'
 import './admin/admin-panel.css'
+
+const ESTADOS_DONACION = ['pendiente', 'recibida', 'en_proceso', 'entregada', 'rechazada']
 
 export default function AdminPanel({ usuarioSesion }) {
     const [activeTab, setActiveTab] = React.useState('usuarios')
@@ -63,6 +66,13 @@ export default function AdminPanel({ usuarioSesion }) {
         message: '',
         onConfirm: null
     })
+    const [donaciones, setDonaciones] = React.useState([])
+    const [loadingDonaciones, setLoadingDonaciones] = React.useState(true)
+    const [donacionesError, setDonacionesError] = React.useState('')
+    const [selectedDonacionIds, setSelectedDonacionIds] = React.useState(() => new Set())
+    const [estadoMasivo, setEstadoMasivo] = React.useState('recibida')
+    const [aplicandoMasivo, setAplicandoMasivo] = React.useState(false)
+    const [omitidasMasivo, setOmitidasMasivo] = React.useState([])
 
     React.useEffect(() => {
         if (!successMessage) return
@@ -132,6 +142,22 @@ export default function AdminPanel({ usuarioSesion }) {
         }
     }, [])
 
+    const loadDonaciones = React.useCallback(async () => {
+        setLoadingDonaciones(true)
+        setDonacionesError('')
+
+        try {
+            // Sin id_organizacion: como administrador, trae las donaciones de todas las organizaciones.
+            const data = await apiGet('/api/intermediario/donaciones')
+            setDonaciones(Array.isArray(data) ? data : [])
+            setSelectedDonacionIds(new Set())
+        } catch (error) {
+            setDonacionesError(error.message || 'No se pudieron cargar las donaciones')
+        } finally {
+            setLoadingDonaciones(false)
+        }
+    }, [])
+
     React.useEffect(() => {
         loadUsers()
         loadCampaigns()
@@ -142,7 +168,72 @@ export default function AdminPanel({ usuarioSesion }) {
         if (activeTab === 'organizaciones') {
             ensureOrganizations()
         }
-    }, [activeTab, ensureOrganizations])
+
+        if (activeTab === 'donaciones') {
+            loadDonaciones()
+        }
+    }, [activeTab, ensureOrganizations, loadDonaciones])
+
+    const toggleDonacionSelected = (idDonacion, checked) => {
+        setSelectedDonacionIds((previous) => {
+            const next = new Set(previous)
+
+            if (checked) {
+                next.add(idDonacion)
+            } else {
+                next.delete(idDonacion)
+            }
+
+            return next
+        })
+    }
+
+    const toggleAllDonacionesSelected = (checked) => {
+        setSelectedDonacionIds(
+            checked ? new Set(donaciones.map((d) => d.id_donacion)) : new Set()
+        )
+    }
+
+    // No existe un endpoint bulk que admin pueda usar (el bulk real es solo para
+    // intermediario), asi que se aplica el estado donacion por donacion contra
+    // PUT /api/donaciones/<id>/estado (que si autoriza admin). Se usa
+    // Promise.allSettled y no Promise.all: una transicion invalida en una
+    // donacion no debe abortar el resto del lote, igual que hace el bulk real.
+    const aplicarEstadoMasivoAdmin = async () => {
+        if (selectedDonacionIds.size === 0) return
+
+        setAplicandoMasivo(true)
+        setOmitidasMasivo([])
+        setDonacionesError('')
+
+        try {
+            const ids = Array.from(selectedDonacionIds)
+            const resultados = await Promise.allSettled(
+                ids.map((id) => apiPut(`/api/donaciones/${id}/estado`, { estado: estadoMasivo }))
+            )
+
+            const omitidas = []
+            let actualizadas = 0
+
+            resultados.forEach((resultado, index) => {
+                if (resultado.status === 'fulfilled') {
+                    actualizadas += 1
+                } else {
+                    omitidas.push({
+                        id_donacion: ids[index],
+                        motivo: resultado.reason?.message || 'No se pudo actualizar'
+                    })
+                }
+            })
+
+            setOmitidasMasivo(omitidas)
+            setSuccessMessage(`${actualizadas} donación(es) actualizada(s)`)
+
+            await loadDonaciones()
+        } finally {
+            setAplicandoMasivo(false)
+        }
+    }
 
     React.useEffect(() => {
         if (activeTab !== 'campanas') return undefined
@@ -766,6 +857,14 @@ export default function AdminPanel({ usuarioSesion }) {
                         <IconCampaigns className="admin-svg-icon" />
                         <span>Campañas</span>
                     </button>
+                    <button
+                        type="button"
+                        className={`admin-tab-button ${activeTab === 'donaciones' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('donaciones')}
+                    >
+                        <IconDonation className="admin-svg-icon" />
+                        <span>Donaciones</span>
+                    </button>
                 </aside>
 
                 <section className="admin-content-panel">
@@ -815,7 +914,7 @@ export default function AdminPanel({ usuarioSesion }) {
                                 onArchivar={openArchivarOrg}
                             />
                         </>
-                    ) : (
+                    ) : activeTab === 'campanas' ? (
                         <>
                             <div className="admin-section-head">
                                 <div>
@@ -834,6 +933,59 @@ export default function AdminPanel({ usuarioSesion }) {
                                 savingCampaignId={savingCampaignId}
                                 onRetry={loadCampaigns}
                                 onStatusChange={handleChangeCampaignStatus}
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <div className="admin-section-head">
+                                <div>
+                                    <h2>Donaciones</h2>
+                                    <p>Selecciona donaciones de cualquier organización y actualiza su estado en bloque.</p>
+                                </div>
+                            </div>
+
+                            <div className="admin-bulk-bar">
+                                <span className="admin-bulk-bar-count">
+                                    {selectedDonacionIds.size} seleccionada(s)
+                                </span>
+
+                                <select
+                                    className="form-select admin-bulk-bar-select"
+                                    value={estadoMasivo}
+                                    onChange={(e) => setEstadoMasivo(e.target.value)}
+                                    disabled={aplicandoMasivo}
+                                >
+                                    {ESTADOS_DONACION.map((estado) => (
+                                        <option key={estado} value={estado}>
+                                            {donationStatusLabel(estado)}
+                                        </option>
+                                    ))}
+                                </select>
+
+                                <button
+                                    type="button"
+                                    className="admin-primary-action"
+                                    disabled={selectedDonacionIds.size === 0 || aplicandoMasivo}
+                                    onClick={aplicarEstadoMasivoAdmin}
+                                >
+                                    {aplicandoMasivo ? 'Aplicando...' : 'Aplicar a seleccionadas'}
+                                </button>
+
+                                {omitidasMasivo.length > 0 && (
+                                    <div className="admin-bulk-bar-omitidas">
+                                        {omitidasMasivo.length} donación(es) no se actualizaron: {omitidasMasivo.map((o) => `#${o.id_donacion} (${o.motivo})`).join(', ')}
+                                    </div>
+                                )}
+                            </div>
+
+                            <AdminDonacionesTable
+                                donaciones={donaciones}
+                                loadingDonaciones={loadingDonaciones}
+                                donacionesError={donacionesError}
+                                selectedIds={selectedDonacionIds}
+                                onRetry={loadDonaciones}
+                                onToggleOne={toggleDonacionSelected}
+                                onToggleAll={toggleAllDonacionesSelected}
                             />
                         </>
                     )}

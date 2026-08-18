@@ -60,7 +60,7 @@ function HeroSection({ finalizadas, activas, total }) {
         <div className="hero-stats">
           <StatCard value={finalizadas} label="Eventos de ayuda completados" />
           <StatCard value={activas}    label="Campañas activas ahora" />
-          <StatCard value={total}      label="Iniciativas y más por venir" />
+          <StatCard value={total}      label="Campañas en la plataforma" />
         </div>
       </div>
     </section>
@@ -86,20 +86,28 @@ export default function HomePage({ isAuthenticated }) {
       .then((data) => {
         if (!Array.isArray(data)) throw new Error('Respuesta invalida del servidor')
 
-        const adaptadas = data.map((p) => ({
-          id: p.id_publicacion,
-          title: p.titulo,
-          description: p.descripcion,
-          category: p.categoria || 'Sin categoría',
-          location: p.direccion,
-          organizacion: p.organizacion || 'Sin organización',
-          estado: p.estado || 'activa',
-          imagen: resolvePublicationImage(p.imagen_url),
-          progress: p.cantidad_necesaria > 0
-            ? Math.min(100, Math.round((p.cantidad_recibida / p.cantidad_necesaria) * 100))
-            : 0,
-          supporters: p.cantidad_recibida || 0,
-        }))
+        const ahora = new Date()
+        const adaptadas = data.map((p) => {
+          const estado = p.estado || 'activa'
+          const fechaPublicacion = p.fecha_publicacion ? new Date(p.fecha_publicacion) : null
+          const esProxima = estado === 'activa' && fechaPublicacion !== null && fechaPublicacion > ahora
+
+          return {
+            id: p.id_publicacion,
+            title: p.titulo,
+            description: p.descripcion,
+            category: p.categoria || 'Sin categoría',
+            location: p.direccion,
+            organizacion: p.organizacion || 'Sin organización',
+            estado,
+            esProxima,
+            imagen: resolvePublicationImage(p.imagen_url),
+            progress: p.cantidad_necesaria > 0
+              ? Math.min(100, Math.round((p.cantidad_recibida / p.cantidad_necesaria) * 100))
+              : 0,
+            supporters: p.cantidad_recibida || 0,
+          }
+        })
 
         setPublicaciones(adaptadas.filter((p) => p.estado !== 'cancelada'))
         setError(null)
@@ -146,7 +154,8 @@ export default function HomePage({ isAuthenticated }) {
         item.category.toLowerCase().includes(text)
       )
       const matchesCategory = category === 'Todas' || item.category === category
-      const matchesEstado = estado === 'Todos' || item.estado === estado
+      const matchesEstado = estado === 'Todos'
+        || (estado === 'proxima' ? item.esProxima : item.estado === estado)
       const matchesOrganizacion = organizacion === 'Todas' || item.organizacion === organizacion
       const matchesProgress = (() => {
         if (progressRange === 'Todos') return true

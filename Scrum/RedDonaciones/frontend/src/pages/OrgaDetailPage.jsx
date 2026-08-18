@@ -1,3 +1,6 @@
+// Pagina publica de detalle de organizacion. Sigue el mismo patron visual
+// que DetailPage.jsx (hero, secciones con icono + titulo) adaptado a la
+// informacion institucional que la organizacion carga en su perfil privado.
 import React from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { apiGet } from '../utils/api'
@@ -15,6 +18,60 @@ function estadoLabel(estado) {
   return labels[estado] || estado || 'Sin estado'
 }
 
+const ICONO_ORGANIZACION = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M6 21V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v17" />
+    <path d="M15 21V10a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v11" />
+    <path d="M3 21h18" />
+    <path d="M9 7h1M9 11h1M9 15h1" />
+  </svg>
+)
+
+const SECCIONES_INSTITUCIONALES = [
+  {
+    campo: 'quienes_somos',
+    titulo: 'Quiénes somos',
+    icono: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
+        <circle cx="9.5" cy="7" r="3.5" />
+        <path d="M20 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M14 4.13a3.5 3.5 0 0 1 0 5.74" />
+      </svg>
+    )
+  },
+  {
+    campo: 'que_hacemos',
+    titulo: 'Qué hacemos',
+    icono: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <circle cx="12" cy="12" r="9" />
+        <circle cx="12" cy="12" r="4" />
+      </svg>
+    )
+  },
+  {
+    campo: 'como_trabajamos',
+    titulo: 'Cómo trabajamos',
+    icono: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M12 20h9" />
+        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+      </svg>
+    )
+  },
+  {
+    campo: 'donde_trabajamos',
+    titulo: 'Dónde trabajamos',
+    icono: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+        <circle cx="12" cy="10" r="3" />
+      </svg>
+    )
+  }
+]
+
 function OrgaDetailPage() {
   const navigate = useNavigate()
   const { id } = useParams()
@@ -22,10 +79,12 @@ function OrgaDetailPage() {
   const [publicaciones, setPublicaciones] = React.useState([])
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState(null)
+  const [logoRoto, setLogoRoto] = React.useState(false)
 
   React.useEffect(() => {
     setLoading(true)
     setError(null)
+    setLogoRoto(false)
 
     apiGet(`/api/organizaciones/${id}`)
       .then((data) => {
@@ -45,6 +104,11 @@ function OrgaDetailPage() {
   if (error) return <ErrorView message={error} />
   if (!organizacion) return <div className="empty-box">Organización no encontrada</div>
 
+  const mostrarLogo = Boolean(organizacion.url_logo) && !logoRoto
+  const seccionesConContenido = SECCIONES_INSTITUCIONALES.filter(
+    (seccion) => organizacion[seccion.campo] && organizacion[seccion.campo].trim()
+  )
+
   return (
     <div className="fade-in detail-page">
       <button className="detail-back" onClick={() => navigate(-1)}>
@@ -56,30 +120,62 @@ function OrgaDetailPage() {
 
       {/* ── HEADER ── */}
       <div className="org-detail-header">
-        <div className="org-detail-status">
-          <span className={`org-status org-status-${organizacion.estado_verificacion}`}>
-            {estadoLabel(organizacion.estado_verificacion)}
-          </span>
+        <div className="org-detail-heading">
+          <div className="org-detail-logo">
+            {mostrarLogo
+              ? (
+                <img
+                  src={organizacion.url_logo}
+                  alt={`Logo de ${organizacion.nombre}`}
+                  onError={() => setLogoRoto(true)}
+                />
+              )
+              : ICONO_ORGANIZACION}
+          </div>
+
+          <div className="org-detail-heading-copy">
+            <div className="org-detail-status">
+              <span className={`org-status org-status-${organizacion.estado_verificacion}`}>
+                {estadoLabel(organizacion.estado_verificacion)}
+              </span>
+            </div>
+            <h1 className="org-detail-title">{organizacion.nombre}</h1>
+          </div>
         </div>
-        <h1 className="org-detail-title">{organizacion.nombre}</h1>
+
         <p className="org-detail-desc">{organizacion.descripcion}</p>
 
         {/* Info de contacto */}
         <div className="org-detail-contact">
-          <div className="contact-item">
-            <span className="contact-label">Ubicación</span>
-            <span className="contact-value">{organizacion.direccion}</span>
+          <div className="org-detail-contact-item">
+            <span className="org-detail-contact-label">Ubicación</span>
+            <span className="org-detail-contact-value">{organizacion.direccion}</span>
           </div>
-          <div className="contact-item">
-            <span className="contact-label">Teléfono</span>
-            <span className="contact-value">{organizacion.telefono}</span>
+          <div className="org-detail-contact-item">
+            <span className="org-detail-contact-label">Teléfono</span>
+            <span className="org-detail-contact-value">{organizacion.telefono}</span>
           </div>
-          <div className="contact-item">
-            <span className="contact-label">Correo</span>
-            <span className="contact-value">{organizacion.correo}</span>
+          <div className="org-detail-contact-item">
+            <span className="org-detail-contact-label">Correo</span>
+            <span className="org-detail-contact-value">{organizacion.correo}</span>
           </div>
         </div>
       </div>
+
+      {/* ── INFORMACIÓN INSTITUCIONAL (solo si la organización ya la cargó) ── */}
+      {seccionesConContenido.length > 0 && (
+        <div className="org-detail-info-grid">
+          {seccionesConContenido.map((seccion) => (
+            <div className="org-detail-info-block" key={seccion.campo}>
+              <div className="org-detail-info-title">
+                {seccion.icono}
+                {seccion.titulo}
+              </div>
+              <p>{organizacion[seccion.campo]}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* ── PUBLICACIONES DE LA ORGANIZACIÓN ── */}
       <div className="org-detail-section">

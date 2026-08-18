@@ -902,6 +902,36 @@
     width: 16%;
 }
 
+/* Tabla de donaciones del panel de administrador (7 columnas: agrega Organización) */
+.admin-table-donaciones-admin th:nth-child(1),
+.admin-table-donaciones-admin td:nth-child(1) {
+    width: 4%;
+}
+.admin-table-donaciones-admin th:nth-child(2),
+.admin-table-donaciones-admin td:nth-child(2) {
+    width: 22%;
+}
+.admin-table-donaciones-admin th:nth-child(3),
+.admin-table-donaciones-admin td:nth-child(3) {
+    width: 18%;
+}
+.admin-table-donaciones-admin th:nth-child(4),
+.admin-table-donaciones-admin td:nth-child(4) {
+    width: 18%;
+}
+.admin-table-donaciones-admin th:nth-child(5),
+.admin-table-donaciones-admin td:nth-child(5) {
+    width: 10%;
+}
+.admin-table-donaciones-admin th:nth-child(6),
+.admin-table-donaciones-admin td:nth-child(6) {
+    width: 14%;
+}
+.admin-table-donaciones-admin th:nth-child(7),
+.admin-table-donaciones-admin td:nth-child(7) {
+    width: 14%;
+}
+
 /* Barra de acción masiva sobre la tabla de donaciones */
 .admin-bulk-bar {
     display: flex;

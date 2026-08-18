@@ -1032,26 +1032,6 @@ a {
   }
 }
 
-.contact-item {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.contact-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.contact-value {
-  font-size: 1rem;
-  color: var(--text);
-  font-weight: 500;
-}
-
 /* ============================================================
    LOADING / ERROR / TOAST — componentes globales
    ============================================================ */

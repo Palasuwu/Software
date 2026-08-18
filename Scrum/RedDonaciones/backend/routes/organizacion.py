@@ -102,7 +102,8 @@ def obtener_detalle_organizacion(id_organizacion):
         with db_cursor() as (conn, cursor):
             cursor.execute(
                 """
-                SELECT id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion
+                SELECT id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion,
+                       quienes_somos, que_hacemos, como_trabajamos, donde_trabajamos, url_logo, imagen_portada
                 FROM organizacion
                 WHERE id_organizacion = %s AND estado_verificacion = 'verificada'
                 """,

@@ -58,6 +58,7 @@ export default function HomeFilterSidebar({
   const estadoOptions = [
     { value: 'Todos', label: 'Todos' },
     { value: 'activa', label: 'Activa' },
+    { value: 'proxima', label: 'Próxima' },
     { value: 'finalizada', label: 'Finalizada' },
   ]
 
