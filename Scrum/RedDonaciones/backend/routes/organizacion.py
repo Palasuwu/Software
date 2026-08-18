@@ -32,6 +32,13 @@ def normalizar_organizacion_payload(data):
     correo = (data.get("correo") or "").strip().lower()
     estado_verificacion = (data.get("estado_verificacion") or "pendiente").strip().lower()
 
+    quienes_somos = (data.get("quienes_somos") or "").strip() or None
+    que_hacemos = (data.get("que_hacemos") or "").strip() or None
+    como_trabajamos = (data.get("como_trabajamos") or "").strip() or None
+    donde_trabajamos = (data.get("donde_trabajamos") or "").strip() or None
+    url_logo = (data.get("url_logo") or "").strip() or None
+    imagen_portada = (data.get("imagen_portada") or "").strip() or None
+
     errores = {}
     if len(nombre) < 3:
         errores["nombre"] = "El nombre debe tener al menos 3 caracteres"
@@ -45,6 +52,10 @@ def normalizar_organizacion_payload(data):
         errores["correo"] = "El correo debe ser valido"
     if estado_verificacion not in ESTADOS_VALIDOS:
         errores["estado_verificacion"] = "Estado de verificacion no valido"
+    if url_logo and len(url_logo) > 500:
+        errores["url_logo"] = "La URL del logo no puede exceder 500 caracteres"
+    if imagen_portada and len(imagen_portada) > 500:
+        errores["imagen_portada"] = "La URL de la imagen de portada no puede exceder 500 caracteres"
 
     return {
         "nombre": nombre,
@@ -53,13 +64,20 @@ def normalizar_organizacion_payload(data):
         "telefono": telefono,
         "correo": correo,
         "estado_verificacion": estado_verificacion,
+        "quienes_somos": quienes_somos,
+        "que_hacemos": que_hacemos,
+        "como_trabajamos": como_trabajamos,
+        "donde_trabajamos": donde_trabajamos,
+        "url_logo": url_logo,
+        "imagen_portada": imagen_portada,
     }, errores
 
 
 def obtener_organizacion(cursor, id_organizacion):
     cursor.execute(
         """
-        SELECT id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion
+        SELECT id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion,
+               quienes_somos, que_hacemos, como_trabajamos, donde_trabajamos, url_logo, imagen_portada
         FROM organizacion
         WHERE id_organizacion = %s
         """,
@@ -80,7 +98,8 @@ def listar_organizaciones():
 
             cursor.execute(
                 f"""
-                SELECT id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion
+                SELECT id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion,
+                       quienes_somos, que_hacemos, como_trabajamos, donde_trabajamos, url_logo, imagen_portada
                 FROM organizacion
                 {where_sql}
                 ORDER BY FIELD(estado_verificacion, 'pendiente', 'verificada', 'rechazada', 'inactiva', 'archivada'), nombre
@@ -153,8 +172,11 @@ def crear_organizacion():
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
             """
-            INSERT INTO organizacion (nombre, descripcion, direccion, telefono, correo, estado_verificacion)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO organizacion (
+                nombre, descripcion, direccion, telefono, correo, estado_verificacion,
+                quienes_somos, que_hacemos, como_trabajamos, donde_trabajamos, url_logo, imagen_portada
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 payload["nombre"],
@@ -163,6 +185,12 @@ def crear_organizacion():
                 payload["telefono"],
                 payload["correo"],
                 payload["estado_verificacion"],
+                payload["quienes_somos"],
+                payload["que_hacemos"],
+                payload["como_trabajamos"],
+                payload["donde_trabajamos"],
+                payload["url_logo"],
+                payload["imagen_portada"],
             ),
         )
         id_organizacion = cursor.lastrowid
@@ -212,7 +240,13 @@ def actualizar_organizacion(id_organizacion):
                 direccion = %s,
                 telefono = %s,
                 correo = %s,
-                estado_verificacion = %s
+                estado_verificacion = %s,
+                quienes_somos = %s,
+                que_hacemos = %s,
+                como_trabajamos = %s,
+                donde_trabajamos = %s,
+                url_logo = %s,
+                imagen_portada = %s
             WHERE id_organizacion = %s
             """,
             (
@@ -222,6 +256,12 @@ def actualizar_organizacion(id_organizacion):
                 payload["telefono"],
                 payload["correo"],
                 payload["estado_verificacion"],
+                payload["quienes_somos"],
+                payload["que_hacemos"],
+                payload["como_trabajamos"],
+                payload["donde_trabajamos"],
+                payload["url_logo"],
+                payload["imagen_portada"],
                 id_organizacion,
             ),
         )
