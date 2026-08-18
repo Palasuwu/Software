@@ -537,7 +537,9 @@ def obtener_perfil_institucional():
                     quienes_somos,
                     que_hacemos,
                     como_trabajamos,
-                    donde_trabajamos
+                    donde_trabajamos,
+                    url_logo,
+                    imagen_portada
                 FROM organizacion
                 WHERE id_organizacion = %s
                 """,
@@ -583,6 +585,8 @@ def actualizar_perfil_institucional():
             (data.get("que_hacemos") or "").strip() or None,
             (data.get("como_trabajamos") or "").strip() or None,
             (data.get("donde_trabajamos") or "").strip() or None,
+            (data.get("url_logo") or "").strip() or None,
+            (data.get("imagen_portada") or "").strip() or None,
         )
 
         with db_cursor(
@@ -596,7 +600,9 @@ def actualizar_perfil_institucional():
                     quienes_somos = %s,
                     que_hacemos = %s,
                     como_trabajamos = %s,
-                    donde_trabajamos = %s
+                    donde_trabajamos = %s,
+                    url_logo = %s,
+                    imagen_portada = %s
                 WHERE id_organizacion = %s
                 """,
                 campos + (request.id_organizacion,)
