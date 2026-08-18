@@ -1,11 +1,29 @@
 # Rutas relacionadas con intermediarios
 
+from datetime import datetime
 import logging
 from flask import Blueprint, jsonify, request
-from auth_utils import intermediario_required
+from auth_utils import (
+    token_required,
+    intermediario_required,
+    _obtener_organizacion_actual_intermediario,
+)
 from db.connection import get_db_connection, db_cursor
-from services.publicacion_service import (articulo_existe, actualizar_estado_publicacion_db, crear_publicacion_db, editar_publicacion_db, organizacion_verificada, publicacion_pertenece_a_organizacion, validar_estado_publicacion, validar_publicacion_payload, )
-from services.donacion_service import (validar_estado_donacion, cambiar_estado_donaciones_masivo, )
+from services.publicacion_service import (
+    articulo_existe,
+    actualizar_estado_publicacion_db,
+    crear_publicacion_db,
+    editar_publicacion_db,
+    organizacion_verificada,
+    publicacion_pertenece_a_organizacion,
+    validar_estado_publicacion,
+    validar_publicacion_payload,
+)
+from services.donacion_service import (
+    validar_estado_donacion,
+    cambiar_estado_donaciones_masivo,
+    consultar_donaciones_recibidas_db,
+)
 
 intermediario_bp = Blueprint("intermediario", __name__)
 
@@ -327,44 +345,91 @@ def editar_publicacion_intermediario(id_publicacion):
     "/intermediario/donaciones",
     methods=["GET"]
 )
-@intermediario_required
+@token_required
 def obtener_donaciones_intermediario():
+    if request.usuario_rol not in ("intermediario", "administrador"):
+        return jsonify({
+            "error": "Acceso denegado"
+        }), 403
+
     try:
+        id_organizacion = None
+
+        if request.usuario_rol == "intermediario":
+            id_organizacion = _obtener_organizacion_actual_intermediario(
+                request.usuario_id
+            )
+            if id_organizacion is None:
+                return jsonify({
+                    "error": "El usuario no está asociado a una organización"
+                }), 403
+        elif request.usuario_rol == "administrador":
+            org_param = request.args.get("id_organizacion")
+            if org_param is not None and str(org_param).strip() != "":
+                try:
+                    id_organizacion = int(org_param)
+                except (ValueError, TypeError):
+                    return jsonify({
+                        "error": "id_organizacion debe ser un entero"
+                    }), 400
+
+        estado = request.args.get("estado")
+        id_publicacion = request.args.get("id_publicacion")
+        fecha_desde = request.args.get("fecha_desde") or request.args.get("fecha_inicio")
+        fecha_hasta = request.args.get("fecha_hasta") or request.args.get("fecha_fin")
+        buscar = request.args.get("buscar") or request.args.get("donante") or request.args.get("q")
+
+        estado_normalizado = None
+        if estado and str(estado).strip():
+            estado_normalizado = validar_estado_donacion(estado)
+            if not estado_normalizado:
+                return jsonify({
+                    "error": "Estado inválido. Usa pendiente, recibida, en_proceso, entregada o rechazada"
+                }), 400
+
+        id_pub_int = None
+        if id_publicacion is not None and str(id_publicacion).strip() != "":
+            try:
+                id_pub_int = int(id_publicacion)
+            except (ValueError, TypeError):
+                return jsonify({
+                    "error": "id_publicacion debe ser un entero"
+                }), 400
+
+        fecha_desde_val = None
+        if fecha_desde and str(fecha_desde).strip():
+            try:
+                datetime.strptime(str(fecha_desde).strip(), "%Y-%m-%d")
+                fecha_desde_val = str(fecha_desde).strip()
+            except ValueError:
+                return jsonify({
+                    "error": "fecha_desde debe tener formato YYYY-MM-DD"
+                }), 400
+
+        fecha_hasta_val = None
+        if fecha_hasta and str(fecha_hasta).strip():
+            try:
+                datetime.strptime(str(fecha_hasta).strip(), "%Y-%m-%d")
+                fecha_hasta_val = str(fecha_hasta).strip()
+            except ValueError:
+                return jsonify({
+                    "error": "fecha_hasta debe tener formato YYYY-MM-DD"
+                }), 400
+
+        buscar_val = str(buscar).strip() if (buscar and str(buscar).strip()) else None
+
         with db_cursor(
             connection_factory=get_db_connection
         ) as (conn, cursor):
-
-            sql = """
-                SELECT
-                    d.id_donacion,
-                    d.id_publicacion,
-                    d.nombre_contacto,
-                    d.telefono_contacto,
-                    d.cantidad_donada,
-                    d.estado,
-                    DATE_FORMAT(
-                        d.fecha_donacion,
-                        '%Y-%m-%d'
-                    ) AS fecha_donacion,
-                    p.titulo AS publicacion_titulo,
-                    u.nombre AS donante_nombre
-                FROM donacion d
-                INNER JOIN publicacion p
-                    ON p.id_publicacion = d.id_publicacion
-                INNER JOIN usuario u
-                    ON u.id_usuario = d.id_donante
-                WHERE p.id_organizacion = %s
-                ORDER BY
-                    d.fecha_donacion DESC,
-                    d.id_donacion DESC
-            """
-
-            cursor.execute(
-                sql,
-                (request.id_organizacion,)
+            donaciones = consultar_donaciones_recibidas_db(
+                cursor=cursor,
+                id_organizacion=id_organizacion,
+                estado=estado_normalizado,
+                id_publicacion=id_pub_int,
+                fecha_desde=fecha_desde_val,
+                fecha_hasta=fecha_hasta_val,
+                buscar=buscar_val
             )
-
-            donaciones = cursor.fetchall()
 
             return jsonify(donaciones), 200
 

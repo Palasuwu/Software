@@ -226,3 +226,75 @@ def cambiar_estado_donaciones_masivo(
         })
 
     return actualizadas, omitidas
+
+
+def consultar_donaciones_recibidas_db(
+    cursor,
+    id_organizacion=None,
+    estado=None,
+    id_publicacion=None,
+    fecha_desde=None,
+    fecha_hasta=None,
+    buscar=None
+):
+    condiciones = []
+    params = []
+
+    if id_organizacion is not None:
+        condiciones.append("p.id_organizacion = %s")
+        params.append(id_organizacion)
+
+    if estado:
+        condiciones.append("d.estado = %s")
+        params.append(estado)
+
+    if id_publicacion is not None:
+        condiciones.append("d.id_publicacion = %s")
+        params.append(id_publicacion)
+
+    if fecha_desde:
+        condiciones.append("d.fecha_donacion >= %s")
+        params.append(fecha_desde)
+
+    if fecha_hasta:
+        condiciones.append("d.fecha_donacion <= %s")
+        params.append(fecha_hasta)
+
+    if buscar:
+        patron = f"%{buscar}%"
+        condiciones.append("(u.nombre LIKE %s OR d.nombre_contacto LIKE %s OR p.titulo LIKE %s)")
+        params.extend([patron, patron, patron])
+
+    where_sql = f"WHERE {' AND '.join(condiciones)}" if condiciones else ""
+
+    sql = f"""
+        SELECT
+            d.id_donacion,
+            d.id_publicacion,
+            d.nombre_contacto,
+            d.telefono_contacto,
+            d.cantidad_donada,
+            d.estado,
+            DATE_FORMAT(
+                d.fecha_donacion,
+                '%Y-%m-%d'
+            ) AS fecha_donacion,
+            p.titulo AS publicacion_titulo,
+            p.id_organizacion,
+            o.nombre AS organizacion_nombre,
+            u.nombre AS donante_nombre
+        FROM donacion d
+        INNER JOIN publicacion p
+            ON p.id_publicacion = d.id_publicacion
+        INNER JOIN organizacion o
+            ON o.id_organizacion = p.id_organizacion
+        INNER JOIN usuario u
+            ON u.id_usuario = d.id_donante
+        {where_sql}
+        ORDER BY
+            d.fecha_donacion DESC,
+            d.id_donacion DESC
+    """
+
+    cursor.execute(sql, tuple(params))
+    return cursor.fetchall()
