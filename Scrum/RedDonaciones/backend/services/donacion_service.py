@@ -36,6 +36,42 @@ NOMBRES_ESTADO_DONACION = {
     "rechazada": "rechazada"
 }
 
+
+def crear_notificaciones_nueva_donacion(
+    cursor,
+    publicacion,
+    id_donante,
+    id_donacion,
+    nombre_contacto,
+    cantidad_donada
+):
+    """Notifica el registro al donante y el nuevo aporte al intermediario."""
+    asegurar_tabla_notificaciones(cursor)
+
+    crear_notificacion(
+        cursor,
+        id_donante,
+        "donacion_registrada",
+        "Donación registrada",
+        (
+            f"Tu aporte de {cantidad_donada} unidades para "
+            f"{publicacion['titulo']} fue registrado."
+        ),
+        f"/donaciones/{id_donacion}"
+    )
+
+    crear_notificacion(
+        cursor,
+        publicacion["id_intermediario"],
+        "nueva_donacion",
+        "Nueva donación recibida",
+        (
+            f"{nombre_contacto} donó {cantidad_donada} unidades para "
+            f"{publicacion['titulo']}."
+        ),
+        "/intermediario"
+    )
+
 # Normaliza y valida un estado de donación.
 # - Retorna el estado normalizado si es válido.
 # - Retorna None si no es válido.
