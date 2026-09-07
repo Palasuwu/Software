@@ -59,11 +59,8 @@ def test_notifica_al_donante_al_cambiar_estado():
     assert notificaciones[0][1] == (
         21,
         "estado_donacion",
-        "Estado de donación actualizado",
-        (
-            "Tu donación para Campaña de alimentos "
-            "cambió de pendiente a recibida."
-        ),
+        "Donación recibida",
+        "La organización confirmó que recibió tu donación para Campaña de alimentos.",
         "/donaciones/4",
     )
 
