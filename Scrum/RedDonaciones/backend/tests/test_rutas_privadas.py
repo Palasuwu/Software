@@ -1,6 +1,8 @@
 # Tests para verificar las rutas privadas y la autenticación de usuarios en la API.
 import os
 
+import pytest
+
 from auth_utils import generate_token
 from test_usuarios import crear_conexion_mock
 
@@ -99,6 +101,63 @@ def donacion_para_pruebas(id_donante=21, id_organizacion=3):
         "estado": "pendiente",
         "publicacion_titulo": "Campaña de alimentos",
     }
+
+
+DETALLE_INTERNO = (
+    "Access denied for user root; "
+    "password=secreta; tabla=usuario"
+)
+
+
+def simular_error_de_conexion(monkeypatch):
+    def lanzar_error():
+        raise RuntimeError(DETALLE_INTERNO)
+
+    monkeypatch.setattr(
+        "routes.usuario.get_db_connection",
+        lanzar_error,
+    )
+    monkeypatch.setattr(
+        "db.connection.get_db_connection",
+        lanzar_error,
+    )
+
+
+@pytest.mark.parametrize(
+    ("metodo", "ruta", "datos", "mensaje"),
+    [
+        ("get", "/usuarios", None, "Error al obtener usuarios"),
+        ("post", "/login", {"correo": "a@b.com", "password": "clave1234"}, "Error al iniciar sesion"),
+        ("put", "/usuarios/7/desactivar", None, "No se pudo desactivar el usuario"),
+        ("put", "/usuarios/7/activar", None, "No se pudo activar el usuario"),
+        ("put", "/usuarios/7/anonimizar", None, "No se pudo anonimizar el usuario"),
+    ],
+)
+def test_endpoints_usuario_no_exponen_error_interno(
+    client,
+    monkeypatch,
+    metodo,
+    ruta,
+    datos,
+    mensaje,
+):
+    if ruta != "/login":
+        auth_usuario(monkeypatch, 1, "administrador")
+
+    simular_error_de_conexion(monkeypatch)
+    token = token_usuario(1, "administrador")
+    headers = {"Authorization": f"Bearer {token}"} if ruta != "/login" else None
+
+    response = getattr(client, metodo)(
+        ruta,
+        json=datos,
+        headers=headers,
+    )
+
+    assert response.status_code == 500
+    assert response.get_json() == {"error": mensaje}
+    assert "detalle" not in response.get_json()
+    assert DETALLE_INTERNO not in response.get_data(as_text=True)
 
 
 def test_token_de_usuario_desactivado_es_rechazado(client, monkeypatch):

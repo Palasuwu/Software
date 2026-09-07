@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 import bcrypt
+import logging
 import math
 import mysql.connector
 import re
@@ -125,10 +126,10 @@ def obtener_usuarios():
 
         return jsonify(data), 200
 
-    except Exception as e:
+    except Exception:
+        logging.exception("Error al obtener usuarios")
         return jsonify({
             "error": "Error al obtener usuarios",
-            "detalle": str(e)
         }), 500
     finally:
         if cursor:
@@ -522,7 +523,7 @@ def crear_usuario():
 
         return jsonify({"error": "No se pudo completar el registro"}), 400
 
-    except Exception as e:
+    except Exception:
         if conn:
             conn.rollback()
 
@@ -641,12 +642,12 @@ def login_usuario():
             conn.rollback()
         return jsonify({"error": "Credenciales invalidas"}), 401
 
-    except Exception as e:
+    except Exception:
         if conn:
             conn.rollback()
+        logging.exception("Error al iniciar sesión")
         return jsonify({
             "error": "Error al iniciar sesion",
-            "detalle": str(e)
         }), 500
 
     finally:
@@ -672,8 +673,9 @@ def desactivar_usuario(id_usuario):
             conn.commit()
 
             return jsonify({"message": "Usuario desactivado correctamente"}), 200
-    except Exception as e:
-        return jsonify({"error": "No se pudo desactivar el usuario", "detalle": str(e)}), 500
+    except Exception:
+        logging.exception("Error al desactivar el usuario %s", id_usuario)
+        return jsonify({"error": "No se pudo desactivar el usuario"}), 500
 
 
 @usuario_bp.route("/usuarios/<int:id_usuario>/activar", methods=["PUT"])
@@ -691,8 +693,9 @@ def activar_usuario(id_usuario):
             conn.commit()
 
             return jsonify({"message": "Usuario activado correctamente"}), 200
-    except Exception as e:
-        return jsonify({"error": "No se pudo activar el usuario", "detalle": str(e)}), 500
+    except Exception:
+        logging.exception("Error al activar el usuario %s", id_usuario)
+        return jsonify({"error": "No se pudo activar el usuario"}), 500
 
 
 @usuario_bp.route("/usuarios/<int:id_usuario>/anonimizar", methods=["PUT"])
@@ -724,6 +727,7 @@ def anonimizar_usuario(id_usuario):
             conn.commit()
 
             return jsonify({"message": "Usuario anonimizado correctamente"}), 200
-    except Exception as e:
-        return jsonify({"error": "No se pudo anonimizar el usuario", "detalle": str(e)}), 500
+    except Exception:
+        logging.exception("Error al anonimizar el usuario %s", id_usuario)
+        return jsonify({"error": "No se pudo anonimizar el usuario"}), 500
 
