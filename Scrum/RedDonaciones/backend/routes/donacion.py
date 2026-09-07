@@ -2,7 +2,11 @@
 from datetime import datetime
 import logging
 from flask import Blueprint, jsonify, request
-from auth_utils import token_required
+from auth_utils import (
+    token_required,
+    _obtener_organizacion_actual_intermediario,
+    _organizacion_verificada,
+)
 from db.connection import get_db_connection, db_cursor
 from db.notificaciones import asegurar_tabla_notificaciones, crear_notificacion
 from services.donacion_service import (cambiar_estado_donacion, obtener_donacion_estado, validar_estado_donacion, )
@@ -12,6 +16,9 @@ donacion_bp = Blueprint("donacion", __name__)
 @donacion_bp.route("/donaciones", methods=["GET"])
 @token_required
 def listar_donaciones():
+    if request.usuario_rol not in ("donante", "administrador"):
+        return jsonify({"error": "Acceso denegado"}), 403
+
     id_donante = request.args.get("id_donante")
 
     if id_donante is not None:
@@ -64,6 +71,7 @@ def listar_donaciones():
                         p.fecha_limite,
                         '%Y-%m-%d'
                     ) AS fecha_limite,
+                    p.id_organizacion,
                     o.nombre AS organizacion_nombre,
                     o.direccion AS organizacion_direccion,
                     c.nombre AS categoria
@@ -163,13 +171,23 @@ def obtener_detalle_donacion(id_donacion):
                     "error": "Donación no encontrada"
                 }), 404
 
-            if (
-                request.usuario_rol != "administrador"
-                and donacion["id_donante"] != request.usuario_id
-            ):
-                return jsonify({
-                    "error": "No autorizado para consultar esta donacion"
-                }), 403
+            if request.usuario_rol == "donante":
+                if donacion["id_donante"] != request.usuario_id:
+                    return jsonify({
+                        "error": "Donación no encontrada"
+                    }), 404
+            elif request.usuario_rol == "intermediario":
+                id_organizacion = _obtener_organizacion_actual_intermediario(
+                    request.usuario_id
+                )
+                if (
+                    id_organizacion is None
+                    or not _organizacion_verificada(id_organizacion)
+                    or id_organizacion != donacion["id_organizacion"]
+                ):
+                    return jsonify({"error": "Donación no encontrada"}), 404
+            elif request.usuario_rol != "administrador":
+                return jsonify({"error": "Acceso denegado"}), 403
 
             articulos_sql = """
                 SELECT
@@ -210,6 +228,9 @@ def crear_donacion():
     cursor = None
 
     try:
+        if request.usuario_rol != "donante":
+            return jsonify({"error": "Solo los donantes pueden crear donaciones"}), 403
+
         data = request.get_json()
         if not data:
             return jsonify({
@@ -492,11 +513,8 @@ def obtener_estado_donacion(id_donacion):
                     != request.usuario_id
                 ):
                     return jsonify({
-                        "error": (
-                            "No autorizado para consultar "
-                            "esta donación"
-                        )
-                    }), 403
+                        "error": "Donación no encontrada"
+                    }), 404
 
                 return jsonify(donacion), 200
 
@@ -596,28 +614,23 @@ def actualizar_estado_donacion(id_donacion):
 
             # PERMISOS DEL INTERMEDIARIO
             if request.usuario_rol == "intermediario":
-                cursor.execute(
-                    """
-                    SELECT id_organizacion
-                    FROM intermediario
-                    WHERE id_usuario = %s
-                    """,
-                    (request.usuario_id,)
+                id_organizacion_actual = (
+                    _obtener_organizacion_actual_intermediario(
+                        request.usuario_id
+                    )
                 )
-
-                intermediario = cursor.fetchone()
-
-                if not intermediario:
+                if (
+                    id_organizacion_actual is None
+                    or not _organizacion_verificada(
+                        id_organizacion_actual
+                    )
+                ):
                     return jsonify({
                         "error": (
                             "El intermediario no está "
                             "asociado a una organización"
                         )
                     }), 403
-
-                id_organizacion_actual = (
-                    intermediario["id_organizacion"]
-                )
 
                 if (
                     donacion["id_organizacion"]

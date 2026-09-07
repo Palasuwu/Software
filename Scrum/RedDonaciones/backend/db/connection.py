@@ -24,4 +24,4 @@ def db_cursor(dictionary=True, connection_factory=None):
     finally:
         cursor.close()
         conn.close()
-
+

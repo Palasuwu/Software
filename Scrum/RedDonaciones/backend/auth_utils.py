@@ -76,6 +76,56 @@ def _get_bearer_token():
         return None
     return parts[1]
 
+
+def _obtener_usuario_actual(id_usuario):
+    conn = None
+    cursor = None
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            """
+            SELECT id_usuario, rol, activo
+            FROM usuario
+            WHERE id_usuario = %s
+            """,
+            (id_usuario,)
+        )
+        return cursor.fetchone()
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+def _organizacion_verificada(id_organizacion):
+    conn = None
+    cursor = None
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            """
+            SELECT estado_verificacion
+            FROM organizacion
+            WHERE id_organizacion = %s
+            """,
+            (id_organizacion,)
+        )
+        organizacion = cursor.fetchone()
+        return bool(
+            organizacion
+            and organizacion["estado_verificacion"] == "verificada"
+        )
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
 # Valida el JWT y coloca en request únicamente la información de identidad/autorización base
 # id_organizacion puede venir en el JWT por compatibilidad, pero no debe considerarse información actual de la BD
   
@@ -102,22 +152,48 @@ def _autenticar_request():
         )
 
     try:
-        request.usuario_id = payload["id_usuario"]
-        request.usuario_rol = payload["rol"]
-
-        # Se conserva temporalmente por compatibilidad.
-        # intermediario_required lo reemplaza con el valor actual consultado desde la BD
-        request.id_organizacion = payload.get(
-            "id_organizacion"
-        )
-
+        usuario_id = payload["id_usuario"]
+        rol_token = payload["rol"]
     except KeyError:
         return None, (
             jsonify({
-                "error": "Token invalido"
+                "error": "Token inválido"
             }),
             401
         )
+
+    try:
+        usuario = _obtener_usuario_actual(usuario_id)
+    except Exception:
+        logging.exception(
+            "Error al validar la sesión del usuario %s",
+            usuario_id
+        )
+        return None, (
+            jsonify({
+                "error": "No se pudo validar la sesión"
+            }),
+            500
+        )
+
+    if (
+        not usuario
+        or usuario.get("activo") != 1
+        or usuario.get("rol") != rol_token
+    ):
+        return None, (
+            jsonify({"error": "Token inválido o usuario no autorizado"}),
+            401
+        )
+
+    request.usuario_id = usuario["id_usuario"]
+    request.usuario_rol = usuario["rol"]
+
+    # Se conserva temporalmente por compatibilidad.
+    # intermediario_required lo reemplaza con el valor actual consultado desde la BD
+    request.id_organizacion = payload.get(
+        "id_organizacion"
+    )
 
     return payload, None
 
@@ -167,24 +243,34 @@ def token_required(f):
     return decorated
 
 
+def validar_admin_request():
+    """Valida que la petición actual pertenezca a un administrador activo."""
+    _, error_response = _autenticar_request()
+
+    if error_response:
+        return error_response
+
+    if request.usuario_rol != "administrador":
+        return jsonify({
+            "error": (
+                "Acceso denegado: "
+                "requiere rol administrador"
+            )
+        }), 403
+
+    return None
+
+
 def admin_required(f):
     """
     Decorador que exige rol administrador.
     """
     @wraps(f)
     def decorated(*args, **kwargs):
-        _, error_response = _autenticar_request()
+        error_response = validar_admin_request()
 
         if error_response:
             return error_response
-
-        if request.usuario_rol != "administrador":
-            return jsonify({
-                "error": (
-                    "Acceso denegado: "
-                    "requiere rol administrador"
-                )
-            }), 403
 
         return f(*args, **kwargs)
 
@@ -241,6 +327,11 @@ def intermediario_required(f):
                 )
             }), 403
 
+        if not _organizacion_verificada(id_organizacion_actual):
+            return jsonify({
+                "error": "La organización no está verificada"
+            }), 403
+
         # IMPORTANTE:
         # sobrescribe cualquier organización que estuviera almacenada en el JWT
         request.id_organizacion = (
@@ -250,3 +341,5 @@ def intermediario_required(f):
         return f(*args, **kwargs)
 
     return decorated
+
+    

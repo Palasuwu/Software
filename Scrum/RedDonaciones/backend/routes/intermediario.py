@@ -7,6 +7,7 @@ from auth_utils import (
     token_required,
     intermediario_required,
     _obtener_organizacion_actual_intermediario,
+    _organizacion_verificada,
 )
 from db.connection import get_db_connection, db_cursor
 from services.publicacion_service import (
@@ -363,6 +364,8 @@ def obtener_donaciones_intermediario():
                 return jsonify({
                     "error": "El usuario no está asociado a una organización"
                 }), 403
+            if not _organizacion_verificada(id_organizacion):
+                return jsonify({"error": "La organización no está verificada"}), 403
         elif request.usuario_rol == "administrador":
             org_param = request.args.get("id_organizacion")
             if org_param is not None and str(org_param).strip() != "":

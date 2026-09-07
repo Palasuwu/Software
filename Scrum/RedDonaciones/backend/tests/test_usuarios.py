@@ -110,6 +110,14 @@ def test_acceso_protegido_sin_token(client):
 # Para verificar bien lo del acceso solo para admin
 def test_acceso_admin_denegado_para_usuario_no_admin(client, monkeypatch):
     os.environ["JWT_SECRET_KEY"] = "test-secret"
+    monkeypatch.setattr(
+        "auth_utils._obtener_usuario_actual",
+        lambda _: {
+            "id_usuario": 2,
+            "rol": "donante",
+            "activo": 1,
+        },
+    )
     token = self_make_token(
         {
             "id_usuario": 2,
@@ -131,6 +139,14 @@ def test_acceso_admin_denegado_para_usuario_no_admin(client, monkeypatch):
 # 
 def test_acceso_a_perfil_propio_permitido(client, monkeypatch):
     os.environ["JWT_SECRET_KEY"] = "test-secret"
+    monkeypatch.setattr(
+        "auth_utils._obtener_usuario_actual",
+        lambda _: {
+            "id_usuario": 2,
+            "rol": "donante",
+            "activo": 1,
+        },
+    )
     monkeypatch.setattr(
         "routes.usuario.get_db_connection",
         lambda: crear_conexion_mock(
@@ -179,6 +195,14 @@ def test_acceso_a_perfil_propio_permitido(client, monkeypatch):
 # Para probar los permisos de admin 
 def test_acceso_admin_permitido_para_admin(client, monkeypatch):
     os.environ["JWT_SECRET_KEY"] = "test-secret"
+    monkeypatch.setattr(
+        "auth_utils._obtener_usuario_actual",
+        lambda _: {
+            "id_usuario": 1,
+            "rol": "administrador",
+            "activo": 1,
+        },
+    )
     monkeypatch.setattr(
         "routes.usuario.get_db_connection",
         lambda: crear_conexion_mock(resultado_fetchall=[]),

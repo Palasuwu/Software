@@ -68,6 +68,13 @@ def listar_publicaciones():
                     ON p.id_articulo = a.id_articulo
                 LEFT JOIN categoria_articulo c
                     ON a.id_categoria = c.id_categoria
+                WHERE (
+                    o.estado_verificacion = 'verificada'
+                    AND p.estado IN ('activa', 'finalizada')
+                ) OR (
+                    o.estado_verificacion = 'archivada'
+                    AND p.estado = 'finalizada'
+                )
             """
 
             cursor.execute(sql)

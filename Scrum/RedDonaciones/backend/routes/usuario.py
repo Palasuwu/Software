@@ -12,7 +12,12 @@ from db.intentos_login import (
     registrar_intento_fallido,
     reiniciar_intentos_login,
 )
-from auth_utils import generate_token, token_required, admin_required
+from auth_utils import (
+    generate_token,
+    token_required,
+    admin_required,
+    validar_admin_request,
+)
 
 from utils.validation import (
     limpiar_espacios,
@@ -100,13 +105,6 @@ def validar_password_registro(password):
 def usuario_autorizado_para_id(id_usuario):
     return request.usuario_rol == "administrador" or request.usuario_id == id_usuario
 
-
-def validar_admin_para_registro():
-    @admin_required
-    def _validar():
-        return None
-
-    return _validar()
 
 # Ruta para obtener la lista de usuarios
 @usuario_bp.route("/usuarios", methods=["GET"])
@@ -215,6 +213,11 @@ def actualizar_usuario(id_usuario):
 
         rol = usuario_actual["rol"]
 
+        if rol == "intermediario" and "id_organizacion" in data:
+            return jsonify({
+                "error": "La organización no puede modificarse desde el perfil"
+            }), 400
+
         cursor.execute(
             """
             UPDATE usuario
@@ -249,42 +252,22 @@ def actualizar_usuario(id_usuario):
             )
 
         elif rol == "intermediario":
-            id_organizacion = data.get("id_organizacion")
             cargo = limpiar_espacios(data.get("cargo"))
 
-            if not id_organizacion or not cargo:
+            if not cargo:
                 conn.rollback()
                 return jsonify({"error": "Faltan datos obligatorios para intermediario"}), 400
             if len(cargo) < 3:
                 conn.rollback()
                 return jsonify({"error": "El cargo debe tener al menos 3 caracteres"}), 400
 
-            try:
-                id_organizacion = int(id_organizacion)
-            except (TypeError, ValueError):
-                conn.rollback()
-                return jsonify({"error": "id_organizacion debe ser un entero valido"}), 400
-
-            cursor.execute(
-                """
-                SELECT id_organizacion
-                FROM organizacion
-                WHERE id_organizacion = %s AND estado_verificacion = 'verificada'
-                """,
-                (id_organizacion,)
-            )
-            organizacion = cursor.fetchone()
-            if not organizacion:
-                conn.rollback()
-                return jsonify({"error": "La organizacion seleccionada no esta verificada o no existe"}), 400
-
             cursor.execute(
                 """
                 UPDATE intermediario
-                SET id_organizacion = %s, cargo = %s
+                SET cargo = %s
                 WHERE id_usuario = %s
                 """,
-                (id_organizacion, cargo, id_usuario)
+                (cargo, id_usuario)
             )
 
         conn.commit()
@@ -429,10 +412,10 @@ def crear_usuario():
         if rol not in ("donante", "intermediario", "administrador"):
             return jsonify({"error": "Rol invalido para registro"}), 400
 
-        if rol == "administrador":
-            respuesta_admin = validar_admin_para_registro()
-            if respuesta_admin:
-                return respuesta_admin
+        if rol != "donante":
+            error_response = validar_admin_request()
+            if error_response:
+                return error_response
 
         # Generar contraseña temporal si no se provee
         temp_password = None
@@ -455,6 +438,8 @@ def crear_usuario():
                 return jsonify({"error": error_donante}), 400
 
         if rol == "intermediario":
+            id_organizacion = data.get("id_organizacion")
+            cargo = limpiar_espacios(data.get("cargo"))
             if not id_organizacion or not cargo:
                 return jsonify({"error": "Faltan datos obligatorios para intermediario"}), 400
             if len(cargo) < 3:

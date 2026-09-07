@@ -25,7 +25,6 @@ function buildProfileForm(perfil) {
         municipio: datosPerfil.municipio || '',
         zona: datosPerfil.zona || '',
         direccion_detalle: datosPerfil.direccion_detalle || '',
-        id_organizacion: datosPerfil.id_organizacion ? String(datosPerfil.id_organizacion) : '',
         cargo: datosPerfil.cargo || ''
     }
 }
@@ -59,7 +58,6 @@ function validateProfileForm(form, rol) {
     }
 
     if (rol === 'intermediario') {
-        if (!form.id_organizacion) errors.id_organizacion = 'Selecciona una organización'
         if (!form.cargo.trim()) errors.cargo = 'El cargo es obligatorio'
     }
 
@@ -86,7 +84,6 @@ function buildProfilePayload(form, rol) {
     if (rol === 'intermediario') {
         return {
             ...base,
-            id_organizacion: Number(form.id_organizacion),
             cargo: form.cargo.trim()
         }
     }
@@ -106,9 +103,6 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
     const [isSaving, setIsSaving] = React.useState(false)
     const [saveError, setSaveError] = React.useState('')
     const [saveSuccess, setSaveSuccess] = React.useState('')
-    const [organizaciones, setOrganizaciones] = React.useState([])
-    const [orgLoading, setOrgLoading] = React.useState(false)
-    const [orgError, setOrgError] = React.useState('')
 
     React.useEffect(() => {
         if (!usuarioSesion?.id_usuario) {
@@ -138,27 +132,6 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
             })
             .finally(() => setLoading(false))
     }, [usuarioSesion?.id_usuario])
-
-    React.useEffect(() => {
-        if (!isEditing || perfil?.rol !== 'intermediario' || organizaciones.length > 0) {
-            return
-        }
-
-        setOrgLoading(true)
-        setOrgError('')
-
-        apiGet('/api/organizaciones')
-            .then((data) => {
-                if (!Array.isArray(data)) {
-                    throw new Error('Respuesta invalida del servidor')
-                }
-                setOrganizaciones(data)
-            })
-            .catch((fetchError) => {
-                setOrgError(fetchError.message || 'No se pudo cargar la lista de organizaciones')
-            })
-            .finally(() => setOrgLoading(false))
-    }, [isEditing, perfil?.rol, organizaciones.length])
 
     const handleEdit = () => {
         setForm(buildProfileForm(perfil))
@@ -387,26 +360,12 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
                                 <div className="form-row">
                                     <div className="form-field">
                                         <label className="form-label" htmlFor="profile-organizacion">Organización</label>
-                                        <select
+                                        <input
                                             id="profile-organizacion"
-                                            className={`form-select ${formErrors.id_organizacion ? 'form-input-invalid' : ''}`}
-                                            name="id_organizacion"
-                                            value={form.id_organizacion}
-                                            onChange={handleFormChange}
-                                            disabled={orgLoading}
-                                        >
-                                            <option value="">Selecciona una organización</option>
-                                            {organizaciones.map((organizacion) => (
-                                                <option key={organizacion.id_organizacion} value={organizacion.id_organizacion}>
-                                                    {organizacion.nombre}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {formErrors.id_organizacion && (
-                                            <span className="form-error-text">{formErrors.id_organizacion}</span>
-                                        )}
-                                        {orgLoading && <span className="form-help-text">Cargando organizaciones...</span>}
-                                        {orgError && <span className="form-error-text">{orgError}</span>}
+                                            className="form-input"
+                                            value={perfil?.perfil?.organizacion_nombre || 'No asignada'}
+                                            readOnly
+                                        />
                                     </div>
 
                                     <div className="form-field">

@@ -5,23 +5,13 @@ import re
 from flask import Blueprint, jsonify, request
 
 from db.connection import get_db_connection, db_cursor
-from auth_utils import admin_required, verify_token, _get_bearer_token
+from auth_utils import admin_required, validar_admin_request
 from utils.validation import EMAIL_REGEX, PHONE_REGEX, limpiar_espacios
 
 logging.basicConfig(level=logging.INFO)
 
 organizacion_bp = Blueprint("organizacion", __name__)
 ESTADOS_VALIDOS = ("pendiente", "verificada", "rechazada", "inactiva", "archivada")
-
-
-def request_es_admin():
-    token = _get_bearer_token()
-    if not token:
-        return False
-
-    payload = verify_token(token)
-    return bool(payload) and payload.get("rol") == "administrador"
-
 
 
 def normalizar_organizacion_payload(data):
@@ -88,12 +78,15 @@ def obtener_organizacion(cursor, id_organizacion):
 
 @organizacion_bp.route("/organizaciones", methods=["GET"])
 def listar_organizaciones():
+    incluir_todas = request.args.get("vista") == "admin"
+
+    if incluir_todas:
+        error_response = validar_admin_request()
+        if error_response:
+            return error_response
+
     try:
         with db_cursor() as (conn, cursor):
-            incluir_todas = request.args.get("vista") == "admin"
-            if incluir_todas and not request_es_admin():
-                return jsonify({"error": "Acceso denegado: requiere rol administrador"}), 403
-
             where_sql = "" if incluir_todas else "WHERE estado_verificacion = 'verificada'"
 
             cursor.execute(
