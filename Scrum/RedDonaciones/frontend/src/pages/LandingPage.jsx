@@ -1,23 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import heroVideo    from '../assets/hero.mp4'
-import cajaPng      from '../assets/Caja.png'
-import caja2Png     from '../assets/Caja2.png'
-import nenesPng     from '../assets/Nenes.png'
 import helpingSvg   from '../assets/helping.svg'
 import courierSvg   from '../assets/courier.svg'
 import scholarSvg   from '../assets/scholar.svg'
 import celebrationSvg from '../assets/celebration.svg'
 import { obtenerUsuarioSesion } from '../utils/session'
+import { apiGet } from '../utils/api'
 import './LandingPage.css'
 
-const CAROUSEL_IMAGES = [
-  { src: cajaPng,  alt: 'Caja de donaciones' },
-  { src: caja2Png, alt: 'Materiales recolectados' },
-  { src: nenesPng, alt: 'Niños beneficiados' },
-  { src: cajaPng,  alt: 'Caja de donaciones' },
-  { src: caja2Png, alt: 'Materiales recolectados' },
-  { src: nenesPng, alt: 'Niños beneficiados' },
+// Respaldo si el carrusel administrable (GET /api/carrusel) esta vacio o falla:
+// mismas 4 imagenes por defecto que se siembran en la base de datos.
+const CAROUSEL_FALLBACK = [
+  { src: '/carousel/carr1.jpeg', alt: 'Voluntario entregando una donación a una niña junto a su familia' },
+  { src: '/carousel/carr2.jpeg', alt: 'Grupo de voluntarios y jóvenes de la comunidad sonriendo juntos' },
+  { src: '/carousel/carr3.jpeg', alt: 'Voluntario entregando ropa y una manta a una niña' },
+  { src: '/carousel/carr4.jpeg', alt: 'Voluntario compartiendo un libro con niñas de la comunidad' },
 ]
 
 // ─── Navbar ────────────────────────────────────────────────────────────────────
@@ -111,6 +109,19 @@ function HorizontalCarousel() {
   const idxRef     = useRef(0)
   const pausedRef  = useRef(false)
   const [activeIdx, setActiveIdx] = useState(0)
+  const [images, setImages] = useState(CAROUSEL_FALLBACK)
+
+  useEffect(() => {
+    apiGet('/api/carrusel')
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setImages(data.map((img) => ({ src: img.url_imagen, alt: img.alt_text })))
+        }
+      })
+      .catch(() => {
+        // Sin conexion o carrusel vacio: se mantiene el respaldo por defecto.
+      })
+  }, [])
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -119,7 +130,7 @@ function HorizontalCarousel() {
     const track = trackRef.current
     if (!track) return
 
-    const N = CAROUSEL_IMAGES.length
+    const N = images.length
 
     const snapTo = (idx) => {
       idxRef.current = idx
@@ -145,9 +156,9 @@ function HorizontalCarousel() {
       clearInterval(tick)
       window.removeEventListener('resize', onResize)
     }
-  }, [])
+  }, [images])
 
-  const N = CAROUSEL_IMAGES.length
+  const N = images.length
   const goTo = (idx) => {
     const track = trackRef.current
     if (!track) return
@@ -188,7 +199,7 @@ function HorizontalCarousel() {
           onMouseLeave={() => { pausedRef.current = false }}
         >
           <div className="ld-carousel-track" ref={trackRef}>
-            {CAROUSEL_IMAGES.map((img, i) => (
+            {images.map((img, i) => (
               <figure
                 className={`ld-carousel-item${i === activeIdx ? ' ld-carousel-item--active' : ''}`}
                 key={i}
@@ -207,7 +218,7 @@ function HorizontalCarousel() {
 
           {/* Dot navigation */}
           <div className="ld-carousel-dots" role="tablist" aria-label="Navegación de imágenes">
-            {CAROUSEL_IMAGES.map((_, i) => (
+            {images.map((_, i) => (
               <button
                 key={i}
                 type="button"

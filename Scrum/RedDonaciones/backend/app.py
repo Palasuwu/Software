@@ -9,6 +9,7 @@ from routes.upload import upload_bp
 from routes.intermediario import intermediario_bp
 from routes.donacion import donacion_bp
 from routes.notificacion import notificacion_bp
+from routes.landing import landing_bp
 
 app = Flask(__name__)
 CORS(app)
@@ -31,6 +32,7 @@ app.register_blueprint(upload_bp)
 app.register_blueprint(intermediario_bp)
 app.register_blueprint(donacion_bp)
 app.register_blueprint(notificacion_bp)
+app.register_blueprint(landing_bp)
 
 
 @app.after_request

@@ -932,6 +932,33 @@
     width: 14%;
 }
 
+/* Tabla del carrusel de la landing page (4 columnas) */
+.admin-table-carrusel th:nth-child(1),
+.admin-table-carrusel td:nth-child(1) {
+    width: 20%;
+}
+.admin-table-carrusel th:nth-child(2),
+.admin-table-carrusel td:nth-child(2) {
+    width: 50%;
+}
+.admin-table-carrusel th:nth-child(3),
+.admin-table-carrusel td:nth-child(3) {
+    width: 12%;
+}
+.admin-table-carrusel th:nth-child(4),
+.admin-table-carrusel td:nth-child(4) {
+    width: 18%;
+}
+
+.admin-carrusel-thumb {
+    width: 96px;
+    height: 60px;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+    border: 1px solid var(--outline);
+    display: block;
+}
+
 /* Barra de acción masiva sobre la tabla de donaciones */
 .admin-bulk-bar {
     display: flex;

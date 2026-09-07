@@ -173,6 +173,16 @@ CREATE TABLE publicacion_articulo (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
+-- CARRUSEL LANDING
+-- Imagenes del carrusel de la landing page publica, editables desde el panel de administrador
+CREATE TABLE landing_carousel (
+    id_imagen INT AUTO_INCREMENT PRIMARY KEY,
+    url_imagen VARCHAR(500) NOT NULL,
+    alt_text VARCHAR(255) NOT NULL,
+    orden INT NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
 -- DATOS DE EJEMPLO
 
 -- USUARIOS
@@ -290,5 +300,13 @@ VALUES
     (1, 1, 'Ropa de invierno (tallas 6–12)', 50),
     (1, 2, 'Abrigos en buen estado', 40),
     (1, 3, 'Bufandas y gorros para niños', 30),
-    
+
     (2, 1, 'Ropa infantil variada', 90);
+
+-- CARRUSEL LANDING
+INSERT IGNORE INTO landing_carousel (id_imagen, url_imagen, alt_text, orden)
+VALUES
+    (1, '/carousel/carr1.jpeg', 'Voluntario entregando una donación a una niña junto a su familia', 1),
+    (2, '/carousel/carr2.jpeg', 'Grupo de voluntarios y jóvenes de la comunidad sonriendo juntos', 2),
+    (3, '/carousel/carr3.jpeg', 'Voluntario entregando ropa y una manta a una niña', 3),
+    (4, '/carousel/carr4.jpeg', 'Voluntario compartiendo un libro con niñas de la comunidad', 4);

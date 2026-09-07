@@ -3,25 +3,30 @@
 // pages/admin/ y recibe todo por props.
 import React from 'react'
 import { apiDelete, apiGet, apiPost, apiPut, apiUpload } from '../utils/api'
-import { IconUsers, IconCampaigns, IconPlus, IconDonation } from '../components/icons'
+import { IconUsers, IconCampaigns, IconPlus, IconDonation, IconImage } from '../components/icons'
 import {
     USER_INITIAL_FORM,
     CAMP_INITIAL_FORM,
+    CARRUSEL_INITIAL_FORM,
     buildOrgPayload,
     validateOrgForm,
     buildUserPayload,
     validateUserForm,
-    validateImageFile
+    validateImageFile,
+    buildCarruselPayload,
+    validateCarruselForm
 } from './admin/adminForms'
 import { campaignStatusLabel, donationStatusLabel } from './admin/adminHelpers'
 import AdminUsersTable from './admin/AdminUsersTable'
 import AdminOrgsTable from './admin/AdminOrgsTable'
 import AdminCampaignsTable from './admin/AdminCampaignsTable'
 import AdminDonacionesTable from './admin/AdminDonacionesTable'
+import CarruselTable from './admin/CarruselTable'
 import AdminModal from './admin/AdminModal'
 import UserFormModal from './admin/UserFormModal'
 import CampaignFormModal from './admin/CampaignFormModal'
 import OrgFormModal from './admin/OrgFormModal'
+import CarruselFormModal from './admin/CarruselFormModal'
 import TempPasswordModal from './admin/TempPasswordModal'
 import ConfirmationModal from './admin/ConfirmationModal'
 import './admin/admin-panel.css'
@@ -80,6 +85,13 @@ export default function AdminPanel({ usuarioSesion }) {
     const [estadoMasivo, setEstadoMasivo] = React.useState('recibida')
     const [aplicandoMasivo, setAplicandoMasivo] = React.useState(false)
     const [omitidasMasivo, setOmitidasMasivo] = React.useState([])
+    const [carrusel, setCarrusel] = React.useState([])
+    const [loadingCarrusel, setLoadingCarrusel] = React.useState(false)
+    const [carruselError, setCarruselError] = React.useState('')
+    const [carruselForm, setCarruselForm] = React.useState(CARRUSEL_INITIAL_FORM)
+    const [carruselFormErrors, setCarruselFormErrors] = React.useState({})
+    const [carruselImagePreview, setCarruselImagePreview] = React.useState(null)
+    const [uploadingCarruselImage, setUploadingCarruselImage] = React.useState(false)
 
     React.useEffect(() => {
         if (!successMessage) return
@@ -165,6 +177,20 @@ export default function AdminPanel({ usuarioSesion }) {
         }
     }, [])
 
+    const loadCarrusel = React.useCallback(async () => {
+        setLoadingCarrusel(true)
+        setCarruselError('')
+
+        try {
+            const data = await apiGet('/api/carrusel')
+            setCarrusel(Array.isArray(data) ? data : [])
+        } catch (error) {
+            setCarruselError(error.message || 'No se pudo cargar el carrusel')
+        } finally {
+            setLoadingCarrusel(false)
+        }
+    }, [])
+
     React.useEffect(() => {
         loadUsers()
         loadCampaigns()
@@ -179,7 +205,11 @@ export default function AdminPanel({ usuarioSesion }) {
         if (activeTab === 'donaciones') {
             loadDonaciones()
         }
-    }, [activeTab, ensureOrganizations, loadDonaciones])
+
+        if (activeTab === 'carrusel') {
+            loadCarrusel()
+        }
+    }, [activeTab, ensureOrganizations, loadDonaciones, loadCarrusel])
 
     const toggleDonacionSelected = (idDonacion, checked) => {
         setSelectedDonacionIds((previous) => {
@@ -268,6 +298,7 @@ export default function AdminPanel({ usuarioSesion }) {
         setUserForm(USER_INITIAL_FORM)
         setFormErrors({})
         setOrgFormErrors({})
+        setCarruselFormErrors({})
         setModalError('')
         setIsSubmitting(false)
     }
@@ -615,6 +646,123 @@ export default function AdminPanel({ usuarioSesion }) {
         })
     }
 
+    const openCreateCarrusel = () => {
+        clearFeedback()
+        setCarruselForm({ ...CARRUSEL_INITIAL_FORM, orden: carrusel.length })
+        setCarruselFormErrors({})
+        setCarruselImagePreview(null)
+        setModal({ type: 'createCarrusel' })
+    }
+
+    const openEditCarrusel = (img) => {
+        clearFeedback()
+        setCarruselFormErrors({})
+        setCarruselForm({
+            url_imagen: img.url_imagen || '',
+            alt_text: img.alt_text || '',
+            orden: img.orden ?? 0
+        })
+        setCarruselImagePreview(img.url_imagen || null)
+        setModal({ type: 'editCarrusel', imagen: img })
+    }
+
+    const handleCarruselChange = (event) => {
+        const { name, value } = event.target
+        setCarruselForm((previous) => ({ ...previous, [name]: value }))
+        setCarruselFormErrors((previous) => {
+            if (!previous[name]) return previous
+            const next = { ...previous }
+            delete next[name]
+            return next
+        })
+        setModalError(null)
+    }
+
+    const handleCarruselImageChange = async (event) => {
+        const file = event.target.files[0]
+        if (!file) return
+
+        const validationError = validateImageFile(file)
+        if (validationError) {
+            setModalError(validationError)
+            event.target.value = ''
+            return
+        }
+
+        setCarruselImagePreview(URL.createObjectURL(file))
+        setUploadingCarruselImage(true)
+        setModalError(null)
+
+        try {
+            const result = await apiUpload(file)
+            setCarruselForm((prev) => ({ ...prev, url_imagen: result.url }))
+        } catch (error) {
+            setModalError(error.message || 'No se pudo subir la imagen')
+            setCarruselImagePreview(null)
+            setCarruselForm((prev) => ({ ...prev, url_imagen: '' }))
+        } finally {
+            setUploadingCarruselImage(false)
+        }
+    }
+
+    const submitCarruselForm = async (event) => {
+        event.preventDefault()
+
+        setModalError('')
+        const errors = validateCarruselForm(carruselForm)
+        setCarruselFormErrors(errors)
+        if (Object.keys(errors).length > 0) {
+            return
+        }
+
+        setIsSubmitting(true)
+        const payload = buildCarruselPayload(carruselForm)
+
+        try {
+            if (modal?.type === 'editCarrusel') {
+                await apiPut(`/api/carrusel/${modal.imagen.id_imagen}`, payload)
+                setSuccessMessage('Imagen actualizada')
+            } else {
+                await apiPost('/api/carrusel', payload)
+                setSuccessMessage('Imagen agregada al carrusel')
+            }
+
+            await loadCarrusel()
+            closeModal()
+        } catch (error) {
+            const fieldErrors = error.body?.campos
+            if (fieldErrors && typeof fieldErrors === 'object') {
+                setCarruselFormErrors(fieldErrors)
+            } else {
+                setModalError(error.message || 'Error guardando la imagen')
+            }
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    const openDeleteCarrusel = (img) => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Eliminar imagen del carrusel',
+            message: '¿Estás seguro de que deseas eliminar esta imagen del carrusel de la landing page?',
+            onConfirm: async () => {
+                setIsSubmitting(true)
+                setModalError('')
+                setSuccessMessage('')
+                try {
+                    await apiDelete(`/api/carrusel/${img.id_imagen}`)
+                    setSuccessMessage('Imagen eliminada')
+                    await loadCarrusel()
+                } catch (error) {
+                    setCarruselError(error.message || 'No se pudo eliminar la imagen')
+                } finally {
+                    setIsSubmitting(false)
+                }
+            }
+        })
+    }
+
     const submitUserForm = async (event) => {
         event.preventDefault()
 
@@ -836,6 +984,24 @@ export default function AdminPanel({ usuarioSesion }) {
             )
         }
 
+        if (modal?.type === 'createCarrusel' || modal?.type === 'editCarrusel') {
+            return (
+                <CarruselFormModal
+                    isEdit={modal.type === 'editCarrusel'}
+                    form={carruselForm}
+                    errors={carruselFormErrors}
+                    onChange={handleCarruselChange}
+                    onSubmit={submitCarruselForm}
+                    onClose={closeModal}
+                    isSubmitting={isSubmitting}
+                    modalError={modalError}
+                    imagePreview={carruselImagePreview}
+                    uploadingImage={uploadingCarruselImage}
+                    onImageChange={handleCarruselImageChange}
+                />
+            )
+        }
+
         if (modal?.type === 'deleteUser') {
             return (
                 <AdminModal
@@ -940,6 +1106,14 @@ export default function AdminPanel({ usuarioSesion }) {
                         <IconDonation className="admin-svg-icon" />
                         <span>Donaciones</span>
                     </button>
+                    <button
+                        type="button"
+                        className={`admin-tab-button ${activeTab === 'carrusel' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('carrusel')}
+                    >
+                        <IconImage className="admin-svg-icon" />
+                        <span>Carrusel</span>
+                    </button>
                 </aside>
 
                 <section className="admin-content-panel">
@@ -1010,7 +1184,7 @@ export default function AdminPanel({ usuarioSesion }) {
                                 onStatusChange={handleChangeCampaignStatus}
                             />
                         </>
-                    ) : (
+                    ) : activeTab === 'donaciones' ? (
                         <>
                             <div className="admin-section-head">
                                 <div>
@@ -1061,6 +1235,28 @@ export default function AdminPanel({ usuarioSesion }) {
                                 onRetry={loadDonaciones}
                                 onToggleOne={toggleDonacionSelected}
                                 onToggleAll={toggleAllDonacionesSelected}
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <div className="admin-section-head">
+                                <div>
+                                    <h2>Carrusel de la landing page</h2>
+                                    <p>Administra las imágenes que se muestran en la galería de la página de inicio.</p>
+                                </div>
+                                <button type="button" className="admin-primary-action" onClick={openCreateCarrusel}>
+                                    <IconPlus className="admin-button-icon" />
+                                    <span>Nueva Imagen</span>
+                                </button>
+                            </div>
+                            <CarruselTable
+                                imagenes={carrusel}
+                                loading={loadingCarrusel}
+                                error={carruselError}
+                                isSubmitting={isSubmitting}
+                                onRetry={loadCarrusel}
+                                onEdit={openEditCarrusel}
+                                onDelete={openDeleteCarrusel}
                             />
                         </>
                     )}

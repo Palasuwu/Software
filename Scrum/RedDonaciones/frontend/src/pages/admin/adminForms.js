@@ -83,6 +83,31 @@ export function validateOrgForm(form) {
     return errors
 }
 
+export const CARRUSEL_INITIAL_FORM = {
+    url_imagen: '',
+    alt_text: '',
+    orden: 0
+}
+
+export function buildCarruselPayload(form) {
+    return {
+        // Ya es una URL generada por /api/upload, no texto libre: se pasa tal cual.
+        url_imagen: form.url_imagen || '',
+        alt_text: cleanSpaces(form.alt_text || ''),
+        orden: Number(form.orden) || 0
+    }
+}
+
+export function validateCarruselForm(form) {
+    const errors = {}
+    const payload = buildCarruselPayload(form)
+
+    if (!payload.url_imagen) errors.url_imagen = 'Sube una imagen'
+    if (payload.alt_text.length < 5) errors.alt_text = 'Ingresa una descripcion mas completa (para accesibilidad)'
+
+    return errors
+}
+
 export function buildUserPayload(form, includePassword) {
     const payload = {
         nombre: form.nombre.trim(),
