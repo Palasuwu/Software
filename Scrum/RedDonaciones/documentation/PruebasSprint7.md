@@ -37,3 +37,40 @@ Verifica que el sistema bloquee donaciones en campañas finalizadas, canceladas 
 | `en DetailPage con campaña cancelada, muestra mensaje de cancelación y oculta el formulario` | Pruebas de Bloqueo de Donaciones en Campañas Vencidas y Finalizadas | Verifica que ante una campaña cancelada, la interfaz informe claramente la situación y oculte el formulario de donación. |
 | `en DetailPage con campaña activa y vigente, renderiza formulario y permite donar exitosamente` | Pruebas de Bloqueo de Donaciones en Campañas Vencidas y Finalizadas | Valida el flujo normal en campañas vigentes, asegurando que el formulario se muestre con todos sus campos y se envíe la solicitud de donación al confirmar los datos requeridos. |
 | `en HomePage oculta campañas canceladas y vencidas, pero muestra activas y finalizadas con badge` | Pruebas de Bloqueo de Donaciones en Campañas Vencidas y Finalizadas | Valida que el catálogo principal filtre y excluya campañas canceladas o vencidas, mostrando solo activas y finalizadas, estas últimas con su badge distintivo "Finalizada". |
+
+---
+
+## Categoría: Pruebas de Resultados e Imágenes de Campañas
+
+Verifica la publicación, consulta y visualización de resultados e imágenes en campañas finalizadas, asegurando permisos por organización y correcta presentación de impacto.
+
+### Backend
+
+**Archivo:** `Scrum/RedDonaciones/backend/tests/test_resultados_imagenes_campanas.py`
+
+| Función de Test | Categoría | Lo que hace |
+| :--- | :--- | :--- |
+| `test_consultar_resultado_campana_existente` | Pruebas de Resultados e Imágenes de Campañas | Comprueba que se puedan consultar los resultados de una campaña finalizada, obteniendo el resumen, beneficiarios, imagen y usuario que publicó. |
+| `test_consultar_resultado_campana_no_publicado_404` | Pruebas de Resultados e Imágenes de Campañas | Verifica que al consultar resultados de una campaña que aún no los tiene registrados se retorne error 404 de no publicado. |
+| `test_publicar_resultado_exitoso_intermediario` | Pruebas de Resultados e Imágenes de Campañas | Valida que un intermediario perteneciente a la organización de la campaña pueda publicar los resultados y la URL de imagen con éxito (código 200). |
+| `test_publicar_resultado_exitoso_administrador` | Pruebas de Resultados e Imágenes de Campañas | Verifica que un usuario administrador tenga permisos globales para publicar o actualizar resultados e imágenes en cualquier campaña finalizada. |
+| `test_rechazo_publicar_resultado_campana_no_finalizada` | Pruebas de Resultados e Imágenes de Campañas | Comprueba que se rechace (código 409) cualquier intento de publicar resultados en campañas que aún siguen activas o no finalizadas. |
+| `test_rechazo_publicar_resultado_intermediario_otra_organizacion` | Pruebas de Resultados e Imágenes de Campañas | Verifica que se deniegue el acceso (código 403) si un intermediario intenta publicar resultados en una campaña que pertenece a otra organización. |
+| `test_rechazo_publicar_resultado_donante_no_autorizado` | Pruebas de Resultados e Imágenes de Campañas | Comprueba que los usuarios con rol donante no tengan permisos para publicar resultados (código 403). |
+| `test_rechazo_publicar_resultado_datos_invalidos` | Pruebas de Resultados e Imágenes de Campañas | Valida que el servidor rechace la solicitud (código 400) si el resumen está vacío o la cantidad de personas beneficiadas es negativa. |
+| `test_detalle_publicacion_incluye_resultado_e_imagen` | Pruebas de Resultados e Imágenes de Campañas | Verifica que el endpoint público de detalle de campaña incluya los campos del resultado, cantidad de beneficiarios, fecha e imagen de evidencia. |
+
+---
+
+### Frontend
+
+**Archivo:** `Scrum/RedDonaciones/frontend/src/test/ResultadosImagenesCampanas.test.jsx`
+
+| Función de Test | Categoría | Lo que hace |
+| :--- | :--- | :--- |
+| `en DetailPage con campaña finalizada, muestra la sección de impacto con resumen, beneficiarios e imagen` | Pruebas de Resultados e Imágenes de Campañas | Verifica que en el detalle de una campaña finalizada se muestre la sección "El impacto que logramos juntos" con el resumen, conteo de beneficiarios, fecha e imagen de evidencia. |
+| `en DetailPage con campaña finalizada sin resultados, muestra mensaje de preparación y no renderiza imagen de resultados` | Pruebas de Resultados e Imágenes de Campañas | Comprueba que si la campaña finalizó pero aún no tiene informe publicado, se muestre un mensaje indicando que la organización lo está preparando y no se muestre imagen vacía. |
+| `en DetailPage con campaña activa, no muestra la sección de resultados ni de impacto` | Pruebas de Resultados e Imágenes de Campañas | Asegura que en campañas activas la sección de resultados permanezca oculta para los usuarios. |
+| `en DetailPage renderiza la imagen de portada de la campaña o imagen por defecto` | Pruebas de Resultados e Imágenes de Campañas | Valida que la cabecera del detalle cargue correctamente la imagen de portada de la campaña con su atributo alt correspondiente. |
+| `en OrgaCampaignResultModal renderiza los campos de resumen, personas beneficiadas y URL de imagen` | Pruebas de Resultados e Imágenes de Campañas | Comprueba en el panel de la organización que el modal de publicar resultados presente los campos de texto, beneficiarios e imagen, gestione eventos de cambio y controle el estado de guardado. |
+
