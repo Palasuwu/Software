@@ -157,6 +157,21 @@ CREATE TABLE notificacion (
     INDEX idx_notificacion_usuario_leida (id_usuario, leida)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- RESULTADOS DE CAMPAÑA
+
+CREATE TABLE resultado_campana (
+    id_resultado INT AUTO_INCREMENT PRIMARY KEY,
+    id_publicacion INT NOT NULL UNIQUE,
+    id_usuario_publicador INT NOT NULL,
+    resumen VARCHAR(1000) NOT NULL,
+    personas_beneficiadas INT NULL CHECK (personas_beneficiadas >= 0),
+    imagen_url VARCHAR(500) NULL,
+    fecha_publicacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_actualizacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_publicacion) REFERENCES publicacion(id_publicacion) ON DELETE CASCADE,
+    FOREIGN KEY (id_usuario_publicador) REFERENCES usuario(id_usuario)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 
 -- PUBLICACION_ARTICULO (NUEVA TABLA)
