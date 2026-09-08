@@ -50,7 +50,11 @@ def obtener_publicaciones_intermediario():
                     p.cantidad_recibida,
                     p.fecha_publicacion,
                     p.fecha_limite,
-                    p.estado,
+                    CASE
+                        WHEN (p.estado = 'activa' OR p.estado IS NULL) AND p.fecha_limite IS NOT NULL AND p.fecha_limite < CURDATE()
+                        THEN 'cancelada'
+                        ELSE COALESCE(p.estado, 'activa')
+                    END AS estado,
                     p.imagen_url,
                     p.departamento,
                     p.municipio,
@@ -61,7 +65,7 @@ def obtener_publicaciones_intermediario():
                 FROM publicacion p
                 INNER JOIN organizacion o
                     ON p.id_organizacion = o.id_organizacion
-                INNER JOIN articulo a
+                LEFT JOIN articulo a
                     ON p.id_articulo = a.id_articulo
                 WHERE p.id_organizacion = %s
                 ORDER BY p.fecha_publicacion DESC

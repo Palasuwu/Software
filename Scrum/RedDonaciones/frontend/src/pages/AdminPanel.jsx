@@ -126,7 +126,7 @@ export default function AdminPanel({ usuarioSesion }) {
         setCampaignsError('')
 
         try {
-            const data = await apiGet('/api/publicaciones')
+            const data = await apiGet('/api/publicaciones?vista=admin')
             setPublicaciones(Array.isArray(data) ? data : [])
         } catch (error) {
             setCampaignsError(error.message || 'No se pudieron cargar las campañas')

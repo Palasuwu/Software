@@ -345,3 +345,34 @@ VALUES
     (2, '/carousel/carr2.jpeg', 'Grupo de voluntarios y jóvenes de la comunidad sonriendo juntos', 2),
     (3, '/carousel/carr3.jpeg', 'Voluntario entregando ropa y una manta a una niña', 3),
     (4, '/carousel/carr4.jpeg', 'Voluntario compartiendo un libro con niñas de la comunidad', 4);
+
+-- Estos son campañas/posts de ejemplo 
+INSERT INTO publicacion (
+    id_intermediario,
+    id_organizacion,
+    id_articulo,
+    titulo,
+    descripcion,
+    cantidad_necesaria,
+    cantidad_recibida,
+    fecha_publicacion,
+    fecha_limite,
+    estado,
+    imagen_url,
+    departamento,
+    municipio,
+    zona,
+    direccion_detalle
+) VALUES
+(2, 1, 1, 'Útiles escolares para niños de escasos recursos', 'Recolección de cuadernos, lápices y materiales para el regreso a clases de 80 niños en situación vulnerable.', 200, 200, '2024-08-01', '2026-09-30', 'finalizada', 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Sede Central'),
+(2, 1, 2, 'Juguetes para niños en navidad', 'Campaña navideña para llevar alegría a niños del albergue. Se recolectaron juguetes nuevos y en buen estado.', 150, 162, '2024-11-01', '2026-12-24', 'finalizada', 'https://images.unsplash.com/photo-1558981285-6f0c68e7cc0a?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Albergue Infantil'),
+(2, 1, 1, 'Canastas de alimentos para familias necesitadas', 'Distribución de canastas básicas para 60 familias en situación de inseguridad alimentaria durante la temporada de lluvias.', 60, 60, '2024-06-01', '2027-07-15', 'finalizada', 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Comedor Comunitario'),
+(2, 1, 2, 'Medicamentos para adultos mayores del asilo', 'Recolección de medicamentos de uso común para los residentes del asilo. Meta alcanzada gracias a la comunidad.', 300, 347, '2024-04-01', '2027-05-31', 'finalizada', 'https://images.unsplash.com/photo-1584515933487-779824d29309?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Área Médica'),
+(2, 1, 1, 'Libros de texto para escuelas rurales', 'Donación de libros de primaria y secundaria para tres escuelas rurales sin acceso a materiales educativos.', 400, 412, '2024-02-01', '2027-03-31', 'finalizada', 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Biblioteca Comunitaria'),
+(2, 1, 3, 'Mochilas escolares para comunidades rurales', 'Ayudanos a llevar mochilas equipadas con útiles a niños de comunidades que no tienen acceso a transporte escolar.', 100, 34, '2025-01-15', '2027-06-30', 'activa', 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Bodega de Donaciones'),
+(2, 1, 2, 'Cobijas para albergue temporal', 'El albergue temporal necesita cobijas y sábanas para las familias que llegan sin nada. Cada donación cuenta.', 80, 22, '2025-02-01', '2027-07-31', 'activa', 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Albergue Temporal'),
+(2, 1, 1, 'Ropa deportiva para jóvenes del programa', 'Recolección de ropa deportiva en buen estado para jóvenes que participan en el programa de integración comunitaria.', 120, 55, '2025-03-01', '2027-08-31', 'activa', 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Cancha Comunitaria'),
+(2, 1, 1, 'Pañales y ropa para bebés del hogar', 'El hogar de niños recibe bebés de 0 a 2 años. Necesitamos pañales, bodys y ropa de temporada urgentemente.', 250, 89, '2025-04-01', '2026-09-30', 'activa', 'https://images.unsplash.com/photo-1503676382389-4809596d5290?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Hogar de Niños'),
+(2, 1, 2, 'Zapatos para niños de primaria', 'Muchos niños asisten a la escuela sin calzado adecuado. Donaciones de zapatos talla 24 a 36 en buen estado.', 90, 41, '2025-03-15', '2027-08-15', 'activa', 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Centro de Acopio'),
+(2, 1, 2, 'Abrigos para adultos en situación de calle', 'Con la llegada del frío, el refugio nocturno necesita abrigos de talla adulto para las personas que atiende cada noche.', 70, 18, '2025-05-01', '2026-10-31', 'activa', 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Refugio Nocturno'),
+(2, 1, 3, 'Uniformes para niños de kínder', 'El kínder comunitario necesita uniformes para que sus estudiantes puedan asistir con dignidad. Tallas 2T a 6T.', 60, 7, '2025-05-10', '2026-11-30', 'activa', 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Kínder Comunitario');

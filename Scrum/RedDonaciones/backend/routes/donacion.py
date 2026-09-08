@@ -1,5 +1,5 @@
 # Solo endpoints para manejo de lógica de donaciones
-from datetime import datetime
+from datetime import date, datetime
 import logging
 from flask import Blueprint, jsonify, request
 from auth_utils import (
@@ -324,7 +324,8 @@ def crear_donacion():
                 titulo,
                 cantidad_necesaria,
                 cantidad_recibida,
-                estado
+                COALESCE(estado, 'activa') AS estado,
+                fecha_limite
 
             FROM publicacion
 
@@ -339,23 +340,65 @@ def crear_donacion():
                 "error": "La publicación no existe"
             }), 404
 
-        # Validar estado de la campaña
-        if publicacion["estado"] != "activa":
+        estado_campana = (publicacion.get("estado") or "activa").strip().lower()
+
+        # 1. Si la campaña está finalizada: bloquea la donación (Prioridad máxima)
+        if estado_campana == "finalizada":
             return jsonify({
-                "error": "La campaña ya finalizo"
+                "error": "Esta campaña ha finalizado y ya no acepta donaciones"
             }), 400
 
-        # Validaciones previas
+        # 2. Si la fecha_limite ya venció: bloquea la donación y actualiza su estado a cancelada
+        fecha_limite_raw = publicacion.get("fecha_limite")
+        ha_vencido = False
+        if fecha_limite_raw:
+            if isinstance(fecha_limite_raw, (date, datetime)):
+                fecha_limite_val = (
+                    fecha_limite_raw.date()
+                    if isinstance(fecha_limite_raw, datetime)
+                    else fecha_limite_raw
+                )
+            elif isinstance(fecha_limite_raw, str):
+                try:
+                    fecha_limite_val = datetime.strptime(
+                        str(fecha_limite_raw)[:10], "%Y-%m-%d"
+                    ).date()
+                except ValueError:
+                    fecha_limite_val = None
+            else:
+                fecha_limite_val = None
+
+            if fecha_limite_val and fecha_limite_val < date.today():
+                ha_vencido = True
+
+        if ha_vencido:
+            cursor.execute(
+                """
+                UPDATE publicacion
+                SET estado = 'cancelada'
+                WHERE id_publicacion = %s
+                """,
+                (id_publicacion,)
+            )
+            conn.commit()
+            return jsonify({
+                "error": "Ha pasado la fecha límite de la campaña y ya no acepta donaciones"
+            }), 400
+
+        # 3. Si está cancelada: bloquea la donación
+        if estado_campana == "cancelada":
+            return jsonify({
+                "error": "Esta campaña está cancelada y no acepta donaciones"
+            }), 400
+
+        # 4. Validaciones de cantidad para campaña activa y vigente
         restante = (
             publicacion["cantidad_necesaria"]
             - publicacion["cantidad_recibida"]
         )
         if restante <= 0:
             return jsonify({
-                "error": (
-                    "Ya alcanzamos la meta, "
-                    "ya no se aceptan más donaciones."
-                )
+                "error": "Esta campaña ha finalizado y ya no acepta donaciones"
             }), 400
 
         if cantidad_donada > restante:
@@ -380,12 +423,13 @@ def crear_donacion():
                     ELSE estado
                 END
             WHERE id_publicacion = %s
-              AND estado = 'activa'
+              AND (estado = 'activa' OR estado IS NULL)
+              AND (fecha_limite IS NULL OR fecha_limite >= CURDATE())
               AND cantidad_recibida + %s <= cantidad_necesaria
         """
         cursor.execute(
             update_sql,
-            (cantidad_donada, cantidad_donada,id_publicacion,cantidad_donada)
+            (cantidad_donada, cantidad_donada, id_publicacion, cantidad_donada)
         )
 
         # Si otra transacción consumió el cupo entre el SELECT anterior y este UPDATE, no se actualiza ninguna fila
