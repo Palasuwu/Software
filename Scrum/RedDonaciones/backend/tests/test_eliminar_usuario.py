@@ -55,7 +55,20 @@ def headers_admin():
     return {"Authorization": f"Bearer {token}"}
 
 
+def autenticar_admin(monkeypatch):
+    monkeypatch.setattr(
+        "auth_utils._obtener_usuario_actual",
+        lambda id_usuario: {
+            "id_usuario": id_usuario,
+            "rol": "administrador",
+            "activo": 1,
+        },
+    )
+
+
 def test_eliminar_intermediario_sin_publicaciones(client, monkeypatch):
+    autenticar_admin(monkeypatch)
+
     cursor_mock = CursorEliminarUsuario(
         usuario_mock={"id_usuario": 42, "rol": "intermediario"},
         total_publicaciones=0
@@ -75,6 +88,8 @@ def test_eliminar_intermediario_sin_publicaciones(client, monkeypatch):
 
 
 def test_eliminar_intermediario_con_publicaciones_asociadas(client, monkeypatch):
+    autenticar_admin(monkeypatch)
+
     cursor_mock = CursorEliminarUsuario(
         usuario_mock={"id_usuario": 42, "rol": "intermediario"},
         total_publicaciones=3
