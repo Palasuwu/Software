@@ -49,3 +49,51 @@ def validar_resultado_campana(data):
         "personas_beneficiadas": personas_beneficiadas,
         "imagen_url": imagen_url,
     }, None
+
+
+def obtener_resultado_campana(cursor, id_publicacion):
+    cursor.execute(
+        """
+        SELECT
+            r.id_resultado,
+            r.id_publicacion,
+            r.resumen,
+            r.personas_beneficiadas,
+            r.imagen_url,
+            r.fecha_publicacion,
+            r.fecha_actualizacion,
+            u.nombre AS publicado_por
+        FROM resultado_campana r
+        INNER JOIN usuario u
+            ON u.id_usuario = r.id_usuario_publicador
+        WHERE r.id_publicacion = %s
+        """,
+        (id_publicacion,)
+    )
+    return cursor.fetchone()
+
+
+def guardar_resultado_campana(cursor, id_publicacion, id_usuario, payload):
+    cursor.execute(
+        """
+        INSERT INTO resultado_campana (
+            id_publicacion,
+            id_usuario_publicador,
+            resumen,
+            personas_beneficiadas,
+            imagen_url
+        ) VALUES (%s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+            id_usuario_publicador = VALUES(id_usuario_publicador),
+            resumen = VALUES(resumen),
+            personas_beneficiadas = VALUES(personas_beneficiadas),
+            imagen_url = VALUES(imagen_url)
+        """,
+        (
+            id_publicacion,
+            id_usuario,
+            payload["resumen"],
+            payload["personas_beneficiadas"],
+            payload["imagen_url"]
+        )
+    )

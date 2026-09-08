@@ -14,6 +14,7 @@ export default function OrgaCampaignsTable({
     savingCampaignId,
     onRetry,
     onEdit,
+    onPublishResult,
     onStatusChange
 }) {
     if (campaignsError) {
@@ -116,6 +117,15 @@ export default function OrgaCampaignsTable({
                                             >
                                                 <IconEdit className="admin-action-icon" />
                                             </button>
+                                            {publicacion.estado === 'finalizada' && (
+                                                <button
+                                                    type="button"
+                                                    className="admin-secondary-action"
+                                                    onClick={() => onPublishResult(publicacion)}
+                                                >
+                                                    Publicar resultados
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
