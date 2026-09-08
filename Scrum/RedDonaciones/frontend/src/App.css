@@ -474,16 +474,18 @@ a {
   position: absolute;
   top: 14px;
   right: 14px;
-  min-height: 40px;
-  padding: 0 16px;
+  min-height: 28px;
+  padding: 0 12px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.96);
   display: inline-flex;
   align-items: center;
-  font-size: 0.92rem;
-  font-weight: 500;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   color: var(--secondary);
-  box-shadow: 0 8px 18px rgba(23, 52, 45, 0.08);
+  box-shadow: var(--shadow-sm);
+  z-index: 2;
 }
 
 .campaign-body {

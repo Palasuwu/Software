@@ -9,7 +9,7 @@ SET NAMES utf8mb4;
 
 -- USUARIO
 
-CREATE TABLE usuario (
+CREATE TABLE IF NOT EXISTS usuario (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(200) NOT NULL,
     correo VARCHAR(200) NOT NULL UNIQUE,
@@ -25,7 +25,7 @@ CREATE TABLE usuario (
 
 -- ORGANIZACION
 
-CREATE TABLE organizacion (
+CREATE TABLE IF NOT EXISTS organizacion (
     id_organizacion INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(200) NOT NULL,
     descripcion VARCHAR(400) NOT NULL,
@@ -51,7 +51,7 @@ CREATE TABLE organizacion (
 
 -- DONANTE
 
-CREATE TABLE donante (
+CREATE TABLE IF NOT EXISTS donante (
     id_usuario INT PRIMARY KEY,
     departamento VARCHAR(200) NOT NULL,
     municipio VARCHAR(200) NOT NULL,
@@ -63,7 +63,7 @@ CREATE TABLE donante (
 
 -- INTERMEDIARIO
 
-CREATE TABLE intermediario (
+CREATE TABLE IF NOT EXISTS intermediario (
     id_usuario INT PRIMARY KEY,
     id_organizacion INT NOT NULL,
     cargo VARCHAR(200) NOT NULL,
@@ -74,7 +74,7 @@ CREATE TABLE intermediario (
 
 -- CATEGORIA
 
-CREATE TABLE categoria_articulo (
+CREATE TABLE IF NOT EXISTS categoria_articulo (
     id_categoria INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(200) NOT NULL UNIQUE,
     descripcion VARCHAR(200) NOT NULL
@@ -83,7 +83,7 @@ CREATE TABLE categoria_articulo (
 
 -- ARTICULO
 
-CREATE TABLE articulo (
+CREATE TABLE IF NOT EXISTS articulo (
     id_articulo INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(300) NOT NULL,
     descripcion VARCHAR(400) NOT NULL,
@@ -95,7 +95,7 @@ CREATE TABLE articulo (
 
 -- PUBLICACION
 
-CREATE TABLE publicacion (
+CREATE TABLE IF NOT EXISTS publicacion (
     id_publicacion INT AUTO_INCREMENT PRIMARY KEY,
     id_intermediario INT NOT NULL,
     id_organizacion INT NOT NULL,
@@ -121,7 +121,7 @@ CREATE TABLE publicacion (
 
 -- DONACION
 
-CREATE TABLE donacion (
+CREATE TABLE IF NOT EXISTS donacion (
     id_donacion INT AUTO_INCREMENT PRIMARY KEY,
     id_donante INT NOT NULL,
     id_publicacion INT NOT NULL,
@@ -149,7 +149,7 @@ CREATE TABLE donacion (
 
 -- NOTIFICACIONES
 
-CREATE TABLE notificacion (
+CREATE TABLE IF NOT EXISTS notificacion (
     id_notificacion INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL,
     tipo VARCHAR(50) NOT NULL,
@@ -166,7 +166,7 @@ CREATE TABLE notificacion (
 
 -- RESULTADOS DE CAMPAÑA
 
-CREATE TABLE resultado_campana (
+CREATE TABLE IF NOT EXISTS resultado_campana (
     id_resultado INT AUTO_INCREMENT PRIMARY KEY,
     id_publicacion INT NOT NULL UNIQUE,
     id_usuario_publicador INT NOT NULL,
@@ -184,7 +184,7 @@ CREATE TABLE resultado_campana (
 -- PUBLICACION_ARTICULO (NUEVA TABLA)
 -- Para solucionar la relacion muchos a muchos entre publicaciones y articulos
 -- a que una publicacion puede requerir varios articulos y un articulo puede ser requerido por varias publicaciones
-CREATE TABLE publicacion_articulo (
+CREATE TABLE IF NOT EXISTS publicacion_articulo (
     id_publicacion INT NOT NULL,
     id_articulo INT NOT NULL,
     descripcion_detalle VARCHAR(300),
@@ -197,7 +197,7 @@ CREATE TABLE publicacion_articulo (
 
 -- CARRUSEL LANDING
 -- Imagenes del carrusel de la landing page publica, editables desde el panel de administrador
-CREATE TABLE landing_carousel (
+CREATE TABLE IF NOT EXISTS landing_carousel (
     id_imagen INT AUTO_INCREMENT PRIMARY KEY,
     url_imagen VARCHAR(500) NOT NULL,
     alt_text VARCHAR(255) NOT NULL,
@@ -267,18 +267,26 @@ VALUES
 -- CATEGORIA
 INSERT IGNORE INTO categoria_articulo (id_categoria, nombre, descripcion)
 VALUES
-    (1, 'Ropa', 'Prendas de vestir para niños, jovenes y adultos.');
+    (1, 'Ropa', 'Prendas de vestir para niños, jovenes y adultos.'),
+    (2, 'Educación', 'Materiales escolares, libros y herramientas de aprendizaje.'),
+    (3, 'Alimentos', 'Alimentos no perecederos y víveres para familias.'),
+    (4, 'Salud y Cuidado', 'Medicamentos básicos, pañales y productos de higiene.');
 
 -- ARTICULO
 INSERT IGNORE INTO articulo (id_articulo, nombre, descripcion, id_categoria)
 VALUES
-    (1, 'Ropa de vestir', 'Prendas en buen estado para jornadas de entrega comunitaria.', 1);
-
-
-INSERT IGNORE INTO articulo (id_articulo, nombre, descripcion, id_categoria)
-VALUES
+    (1, 'Ropa de vestir', 'Prendas en buen estado para jornadas de entrega comunitaria.', 1),
     (2, 'Abrigos', 'Abrigos para clima frío.', 1),
-    (3, 'Bufandas', 'Bufandas y gorros.', 1);
+    (3, 'Bufandas', 'Bufandas y gorros.', 1),
+    (4, 'Útiles escolares', 'Cuadernos, lápices y estuches escolares.', 2),
+    (5, 'Juguetes', 'Juguetes recreativos para niños.', 2),
+    (6, 'Canastas básicas', 'Granos básicos y víveres esenciales.', 3),
+    (7, 'Medicamentos esenciales', 'Medicinas y suministros geriátricos.', 4),
+    (8, 'Libros de texto', 'Lecturas y libros educativos de nivel escolar.', 2),
+    (9, 'Mochilas escolares', 'Mochilas resistentes para estudiantes.', 2),
+    (10, 'Pañales y ropa de bebé', 'Pañales desechables y prendas infantiles.', 4),
+    (11, 'Calzado infantil', 'Zapatos y tenis para niños.', 1),
+    (12, 'Uniformes escolares', 'Prendas escolares de diario.', 1);
 
 -- PUBLICACIONES
 -- Nota: id_organizacion=1 para ambas porque la plataforma opera con una unica
@@ -336,7 +344,20 @@ VALUES
     (1, 2, 'Abrigos en buen estado', 40),
     (1, 3, 'Bufandas y gorros para niños', 30),
 
-    (2, 1, 'Ropa infantil variada', 90);
+    (2, 1, 'Ropa infantil variada', 90),
+
+    (3, 4, 'Cuadernos, lápices y estuches', 200),
+    (4, 5, 'Juguetes recreativos nuevos', 150),
+    (5, 6, 'Canastas con granos básicos', 60),
+    (6, 7, 'Medicinas geriátricas comunes', 300),
+    (7, 8, 'Libros de texto de primaria y secundaria', 400),
+    (8, 9, 'Mochilas escolares resistentes', 100),
+    (9, 2, 'Cobijas y sábanas térmicas', 80),
+    (10, 1, 'Prendas deportivas para jóvenes', 120),
+    (11, 10, 'Pañales y ropa para bebés', 250),
+    (12, 11, 'Zapatos escolares tallas 24 a 36', 90),
+    (13, 2, 'Abrigos y chaquetas para adulto', 70),
+    (14, 12, 'Uniformes escolares tallas 2T a 6T', 60);
 
 -- CARRUSEL LANDING
 INSERT IGNORE INTO landing_carousel (id_imagen, url_imagen, alt_text, orden)
@@ -347,7 +368,8 @@ VALUES
     (4, '/carousel/carr4.jpeg', 'Voluntario compartiendo un libro con niñas de la comunidad', 4);
 
 -- Estos son campañas/posts de ejemplo 
-INSERT INTO publicacion (
+INSERT IGNORE INTO publicacion (
+    id_publicacion,
     id_intermediario,
     id_organizacion,
     id_articulo,
@@ -364,15 +386,30 @@ INSERT INTO publicacion (
     zona,
     direccion_detalle
 ) VALUES
-(2, 1, 1, 'Útiles escolares para niños de escasos recursos', 'Recolección de cuadernos, lápices y materiales para el regreso a clases de 80 niños en situación vulnerable.', 200, 200, '2024-08-01', '2026-09-30', 'finalizada', 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Sede Central'),
-(2, 1, 2, 'Juguetes para niños en navidad', 'Campaña navideña para llevar alegría a niños del albergue. Se recolectaron juguetes nuevos y en buen estado.', 150, 162, '2024-11-01', '2026-12-24', 'finalizada', 'https://images.unsplash.com/photo-1558981285-6f0c68e7cc0a?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Albergue Infantil'),
-(2, 1, 1, 'Canastas de alimentos para familias necesitadas', 'Distribución de canastas básicas para 60 familias en situación de inseguridad alimentaria durante la temporada de lluvias.', 60, 60, '2024-06-01', '2027-07-15', 'finalizada', 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Comedor Comunitario'),
-(2, 1, 2, 'Medicamentos para adultos mayores del asilo', 'Recolección de medicamentos de uso común para los residentes del asilo. Meta alcanzada gracias a la comunidad.', 300, 347, '2024-04-01', '2027-05-31', 'finalizada', 'https://images.unsplash.com/photo-1584515933487-779824d29309?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Área Médica'),
-(2, 1, 1, 'Libros de texto para escuelas rurales', 'Donación de libros de primaria y secundaria para tres escuelas rurales sin acceso a materiales educativos.', 400, 412, '2024-02-01', '2027-03-31', 'finalizada', 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Biblioteca Comunitaria'),
-(2, 1, 3, 'Mochilas escolares para comunidades rurales', 'Ayudanos a llevar mochilas equipadas con útiles a niños de comunidades que no tienen acceso a transporte escolar.', 100, 34, '2025-01-15', '2027-06-30', 'activa', 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Bodega de Donaciones'),
-(2, 1, 2, 'Cobijas para albergue temporal', 'El albergue temporal necesita cobijas y sábanas para las familias que llegan sin nada. Cada donación cuenta.', 80, 22, '2025-02-01', '2027-07-31', 'activa', 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Albergue Temporal'),
-(2, 1, 1, 'Ropa deportiva para jóvenes del programa', 'Recolección de ropa deportiva en buen estado para jóvenes que participan en el programa de integración comunitaria.', 120, 55, '2025-03-01', '2027-08-31', 'activa', 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Cancha Comunitaria'),
-(2, 1, 1, 'Pañales y ropa para bebés del hogar', 'El hogar de niños recibe bebés de 0 a 2 años. Necesitamos pañales, bodys y ropa de temporada urgentemente.', 250, 89, '2025-04-01', '2026-09-30', 'activa', 'https://images.unsplash.com/photo-1503676382389-4809596d5290?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Hogar de Niños'),
-(2, 1, 2, 'Zapatos para niños de primaria', 'Muchos niños asisten a la escuela sin calzado adecuado. Donaciones de zapatos talla 24 a 36 en buen estado.', 90, 41, '2025-03-15', '2027-08-15', 'activa', 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Centro de Acopio'),
-(2, 1, 2, 'Abrigos para adultos en situación de calle', 'Con la llegada del frío, el refugio nocturno necesita abrigos de talla adulto para las personas que atiende cada noche.', 70, 18, '2025-05-01', '2026-10-31', 'activa', 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Refugio Nocturno'),
-(2, 1, 3, 'Uniformes para niños de kínder', 'El kínder comunitario necesita uniformes para que sus estudiantes puedan asistir con dignidad. Tallas 2T a 6T.', 60, 7, '2025-05-10', '2026-11-30', 'activa', 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Kínder Comunitario');
+(3, 2, 1, 4, 'Útiles escolares para niños de escasos recursos', 'Recolección de cuadernos, lápices y materiales para el regreso a clases de 80 niños en situación vulnerable.', 200, 200, '2024-08-01', '2026-09-30', 'finalizada', 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Sede Central'),
+(4, 2, 1, 5, 'Juguetes para niños en navidad', 'Campaña navideña para llevar alegría a niños del albergue. Se recolectaron juguetes nuevos y en buen estado.', 150, 162, '2024-11-01', '2026-12-24', 'finalizada', 'https://images.unsplash.com/photo-1558981285-6f0c68e7cc0a?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Albergue Infantil'),
+(5, 2, 1, 6, 'Canastas de alimentos para familias necesitadas', 'Distribución de canastas básicas para 60 familias en situación de inseguridad alimentaria durante la temporada de lluvias.', 60, 60, '2024-06-01', '2027-07-15', 'finalizada', 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Comedor Comunitario'),
+(6, 2, 1, 7, 'Medicamentos para adultos mayores del asilo', 'Recolección de medicamentos de uso común para los residentes del asilo. Meta alcanzada gracias a la comunidad.', 300, 347, '2024-04-01', '2027-05-31', 'finalizada', 'https://images.unsplash.com/photo-1584515933487-779824d29309?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Área Médica'),
+(7, 2, 1, 8, 'Libros de texto para escuelas rurales', 'Donación de libros de primaria y secundaria para tres escuelas rurales sin acceso a materiales educativos.', 400, 412, '2024-02-01', '2027-03-31', 'finalizada', 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Biblioteca Comunitaria'),
+(8, 2, 1, 9, 'Mochilas escolares para comunidades rurales', 'Ayudanos a llevar mochilas equipadas con útiles a niños de comunidades que no tienen acceso a transporte escolar.', 100, 34, '2025-01-15', '2027-06-30', 'activa', 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Bodega de Donaciones'),
+(9, 2, 1, 2, 'Cobijas para albergue temporal', 'El albergue temporal necesita cobijas y sábanas para las familias que llegan sin nada. Cada donación cuenta.', 80, 22, '2025-02-01', '2027-07-31', 'activa', 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Albergue Temporal'),
+(10, 2, 1, 1, 'Ropa deportiva para jóvenes del programa', 'Recolección de ropa deportiva en buen estado para jóvenes que participan en el programa de integración comunitaria.', 120, 55, '2025-03-01', '2027-08-31', 'activa', 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Cancha Comunitaria'),
+(11, 2, 1, 10, 'Pañales y ropa para bebés del hogar', 'El hogar de niños recibe bebés de 0 a 2 años. Necesitamos pañales, bodys y ropa de temporada urgentemente.', 250, 89, '2025-04-01', '2026-09-30', 'activa', 'https://images.unsplash.com/photo-1503676382389-4809596d5290?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Hogar de Niños'),
+(12, 2, 1, 11, 'Zapatos para niños de primaria', 'Muchos niños asisten a la escuela sin calzado adecuado. Donaciones de zapatos talla 24 a 36 en buen estado.', 90, 41, '2025-03-15', '2027-08-15', 'activa', 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Centro de Acopio'),
+(13, 2, 1, 2, 'Abrigos para adultos en situación de calle', 'Con la llegada del frío, el refugio nocturno necesita abrigos de talla adulto para las personas que atiende cada noche.', 70, 18, '2025-05-01', '2026-10-31', 'activa', 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Refugio Nocturno'),
+(14, 2, 1, 12, 'Uniformes para niños de kínder', 'El kínder comunitario necesita uniformes para que sus estudiantes puedan asistir con dignidad. Tallas 2T a 6T.', 60, 7, '2025-05-10', '2026-11-30', 'activa', 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Kínder Comunitario');
+
+-- RESULTADOS DE CAMPAÑAS FINALIZADAS
+INSERT IGNORE INTO resultado_campana (
+    id_resultado,
+    id_publicacion,
+    id_usuario_publicador,
+    resumen,
+    personas_beneficiadas,
+    imagen_url
+) VALUES
+(1, 3, 2, 'Se entregaron kits de útiles escolares completos a 80 niños para el inicio del ciclo lectivo.', 80, 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800'),
+(2, 4, 2, 'Jornada navideña exitosa con entrega de juguetes y refrigerio para más de 160 niños.', 162, 'https://images.unsplash.com/photo-1512909006721-3d6018887383?w=800'),
+(3, 5, 2, 'Distribución de víveres y canastas de alimentos no perecederos para 60 familias.', 60, 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=800'),
+(4, 6, 2, 'Abastecimiento de medicamentos básicos para el botiquín del asilo de ancianos.', 347, 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=800'),
+(5, 7, 2, 'Dotación de libros y material de lectura para tres escuelas rurales comunitarias.', 412, 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=800');
