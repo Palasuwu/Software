@@ -66,6 +66,10 @@ def listar_publicaciones():
                     o.nombre AS organizacion,
                     o.direccion AS direccion,
                     c.nombre AS categoria
+                    ,r.resumen AS resultado_resumen
+                    ,r.personas_beneficiadas AS resultado_personas_beneficiadas
+                    ,r.imagen_url AS resultado_imagen_url
+                    ,DATE_FORMAT(r.fecha_publicacion, '%Y-%m-%d') AS resultado_fecha_publicacion
                 FROM publicacion p
                 INNER JOIN organizacion o
                     ON p.id_organizacion = o.id_organizacion
@@ -73,6 +77,8 @@ def listar_publicaciones():
                     ON p.id_articulo = a.id_articulo
                 LEFT JOIN categoria_articulo c
                     ON a.id_categoria = c.id_categoria
+                LEFT JOIN resultado_campana r
+                    ON r.id_publicacion = p.id_publicacion
                 WHERE (
                     o.estado_verificacion = 'verificada'
                     AND p.estado IN ('activa', 'finalizada')
@@ -290,7 +296,11 @@ def obtener_publicacion(id_publicacion):
                     ) AS fecha_limite,
                     o.nombre AS organizacion,
                     o.direccion,
-                    c.nombre AS categoria
+                    c.nombre AS categoria,
+                    r.resumen AS resultado_resumen,
+                    r.personas_beneficiadas AS resultado_personas_beneficiadas,
+                    r.imagen_url AS resultado_imagen_url,
+                    DATE_FORMAT(r.fecha_publicacion, '%Y-%m-%d') AS resultado_fecha_publicacion
                 FROM publicacion p
                 INNER JOIN organizacion o
                     ON p.id_organizacion = o.id_organizacion
@@ -298,6 +308,8 @@ def obtener_publicacion(id_publicacion):
                     ON p.id_articulo = a.id_articulo
                 LEFT JOIN categoria_articulo c
                     ON a.id_categoria = c.id_categoria
+                LEFT JOIN resultado_campana r
+                    ON r.id_publicacion = p.id_publicacion
                 WHERE p.id_publicacion = %s
             """
 
@@ -413,6 +425,10 @@ def obtener_publicacion(id_publicacion):
                         or publicacion.get("categoria")
                         or "Sin categoria"
                     ),
+                    "resultado_resumen": publicacion.get("resultado_resumen"),
+                    "resultado_personas_beneficiadas": publicacion.get("resultado_personas_beneficiadas"),
+                    "resultado_imagen_url": publicacion.get("resultado_imagen_url"),
+                    "resultado_fecha_publicacion": publicacion.get("resultado_fecha_publicacion"),
                     "articulo": (
                         articulo.get("articulo")
                         or "Sin artículo definido"

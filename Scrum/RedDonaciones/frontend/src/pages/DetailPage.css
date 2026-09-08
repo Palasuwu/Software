@@ -169,6 +169,48 @@
   color: var(--text-soft);
 }
 
+.dp-results {
+  margin-bottom: 20px;
+  padding: 26px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--primary-muted);
+  background: linear-gradient(135deg, var(--primary-soft), var(--surface));
+}
+
+.dp-results-kicker {
+  color: var(--primary-strong);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dp-results h2 { margin: 8px 0 12px; color: var(--text); }
+.dp-results p { color: var(--text-soft); line-height: 1.65; }
+.dp-results strong, .dp-results small { display: block; margin-top: 12px; color: var(--primary-strong); }
+.dp-results img { width: 100%; max-height: 320px; object-fit: cover; border-radius: 12px; margin: 16px 0; }
+
+.dp-finished-card {
+  padding: 34px 28px;
+  text-align: center;
+}
+
+.dp-finished-icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.dp-finished-card h2 { color: var(--text); }
+.dp-finished-card p { color: var(--text-soft); line-height: 1.55; }
+
 /* ---- Stats con acento de color ---- */
 .dp-stats {
   display: grid;
