@@ -1,7 +1,5 @@
 // Tabla de donaciones del panel de administrador, con seleccion multiple
-// para actualizar el estado de varias donaciones a la vez. Igual que
-// OrgaDonacionesTable pero para todas las organizaciones, con una columna
-// extra de Organizacion.
+// para actualizar el estado de varias donaciones a la vez.
 import React from 'react'
 import ErrorView from '../../components/ErrorView'
 import SkeletonRows from './SkeletonRows'
@@ -46,7 +44,6 @@ export default function AdminDonacionesTable({
                             />
                         </th>
                         <th>Campaña</th>
-                        <th>Organización</th>
                         <th>Donante</th>
                         <th>Cantidad</th>
                         <th>Fecha</th>
@@ -56,7 +53,7 @@ export default function AdminDonacionesTable({
 
                 <tbody>
                     {loadingDonaciones
-                        ? <SkeletonRows cols={7} rows={4} />
+                        ? <SkeletonRows cols={6} rows={4} />
                         : donaciones.map((donacion) => (
                             <tr key={donacion.id_donacion}>
                                 <td>
@@ -73,8 +70,6 @@ export default function AdminDonacionesTable({
                                         {donacion.publicacion_titulo}
                                     </div>
                                 </td>
-
-                                <td>{donacion.organizacion_nombre}</td>
 
                                 <td>
                                     <div>{donacion.donante_nombre}</div>

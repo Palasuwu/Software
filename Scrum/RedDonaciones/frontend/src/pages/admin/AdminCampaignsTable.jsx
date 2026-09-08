@@ -21,7 +21,6 @@ export default function AdminCampaignsTable({
                 <thead>
                     <tr>
                         <th>Campaña</th>
-                        <th>Organización</th>
                         <th>Progreso</th>
                         <th>Fechas</th>
                         <th>Estado</th>
@@ -29,7 +28,7 @@ export default function AdminCampaignsTable({
                 </thead>
                 <tbody>
                     {loadingCampaigns
-                        ? <SkeletonRows cols={5} rows={4} />
+                        ? <SkeletonRows cols={4} rows={4} />
                         : publicaciones.map((publicacion) => {
                             const progress = getProgress(publicacion)
                             const isSaving = savingCampaignId === publicacion.id_publicacion
@@ -48,7 +47,6 @@ export default function AdminCampaignsTable({
                                         <div className="admin-table-primary">{publicacion.titulo}</div>
                                         <div className="admin-table-muted">{publicacion.categoria || 'Sin categoría'}</div>
                                     </td>
-                                    <td>{publicacion.organizacion || 'Sin organización'}</td>
                                     <td>
                                         <div className="admin-progress-cell">
                                             <span>{progress}%</span>
