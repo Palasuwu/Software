@@ -25,6 +25,7 @@ from services.donacion_service import (
     cambiar_estado_donaciones_masivo,
     consultar_donaciones_recibidas_db,
 )
+from utils.validation import limpiar_espacios
 
 intermediario_bp = Blueprint("intermediario", __name__)
 
@@ -51,6 +52,10 @@ def obtener_publicaciones_intermediario():
                     p.fecha_limite,
                     p.estado,
                     p.imagen_url,
+                    p.departamento,
+                    p.municipio,
+                    p.zona,
+                    p.direccion_detalle,
                     o.nombre AS organizacion,
                     a.nombre AS articulo
                 FROM publicacion p
@@ -537,6 +542,10 @@ def obtener_perfil_institucional():
                 SELECT
                     id_organizacion,
                     nombre,
+                    direccion,
+                    departamento,
+                    municipio,
+                    zona,
                     quienes_somos,
                     que_hacemos,
                     como_trabajamos,
@@ -583,7 +592,28 @@ def actualizar_perfil_institucional():
                 "error": "No se enviaron datos"
             }), 400
 
+        direccion = limpiar_espacios(data.get("direccion"))
+        departamento = limpiar_espacios(data.get("departamento"))
+        municipio = limpiar_espacios(data.get("municipio"))
+        zona = (data.get("zona") or "").strip()
+
+        errores = {}
+        if len(direccion) < 8:
+            errores["direccion"] = "La direccion debe ser mas especifica"
+        if len(departamento) < 3:
+            errores["departamento"] = "El departamento debe tener al menos 3 caracteres"
+        if len(municipio) < 3:
+            errores["municipio"] = "El municipio debe tener al menos 3 caracteres"
+        if not zona.isdigit() or len(zona) > 2:
+            errores["zona"] = "La zona debe ser un numero valido"
+        if errores:
+            return jsonify({"error": "Datos invalidos", "campos": errores}), 400
+
         campos = (
+            direccion,
+            departamento,
+            municipio,
+            zona,
             (data.get("quienes_somos") or "").strip() or None,
             (data.get("que_hacemos") or "").strip() or None,
             (data.get("como_trabajamos") or "").strip() or None,
@@ -600,6 +630,10 @@ def actualizar_perfil_institucional():
                 """
                 UPDATE organizacion
                 SET
+                    direccion = %s,
+                    departamento = %s,
+                    municipio = %s,
+                    zona = %s,
                     quienes_somos = %s,
                     que_hacemos = %s,
                     como_trabajamos = %s,
