@@ -7,6 +7,7 @@ import Spinner from '../components/Spinner'
 import ErrorView from '../components/ErrorView'
 import CauseContext from '../components/CauseContext'
 import defaultImg from '../assets/Defult.jpg'
+import { IconCheck } from '../components/icons'
 import './DetailPage.css'
 
 const EASE_OUT_EXPO = [0.16, 1, 0.3, 1]
@@ -351,7 +352,9 @@ export default function DetailPage() {
           <div className="dp-form-card">
             {info.estado === 'finalizada' ? (
               <div className="dp-finished-card">
-                <span className="dp-finished-icon">✓</span>
+                <span className="dp-finished-icon" aria-hidden="true">
+                  <IconCheck />
+                </span>
                 <h2>Campaña finalizada</h2>
                 <p>Esta campaña ha finalizado y ya no acepta donaciones. Puedes consultar sus resultados en esta página.</p>
                 <button type="button" className="dp-submit" onClick={() => navigate('/home')}>Ver otras campañas</button>

@@ -204,12 +204,25 @@
   border-radius: 50%;
   background: var(--primary-soft);
   color: var(--primary-strong);
-  font-size: 1.6rem;
-  font-weight: 800;
+}
+
+.dp-finished-icon svg {
+  width: 28px;
+  height: 28px;
 }
 
 .dp-finished-card h2 { color: var(--text); }
 .dp-finished-card p { color: var(--text-soft); line-height: 1.55; }
+
+.dp-finished-card .dp-submit {
+  box-shadow: none;
+}
+
+.dp-finished-card .dp-submit:hover:not(:disabled) {
+  box-shadow: none;
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
 
 /* ---- Stats con acento de color ---- */
 .dp-stats {
