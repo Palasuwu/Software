@@ -353,7 +353,7 @@ export default function DetailPage() {
               <div className="dp-finished-card">
                 <span className="dp-finished-icon">✓</span>
                 <h2>Campaña finalizada</h2>
-                <p>Esta campaña ya cerró la recepción de donaciones. Puedes consultar sus resultados en esta página.</p>
+                <p>Esta campaña ha finalizado y ya no acepta donaciones. Puedes consultar sus resultados en esta página.</p>
                 <button type="button" className="dp-submit" onClick={() => navigate('/home')}>Ver otras campañas</button>
               </div>
             ) : submitSuccess ? (
