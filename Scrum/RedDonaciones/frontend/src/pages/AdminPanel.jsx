@@ -38,6 +38,7 @@ export default function AdminPanel({ usuarioSesion }) {
     const [usuarios, setUsuarios] = React.useState([])
     const [publicaciones, setPublicaciones] = React.useState([])
     const [organizaciones, setOrganizaciones] = React.useState([])
+    const [orgPrincipal, setOrgPrincipal] = React.useState(null)
     const [articulos, setArticulos] = React.useState([])
     const [loadingUsers, setLoadingUsers] = React.useState(true)
     const [loadingCampaigns, setLoadingCampaigns] = React.useState(true)
@@ -53,6 +54,9 @@ export default function AdminPanel({ usuarioSesion }) {
         nombre: '',
         descripcion: '',
         direccion: '',
+        departamento: '',
+        municipio: '',
+        zona: '',
         telefono: '',
         correo: '',
         estado_verificacion: 'pendiente',
@@ -141,7 +145,7 @@ export default function AdminPanel({ usuarioSesion }) {
             const data = await apiGet('/api/organizaciones?vista=admin')
             setOrganizaciones(Array.isArray(data) ? data : [])
         } catch (error) {
-            setOrgError(error.message || 'No se pudieron cargar las organizaciones')
+            setOrgError(error.message || 'No se pudo cargar la organización')
         } finally {
             setOrgLoading(false)
         }
@@ -151,6 +155,15 @@ export default function AdminPanel({ usuarioSesion }) {
         if (organizaciones.length > 0 || orgLoading) return
         await loadOrganizations()
     }, [organizaciones.length, orgLoading, loadOrganizations])
+
+    const loadOrgPrincipal = React.useCallback(async () => {
+        try {
+            const data = await apiGet('/api/organizaciones/principal')
+            setOrgPrincipal(data.organizacion || null)
+        } catch {
+            // no bloqueante: los formularios validan id_organizacion antes de enviar
+        }
+    }, [])
 
     const loadArticulos = React.useCallback(async () => {
         try {
@@ -195,7 +208,8 @@ export default function AdminPanel({ usuarioSesion }) {
         loadUsers()
         loadCampaigns()
         loadArticulos()
-    }, [loadUsers, loadCampaigns, loadArticulos])
+        loadOrgPrincipal()
+    }, [loadUsers, loadCampaigns, loadArticulos, loadOrgPrincipal])
 
     React.useEffect(() => {
         if (activeTab === 'organizaciones') {
@@ -319,6 +333,7 @@ export default function AdminPanel({ usuarioSesion }) {
                     next.municipio = ''
                     next.zona = ''
                     next.direccion_detalle = ''
+                    next.id_organizacion = orgPrincipal ? String(orgPrincipal.id_organizacion) : ''
                 } else {
                     next.departamento = ''
                     next.municipio = ''
@@ -382,27 +397,12 @@ export default function AdminPanel({ usuarioSesion }) {
         setModal({ type: 'deleteUser', usuario })
     }
 
-    const openCreateOrg = () => {
-        clearFeedback()
-        setOrgForm({
-            nombre: '',
-            descripcion: '',
-            direccion: '',
-            telefono: '',
-            correo: '',
-            estado_verificacion: 'pendiente',
-            url_logo: '',
-            imagen_portada: ''
-        })
-        setOrgFormErrors({})
-        setOrgLogoPreview(null)
-        setOrgPortadaPreview(null)
-        setModal({ type: 'createOrg' })
-    }
-
     const openCreateCampaign = () => {
         clearFeedback()
-        setCampForm(CAMP_INITIAL_FORM)
+        setCampForm({
+            ...CAMP_INITIAL_FORM,
+            id_organizacion: orgPrincipal ? String(orgPrincipal.id_organizacion) : ''
+        })
         setCampFormErrors({})
         setImagePreview(null)
         ensureOrganizations()
@@ -468,6 +468,10 @@ export default function AdminPanel({ usuarioSesion }) {
         if (!campForm.id_intermediario) errors.id_intermediario = 'Selecciona un intermediario'
         if (!campForm.id_organizacion) errors.id_organizacion = 'Selecciona una organización'
         if (!campForm.id_articulo) errors.id_articulo = 'Selecciona un artículo'
+        if (!campForm.departamento.trim()) errors.departamento = 'El departamento es obligatorio'
+        if (!campForm.municipio.trim()) errors.municipio = 'El municipio es obligatorio'
+        if (!/^\d{1,2}$/.test(campForm.zona.trim())) errors.zona = 'La zona debe ser un numero valido'
+        if (!campForm.direccion_detalle.trim()) errors.direccion_detalle = 'La direccion es obligatoria'
 
         if (Object.keys(errors).length > 0) {
             setCampFormErrors(errors)
@@ -488,7 +492,11 @@ export default function AdminPanel({ usuarioSesion }) {
                 id_intermediario: Number(campForm.id_intermediario),
                 id_organizacion: Number(campForm.id_organizacion),
                 id_articulo: Number(campForm.id_articulo),
-                imagen_url: campForm.imagen_url || null
+                imagen_url: campForm.imagen_url || null,
+                departamento: campForm.departamento.trim(),
+                municipio: campForm.municipio.trim(),
+                zona: campForm.zona.trim(),
+                direccion_detalle: campForm.direccion_detalle.trim()
             })
             setSuccessMessage('Campaña creada con éxito')
             await loadCampaigns()
@@ -507,6 +515,9 @@ export default function AdminPanel({ usuarioSesion }) {
             nombre: org.nombre || '',
             descripcion: org.descripcion || '',
             direccion: org.direccion || '',
+            departamento: org.departamento || '',
+            municipio: org.municipio || '',
+            zona: org.zona || '',
             telefono: org.telefono || '',
             correo: org.correo || '',
             estado_verificacion: org.estado_verificacion || 'pendiente',
@@ -601,13 +612,8 @@ export default function AdminPanel({ usuarioSesion }) {
         const payload = buildOrgPayload(orgForm)
 
         try {
-            if (modal?.type === 'editOrg') {
-                await apiPut(`/api/organizaciones/${modal.org.id_organizacion}`, payload)
-                setSuccessMessage('Organización actualizada')
-            } else {
-                await apiPost('/api/organizaciones', payload)
-                setSuccessMessage('Organización creada')
-            }
+            await apiPut(`/api/organizaciones/${modal.org.id_organizacion}`, payload)
+            setSuccessMessage('Organización actualizada')
 
             await loadOrganizations()
             closeModal()
@@ -963,10 +969,10 @@ export default function AdminPanel({ usuarioSesion }) {
             )
         }
 
-        if (modal?.type === 'createOrg' || modal?.type === 'editOrg') {
+        if (modal?.type === 'editOrg') {
             return (
                 <OrgFormModal
-                    isEdit={modal.type === 'editOrg'}
+                    isEdit
                     orgForm={orgForm}
                     orgFormErrors={orgFormErrors}
                     onChange={handleOrgChange}
@@ -1088,7 +1094,7 @@ export default function AdminPanel({ usuarioSesion }) {
                         onClick={() => setActiveTab('organizaciones')}
                     >
                         <IconUsers className="admin-svg-icon" />
-                        <span>Organizaciones</span>
+                        <span>Organización</span>
                     </button>
                     <button
                         type="button"
@@ -1145,19 +1151,14 @@ export default function AdminPanel({ usuarioSesion }) {
                         <>
                             <div className="admin-section-head">
                                 <div>
-                                    <h2>Gestión de organizaciones</h2>
-                                    <p>Administra organizaciones registradas en la plataforma.</p>
+                                    <h2>Gestión de la organización</h2>
+                                    <p>Administra la organización principal de la plataforma.</p>
                                 </div>
-                                <button type="button" className="admin-primary-action" onClick={openCreateOrg}>
-                                    <IconPlus className="admin-button-icon" />
-                                    <span>Nueva Organización</span>
-                                </button>
                             </div>
                             <AdminOrgsTable
                                 organizaciones={organizaciones}
                                 orgLoading={orgLoading}
                                 orgError={orgError}
-                                isSubmitting={isSubmitting}
                                 onRetry={ensureOrganizations}
                                 onEdit={openEditOrg}
                                 onArchivar={openArchivarOrg}
@@ -1189,7 +1190,7 @@ export default function AdminPanel({ usuarioSesion }) {
                             <div className="admin-section-head">
                                 <div>
                                     <h2>Donaciones</h2>
-                                    <p>Selecciona donaciones de cualquier organización y actualiza su estado en bloque.</p>
+                                    <p>Selecciona donaciones y actualiza su estado en bloque.</p>
                                 </div>
                             </div>
 

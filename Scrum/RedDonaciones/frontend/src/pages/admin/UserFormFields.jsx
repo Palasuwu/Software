@@ -6,6 +6,9 @@ export default function UserFormFields({ form, errors, mode, organizaciones, org
     const isAdmin = form.rol === 'administrador'
     const isDonante = form.rol === 'donante'
     const isIntermediario = form.rol === 'intermediario'
+    const organizacionAsignada = organizaciones.find(
+        (organizacion) => String(organizacion.id_organizacion) === String(form.id_organizacion)
+    )
 
     return (
         <div className="form-grid">
@@ -145,25 +148,16 @@ export default function UserFormFields({ form, errors, mode, organizaciones, org
                 <div className="form-row">
                     <div className="form-field">
                         <label className="form-label" htmlFor="admin-user-organizacion">Organización</label>
-                        <select
+                        <input
                             id="admin-user-organizacion"
-                            className={`form-select ${errors.id_organizacion ? 'form-input-invalid' : ''}`}
-                            name="id_organizacion"
-                            value={form.id_organizacion}
-                            onChange={onChange}
-                            disabled={orgLoading}
-                        >
-                            <option value="">Selecciona una organización</option>
-                            {organizaciones.filter((organizacion) => organizacion.estado_verificacion === 'verificada').map((organizacion) => (
-                                <option key={organizacion.id_organizacion} value={organizacion.id_organizacion}>
-                                    {organizacion.nombre}
-                                </option>
-                            ))}
-                        </select>
+                            className="form-input"
+                            value={orgLoading ? 'Cargando...' : (organizacionAsignada?.nombre || '—')}
+                            disabled
+                            readOnly
+                        />
                         {errors.id_organizacion && (
                             <span className="form-error-text">{errors.id_organizacion}</span>
                         )}
-                        {orgLoading && <span className="form-help-text">Cargando organizaciones...</span>}
                         {orgError && <span className="form-error-text">{orgError}</span>}
                     </div>
 

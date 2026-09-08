@@ -226,11 +226,11 @@ function RegisterForm({ onAuthSuccess }) {
         fetch('/api/organizaciones')
             .then(async (res) => {
                 const body = await res.json().catch(() => null)
-                if (!res.ok) throw new Error(body?.error || 'No se pudo cargar la lista de organizaciones')
+                if (!res.ok) throw new Error(body?.error || 'No se pudo cargar la organización')
                 if (!Array.isArray(body)) throw new Error('Respuesta invalida del servidor')
                 setOrganizaciones(body)
             })
-            .catch((err) => setOrgError(err.message || 'No se pudo cargar organizaciones'))
+            .catch((err) => setOrgError(err.message || 'No se pudo cargar la organización'))
             .finally(() => setOrgLoading(false))
     }, [isIntermediario, organizaciones.length])
 
@@ -357,7 +357,7 @@ function RegisterForm({ onAuthSuccess }) {
                                     <option key={org.id_organizacion} value={org.id_organizacion}>{org.nombre}</option>
                                 ))}
                             </select>
-                            {orgLoading && <span className="auth-help-text">Cargando organizaciones...</span>}
+                            {orgLoading && <span className="auth-help-text">Cargando organización...</span>}
                             {orgError && <span className="auth-error-text">{orgError}</span>}
                         </Field>
                         <Field label="Cargo" id="reg-cargo" error={errors.cargo}>

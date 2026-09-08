@@ -19,6 +19,7 @@ from auth_utils import (
     admin_required,
     validar_admin_request,
 )
+from services.plataforma_config import obtener_id_organizacion_principal
 
 from utils.validation import (
     limpiar_espacios,
@@ -439,7 +440,7 @@ def crear_usuario():
                 return jsonify({"error": error_donante}), 400
 
         if rol == "intermediario":
-            id_organizacion = data.get("id_organizacion")
+            id_organizacion = data.get("id_organizacion") or obtener_id_organizacion_principal()
             cargo = limpiar_espacios(data.get("cargo"))
             if not id_organizacion or not cargo:
                 return jsonify({"error": "Faltan datos obligatorios para intermediario"}), 400

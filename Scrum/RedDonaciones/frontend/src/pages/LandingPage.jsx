@@ -66,7 +66,7 @@ function Hero() {
           Sistema de<br />donaciones
         </h1>
         <p className="ld-hero-sub">
-          Conectamos personas solidarias con organizaciones verificadas.<br />
+          Conectamos personas solidarias con nuestra organización verificada.<br />
           Dona artículos, rastrea el impacto, transforma comunidades.
         </p>
         <div className="ld-hero-actions">
@@ -181,7 +181,7 @@ function HorizontalCarousel() {
             Cada donación<br />llega a quien<br />más lo necesita.
           </h2>
           <p className="ld-scroll-desc">
-            Las organizaciones publican sus necesidades reales.
+            La organización publica sus necesidades reales.
             Los donantes aportan artículos. Los intermediarios
             verificados coordinan la entrega. Transparencia total,
             impacto medible en cada etapa del proceso.

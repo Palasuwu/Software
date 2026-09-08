@@ -18,6 +18,10 @@ export default function CampaignFormModal({
     imagePreview,
     modalError
 }) {
+    const organizacionAsignada = organizaciones.find(
+        (o) => String(o.id_organizacion) === String(campForm.id_organizacion)
+    )
+
     return (
         <AdminModal
             title="Nueva campaña"
@@ -89,13 +93,32 @@ export default function CampaignFormModal({
 
                     <div className="form-field">
                         <label className="form-label">Organización</label>
-                        <select className={`form-select ${campFormErrors.id_organizacion ? 'form-input-invalid' : ''}`} name="id_organizacion" value={campForm.id_organizacion} onChange={onChange}>
-                            <option value="">Selecciona una organización</option>
-                            {organizaciones.filter((o) => o.estado_verificacion === 'verificada').map((o) => (
-                                <option key={o.id_organizacion} value={o.id_organizacion}>{o.nombre}</option>
-                            ))}
-                        </select>
+                        <input className="form-input" value={organizacionAsignada?.nombre || 'Cargando...'} disabled readOnly />
                         {campFormErrors.id_organizacion && <span className="form-error-text">{campFormErrors.id_organizacion}</span>}
+                    </div>
+
+                    <div className="form-field">
+                        <label className="form-label">Departamento</label>
+                        <input className={`form-input ${campFormErrors.departamento ? 'form-input-invalid' : ''}`} name="departamento" value={campForm.departamento} onChange={onChange} />
+                        {campFormErrors.departamento && <span className="form-error-text">{campFormErrors.departamento}</span>}
+                    </div>
+
+                    <div className="form-field">
+                        <label className="form-label">Municipio</label>
+                        <input className={`form-input ${campFormErrors.municipio ? 'form-input-invalid' : ''}`} name="municipio" value={campForm.municipio} onChange={onChange} />
+                        {campFormErrors.municipio && <span className="form-error-text">{campFormErrors.municipio}</span>}
+                    </div>
+
+                    <div className="form-field">
+                        <label className="form-label">Zona</label>
+                        <input className={`form-input ${campFormErrors.zona ? 'form-input-invalid' : ''}`} name="zona" value={campForm.zona} onChange={onChange} />
+                        {campFormErrors.zona && <span className="form-error-text">{campFormErrors.zona}</span>}
+                    </div>
+
+                    <div className="form-field">
+                        <label className="form-label">Dirección detallada</label>
+                        <input className={`form-input ${campFormErrors.direccion_detalle ? 'form-input-invalid' : ''}`} name="direccion_detalle" value={campForm.direccion_detalle} onChange={onChange} />
+                        {campFormErrors.direccion_detalle && <span className="form-error-text">{campFormErrors.direccion_detalle}</span>}
                     </div>
 
                     <div className="form-field">

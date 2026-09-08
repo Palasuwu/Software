@@ -96,7 +96,7 @@ export default function NavBar({ isAuthenticated, usuarioSesion, onLogout, isExp
         />
       )}
 
-      <NavItem to="/organizaciones" icon={<IconUsers className="nav-icon" />} label="Organizaciones" isExpanded={expanded} />
+      <NavItem to="/organizaciones" icon={<IconUsers className="nav-icon" />} label="Sobre Nosotros" isExpanded={expanded} />
 
       {!isAuthenticated && (
         <NavItem to="/login" icon={<IconUser className="nav-icon" />} label="Iniciar sesión" isExpanded={expanded} />
