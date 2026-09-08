@@ -74,3 +74,24 @@ Verifica la publicación, consulta y visualización de resultados e imágenes en
 | `en DetailPage renderiza la imagen de portada de la campaña o imagen por defecto` | Pruebas de Resultados e Imágenes de Campañas | Valida que la cabecera del detalle cargue correctamente la imagen de portada de la campaña con su atributo alt correspondiente. |
 | `en OrgaCampaignResultModal renderiza los campos de resumen, personas beneficiadas y URL de imagen` | Pruebas de Resultados e Imágenes de Campañas | Comprueba en el panel de la organización que el modal de publicar resultados presente los campos de texto, beneficiarios e imagen, gestione eventos de cambio y controle el estado de guardado. |
 
+---
+
+## Categoría: Pruebas de Carga y Estrés (Rendimiento)
+
+Evalúa cómo responde el servidor de Azure cuando muchas personas usan la página al mismo tiempo.
+
+* **Herramienta:** Locust
+* **Archivo:** `Scrum/RedDonaciones/pruebas_rendimiento/locustfile.py`
+* **Servidor:** Servidor de Azure
+* **Usuarios probados:** Hasta 500 usuarios en simultáneo
+* **Resultado:** 0 fallas (el servidor respondió bien a todas las peticiones sin caídas)
+
+| Flujo de Test | Categoría | Lo que hace |
+| :--- | :--- | :--- |
+| `navegar_inicio_y_campanas` | Pruebas de Carga y Estrés (Rendimiento) | Simula a los usuarios entrando a la página de inicio y cargando las campañas disponibles. |
+| `ver_detalle_campana` | Pruebas de Carga y Estrés (Rendimiento) | Simula a los usuarios abriendo campañas específicas para ver sus metas y artículos pedidos. |
+| `ver_resultados_campana` | Pruebas de Carga y Estrés (Rendimiento) | Simula a los usuarios revisando los resultados e imágenes de las campañas finalizadas. |
+| `consultar_articulos_y_categorias` | Pruebas de Carga y Estrés (Rendimiento) | Simula la consulta del catálogo de artículos y categorías disponibles. |
+
+
+
