@@ -69,6 +69,14 @@ def validar_publicacion_payload(
         errors.append("Falta el campo obligatorio: fecha_limite")
     if not requerido("estado"):
         errors.append("Falta el campo obligatorio: estado")
+    if not requerido("departamento"):
+        errors.append("Falta el campo obligatorio: departamento")
+    if not requerido("municipio"):
+        errors.append("Falta el campo obligatorio: municipio")
+    if not requerido("zona"):
+        errors.append("Falta el campo obligatorio: zona")
+    if not requerido("direccion_detalle"):
+        errors.append("Falta el campo obligatorio: direccion_detalle")
     if errors:
         return False, errors, None
     # Normalizar payload
@@ -106,11 +114,31 @@ def validar_publicacion_payload(
     if isinstance(imagen_url, str):
         imagen_url = imagen_url.strip() or None
     payload["imagen_url"] = imagen_url
+    payload["departamento"] = str(
+        data.get("departamento") or ""
+    ).strip()
+    payload["municipio"] = str(
+        data.get("municipio") or ""
+    ).strip()
+    payload["zona"] = str(
+        data.get("zona") or ""
+    ).strip()
+    payload["direccion_detalle"] = str(
+        data.get("direccion_detalle") or ""
+    ).strip()
     # Validar texto
     if not payload["titulo"]:
         errors.append( "Falta el campo obligatorio: titulo")
     if not payload["descripcion"]:
         errors.append("Falta el campo obligatorio: descripcion")
+    if not payload["departamento"]:
+        errors.append("Falta el campo obligatorio: departamento")
+    if not payload["municipio"]:
+        errors.append("Falta el campo obligatorio: municipio")
+    if not payload["zona"].isdigit() or len(payload["zona"]) > 2:
+        errors.append("zona debe ser un numero valido")
+    if len(payload["direccion_detalle"]) < 8:
+        errors.append("direccion_detalle debe ser mas especifica")
     # Validar cantidad
     if not validar_cantidad_necesaria(
         payload["cantidad_necesaria"]
@@ -263,11 +291,16 @@ def crear_publicacion_db(
             fecha_publicacion,
             fecha_limite,
             estado,
-            imagen_url
+            imagen_url,
+            departamento,
+            municipio,
+            zona,
+            direccion_detalle
         )
         VALUES (
             %s, %s, %s, %s, %s,
-            %s, 0, %s, %s, %s, %s
+            %s, 0, %s, %s, %s, %s,
+            %s, %s, %s, %s
         )
     """
     cursor.execute(
@@ -282,7 +315,11 @@ def crear_publicacion_db(
             payload["fecha_publicacion"],
             payload["fecha_limite"],
             payload["estado"],
-            payload.get("imagen_url")
+            payload.get("imagen_url"),
+            payload["departamento"],
+            payload["municipio"],
+            payload["zona"],
+            payload["direccion_detalle"]
         )
     )
 
@@ -301,7 +338,11 @@ def editar_publicacion_db(
             fecha_publicacion = %s,
             fecha_limite = %s,
             estado = %s,
-            imagen_url = %s
+            imagen_url = %s,
+            departamento = %s,
+            municipio = %s,
+            zona = %s,
+            direccion_detalle = %s
         WHERE id_publicacion = %s
     """
     cursor.execute(
@@ -315,6 +356,10 @@ def editar_publicacion_db(
             payload["fecha_limite"],
             payload["estado"],
             payload.get("imagen_url"),
+            payload["departamento"],
+            payload["municipio"],
+            payload["zona"],
+            payload["direccion_detalle"],
             id_publicacion
         )
     )

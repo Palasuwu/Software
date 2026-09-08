@@ -77,6 +77,39 @@ export default function OrgFormModal({
                     </div>
 
                     <div className="form-field">
+                        <label className="form-label">Departamento</label>
+                        <input
+                            className={`form-input ${orgFormErrors.departamento ? 'form-input-invalid' : ''}`}
+                            name="departamento"
+                            value={orgForm.departamento}
+                            onChange={onChange}
+                        />
+                        {orgFormErrors.departamento && <span className="form-error-text org-field-error-text">{orgFormErrors.departamento}</span>}
+                    </div>
+
+                    <div className="form-field">
+                        <label className="form-label">Municipio</label>
+                        <input
+                            className={`form-input ${orgFormErrors.municipio ? 'form-input-invalid' : ''}`}
+                            name="municipio"
+                            value={orgForm.municipio}
+                            onChange={onChange}
+                        />
+                        {orgFormErrors.municipio && <span className="form-error-text org-field-error-text">{orgFormErrors.municipio}</span>}
+                    </div>
+
+                    <div className="form-field">
+                        <label className="form-label">Zona</label>
+                        <input
+                            className={`form-input ${orgFormErrors.zona ? 'form-input-invalid' : ''}`}
+                            name="zona"
+                            value={orgForm.zona}
+                            onChange={onChange}
+                        />
+                        {orgFormErrors.zona && <span className="form-error-text org-field-error-text">{orgFormErrors.zona}</span>}
+                    </div>
+
+                    <div className="form-field">
                         <label className="form-label">Telefono</label>
                         <input
                             className={`form-input ${orgFormErrors.telefono ? 'form-input-invalid' : ''}`}

@@ -30,6 +30,9 @@ CREATE TABLE organizacion (
     nombre VARCHAR(200) NOT NULL,
     descripcion VARCHAR(400) NOT NULL,
     direccion VARCHAR(200) NOT NULL,
+    departamento VARCHAR(200) NOT NULL,
+    municipio VARCHAR(200) NOT NULL,
+    zona VARCHAR(200) NOT NULL,
     telefono VARCHAR(50) NOT NULL UNIQUE,
     correo VARCHAR(200) NOT NULL UNIQUE,
     estado_verificacion VARCHAR(200) NOT NULL,
@@ -105,6 +108,10 @@ CREATE TABLE publicacion (
     fecha_limite DATE NOT NULL,
     estado ENUM('activa','finalizada','cancelada') NOT NULL,
     imagen_url VARCHAR(500) NULL,
+    departamento VARCHAR(200) NOT NULL,
+    municipio VARCHAR(200) NOT NULL,
+    zona VARCHAR(200) NOT NULL,
+    direccion_detalle VARCHAR(300) NOT NULL,
     FOREIGN KEY (id_intermediario) REFERENCES intermediario(id_usuario),
     FOREIGN KEY (id_organizacion) REFERENCES organizacion(id_organizacion),
     FOREIGN KEY (id_articulo) REFERENCES articulo(id_articulo),
@@ -195,13 +202,16 @@ VALUES
     (5, 'Intermediario Refugio', 'inter.refugio@reddonaciones.local', '$2b$12$OLdylhqBPU4iMScJAXUGg.tMOCXMKd.cY4aqVmZnAW0c0EoTwzATK', '3000000005', 'intermediario');
 
 -- ORGANIZACIONES
-INSERT IGNORE INTO organizacion (id_organizacion,nombre,descripcion,direccion,telefono,correo,estado_verificacion, quienes_somos, que_hacemos, como_trabajamos, donde_trabajamos )
+INSERT IGNORE INTO organizacion (id_organizacion,nombre,descripcion,direccion,departamento,municipio,zona,telefono,correo,estado_verificacion, quienes_somos, que_hacemos, como_trabajamos, donde_trabajamos )
 VALUES
 (
     1,
     'Hogar de Ninos La Esperanza',
     'Apoyo integral para niños en situación de vulnerabilidad.',
     'Zona Centro, Ciudad',
+    'Guatemala',
+    'Ciudad de Guatemala',
+    '1',
     '3100000001',
     'contacto@laesperanza.org',
     'verificada',
@@ -215,9 +225,12 @@ VALUES
     'Asilo de Ancianos El Refugio',
     'Cuidado y apoyo para adultos mayores en situación de vulnerabilidad.',
     'Barrio San Juan, Ciudad',
+    'Guatemala',
+    'Ciudad de Guatemala',
+    '6',
     '3100000002',
     'contacto@elrefugio.org',
-    'verificada',
+    'archivada',
     'Somos una organización dedicada al cuidado y bienestar de adultos mayores que requieren acompañamiento y apoyo.',
     'Brindamos atención a adultos mayores y coordinamos campañas para recolectar ropa, artículos de cuidado personal y otros recursos necesarios para su bienestar.',
     'Trabajamos con el apoyo de donantes y voluntarios, identificando las necesidades de nuestros residentes y coordinando la recepción y distribución de las donaciones.',
@@ -253,6 +266,9 @@ VALUES
     (3, 'Bufandas', 'Bufandas y gorros.', 1);
 
 -- PUBLICACIONES
+-- Nota: id_organizacion=1 para ambas porque la plataforma opera con una unica
+-- organizacion principal (ver ID_ORGANIZACION_PRINCIPAL); la organizacion 2
+-- queda archivada como legado, sin publicaciones propias.
 INSERT IGNORE INTO publicacion (
     id_publicacion,
     id_intermediario,
@@ -265,16 +281,20 @@ INSERT IGNORE INTO publicacion (
     fecha_publicacion,
     fecha_limite,
     estado,
-    imagen_url
+    imagen_url,
+    departamento,
+    municipio,
+    zona,
+    direccion_detalle
 )
 VALUES
-    (1, 5, 2, 1, 'Ropa de invierno para abril', 'Recoleccion de chaquetas, buzos y pantalones.', 120, 70, '2026-04-01', '2026-04-20', 'activa',
-     'https://placehold.co/600x340/d4c5a9/5c3d1e?text=Asilo+El+Refugio'),
+    (1, 2, 1, 1, 'Ropa de invierno para abril', 'Recoleccion de chaquetas, buzos y pantalones.', 120, 70, '2026-04-01', '2026-04-20', 'activa',
+     'https://placehold.co/600x340/d4c5a9/5c3d1e?text=Hogar+La+Esperanza', 'Guatemala', 'Ciudad de Guatemala', '1', 'Centro de acopio'),
     (2, 2, 1, 1, 'Jornada de ropa infantil', 'Donaciones de ropa para ninos.', 90, 90, '2026-03-15', '2026-03-30', 'finalizada',
-     'https://placehold.co/600x340/b8d5c8/1e3d2e?text=Hogar+La+Esperanza');
+     'https://placehold.co/600x340/b8d5c8/1e3d2e?text=Hogar+La+Esperanza', 'Guatemala', 'Ciudad de Guatemala', '1', 'Bodega de donaciones');
 
 -- Actualizar URLs en registros ya existentes que no tengan imagen
-UPDATE publicacion SET imagen_url = 'https://placehold.co/600x340/d4c5a9/5c3d1e?text=Asilo+El+Refugio'
+UPDATE publicacion SET imagen_url = 'https://placehold.co/600x340/d4c5a9/5c3d1e?text=Hogar+La+Esperanza'
     WHERE id_publicacion = 1 AND (imagen_url IS NULL OR imagen_url = '');
 UPDATE publicacion SET imagen_url = 'https://placehold.co/600x340/b8d5c8/1e3d2e?text=Hogar+La+Esperanza'
     WHERE id_publicacion = 2 AND (imagen_url IS NULL OR imagen_url = '');
