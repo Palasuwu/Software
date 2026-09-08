@@ -277,6 +277,29 @@ export default function DetailPage() {
             </div>
           </div>
 
+          {info.estado === 'finalizada' && (
+            <section className="dp-results" aria-label="Resultados de la campaña">
+              <span className="dp-results-kicker">Campaña finalizada</span>
+              <h2>El impacto que logramos juntos</h2>
+              {info.resultado_imagen_url && (
+                <img src={info.resultado_imagen_url} alt={`Resultados de ${info.titulo}`} />
+              )}
+              {info.resultado_resumen ? (
+                <>
+                  <p>{info.resultado_resumen}</p>
+                  {info.resultado_personas_beneficiadas !== null && info.resultado_personas_beneficiadas !== undefined && (
+                    <strong>{info.resultado_personas_beneficiadas} personas beneficiadas</strong>
+                  )}
+                  {info.resultado_fecha_publicacion && (
+                    <small>Resultados publicados el {info.resultado_fecha_publicacion}</small>
+                  )}
+                </>
+              ) : (
+                <p>La organización está preparando el informe de resultados de esta campaña.</p>
+              )}
+            </section>
+          )}
+
           {/* Items */}
           <div className="dp-section">
             <div className="dp-section-title">
@@ -326,8 +349,14 @@ export default function DetailPage() {
         {/* ── COLUMNA DERECHA — FORM STICKY ── */}
         <div className="dp-right">
           <div className="dp-form-card">
-
-            {submitSuccess ? (
+            {info.estado === 'finalizada' ? (
+              <div className="dp-finished-card">
+                <span className="dp-finished-icon">✓</span>
+                <h2>Campaña finalizada</h2>
+                <p>Esta campaña ya cerró la recepción de donaciones. Puedes consultar sus resultados en esta página.</p>
+                <button type="button" className="dp-submit" onClick={() => navigate('/home')}>Ver otras campañas</button>
+              </div>
+            ) : submitSuccess ? (
               <div className="dp-success">
                 <div className="dp-success-icon">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

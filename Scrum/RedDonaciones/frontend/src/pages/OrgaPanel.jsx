@@ -9,6 +9,7 @@ import OrgaIntermediariosTable from './orga/OrgaIntermediariosTable'
 import OrgaDonacionesTable from './orga/OrgaDonacionesTable'
 import OrgaPerfilInstitucionalForm from './orga/OrgaPerfilInstitucionalForm'
 import OrgaCampaignFormModal from './orga/OrgaCampaignFormModal'
+import OrgaCampaignResultModal from './orga/OrgaCampaignResultModal'
 import { donationStatusLabel } from './admin/adminHelpers'
 import './admin/admin-panel.css'
 
@@ -51,6 +52,7 @@ export default function OrgaPanel() {
   const [articulos, setArticulos] = React.useState([])
   const [imagePreview, setImagePreview] = React.useState(null)
   const [uploadingImage, setUploadingImage] = React.useState(false)
+  const [resultForm, setResultForm] = React.useState({ resumen: '', personas_beneficiadas: '', imagen_url: '' })
 
   const [donaciones, setDonaciones] = React.useState([])
   const [loadingDonaciones, setLoadingDonaciones] = React.useState(true)
@@ -213,6 +215,38 @@ export default function OrgaPanel() {
   }
 
   const closeModal = () => setModal(null)
+
+  const openResultModal = async (publicacion) => {
+    setModalError('')
+    setResultForm({ resumen: '', personas_beneficiadas: '', imagen_url: '' })
+    try {
+      const result = await apiGet(`/api/publicaciones/${publicacion.id_publicacion}/resultado`)
+      setResultForm({
+        resumen: result.resumen || '',
+        personas_beneficiadas: result.personas_beneficiadas ?? '',
+        imagen_url: result.imagen_url || ''
+      })
+    } catch (error) {
+      if (error.status !== 404) setModalError(error.message)
+    }
+    setModal({ type: 'campaignResult', publicacion })
+  }
+
+  const submitResultForm = async (event) => {
+    event.preventDefault()
+    setIsSubmitting(true)
+    setModalError('')
+    try {
+      await apiPost(`/api/publicaciones/${modal.publicacion.id_publicacion}/resultado`, resultForm)
+      setSuccessMessage('Resultados publicados correctamente')
+      setModal(null)
+      await loadCampaigns()
+    } catch (error) {
+      setModalError(error.message || 'No se pudieron publicar los resultados')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   const handleCampChange = (event) => {
     const { name, value } = event.target
@@ -425,6 +459,7 @@ export default function OrgaPanel() {
                 savingCampaignId={savingCampaignId}
                 onRetry={loadCampaigns}
                 onEdit={openEditCampaign}
+                onPublishResult={openResultModal}
                 onStatusChange={handleChangeCampaignStatus}
               />
             </>
@@ -529,7 +564,17 @@ export default function OrgaPanel() {
         </section>
       </div>
 
-      {modal && (
+      {modal?.type === 'campaignResult' ? (
+        <OrgaCampaignResultModal
+          publicacion={modal.publicacion}
+          form={resultForm}
+          onChange={(event) => setResultForm((current) => ({ ...current, [event.target.name]: event.target.value }))}
+          onSubmit={submitResultForm}
+          onClose={closeModal}
+          saving={isSubmitting}
+          error={modalError}
+        />
+      ) : modal && (
         <OrgaCampaignFormModal
           isCreate={modal.type === 'createCampaign'}
           campForm={campForm}

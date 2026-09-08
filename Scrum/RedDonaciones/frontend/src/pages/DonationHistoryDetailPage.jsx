@@ -51,6 +51,10 @@ function formatearEstadoDonacion(estado) {
     return ETIQUETAS_ESTADO_DONACION[estado] || 'Pendiente'
 }
 
+function recepcionConfirmada(estado) {
+    return ['recibida', 'en_proceso', 'entregada'].includes(estado)
+}
+
 export default function DonationHistoryDetailPage() {
     const navigate = useNavigate()
     const { idDonacion } = useParams()
@@ -113,6 +117,15 @@ export default function DonationHistoryDetailPage() {
                 <h1 className="donations-main-title">Detalle de Donacion #{detalle.id_donacion}</h1>
                 <p className="donations-main-subtitle">Campana: {detalle.publicacion_titulo}</p>
             </header>
+
+            {recepcionConfirmada(detalle.donacion_estado) && (
+                <div className="donation-received-confirmation" role="status">
+                    <strong>Recepción confirmada</strong>
+                    <span>
+                        {detalle.organizacion_nombre} confirmó que recibió tu donación.
+                    </span>
+                </div>
+            )}
 
             <div className="stats-grid stats-grid-figma">
                 <article className="stat-card stat-card-figma">

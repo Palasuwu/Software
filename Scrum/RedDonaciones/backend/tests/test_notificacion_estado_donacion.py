@@ -1,6 +1,7 @@
 from services.donacion_service import (
     cambiar_estado_donacion,
     cambiar_estado_donaciones_masivo,
+    crear_notificaciones_nueva_donacion,
 )
 
 
@@ -58,12 +59,42 @@ def test_notifica_al_donante_al_cambiar_estado():
     assert notificaciones[0][1] == (
         21,
         "estado_donacion",
-        "Estado de donación actualizado",
-        (
-            "Tu donación para Campaña de alimentos "
-            "cambió de pendiente a recibida."
-        ),
+        "Donación recibida",
+        "La organización confirmó que recibió tu donación para Campaña de alimentos.",
         "/donaciones/4",
+    )
+
+
+def test_notifica_al_intermediario_cuando_se_registra_una_donacion():
+    cursor = CursorEstadoDonacion({})
+
+    crear_notificaciones_nueva_donacion(
+        cursor,
+        {
+            "id_intermediario": 14,
+            "titulo": "Campaña de alimentos",
+        },
+        id_donante=21,
+        id_donacion=9,
+        nombre_contacto="Ana Pérez",
+        cantidad_donada=4,
+    )
+
+    notificaciones = notificaciones_creadas(cursor)
+    assert len(notificaciones) == 2
+    assert notificaciones[0][1] == (
+        21,
+        "donacion_registrada",
+        "Donación registrada",
+        "Tu aporte de 4 unidades para Campaña de alimentos fue registrado.",
+        "/donaciones/9",
+    )
+    assert notificaciones[1][1] == (
+        14,
+        "nueva_donacion",
+        "Nueva donación recibida",
+        "Ana Pérez donó 4 unidades para Campaña de alimentos.",
+        "/intermediario",
     )
 
 

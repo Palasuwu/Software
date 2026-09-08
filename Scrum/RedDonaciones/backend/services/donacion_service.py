@@ -36,6 +36,42 @@ NOMBRES_ESTADO_DONACION = {
     "rechazada": "rechazada"
 }
 
+
+def crear_notificaciones_nueva_donacion(
+    cursor,
+    publicacion,
+    id_donante,
+    id_donacion,
+    nombre_contacto,
+    cantidad_donada
+):
+    """Notifica el registro al donante y el nuevo aporte al intermediario."""
+    asegurar_tabla_notificaciones(cursor)
+
+    crear_notificacion(
+        cursor,
+        id_donante,
+        "donacion_registrada",
+        "Donación registrada",
+        (
+            f"Tu aporte de {cantidad_donada} unidades para "
+            f"{publicacion['titulo']} fue registrado."
+        ),
+        f"/donaciones/{id_donacion}"
+    )
+
+    crear_notificacion(
+        cursor,
+        publicacion["id_intermediario"],
+        "nueva_donacion",
+        "Nueva donación recibida",
+        (
+            f"{nombre_contacto} donó {cantidad_donada} unidades para "
+            f"{publicacion['titulo']}."
+        ),
+        "/intermediario"
+    )
+
 # Normaliza y valida un estado de donación.
 # - Retorna el estado normalizado si es válido.
 # - Retorna None si no es válido.
@@ -105,15 +141,25 @@ def crear_notificacion_cambio_estado(
     estado_anterior = NOMBRES_ESTADO_DONACION[estado_anterior]
     estado_nuevo = NOMBRES_ESTADO_DONACION[nuevo_estado]
 
+    titulo = "Estado de donación actualizado"
+    mensaje = (
+        f"Tu donación para {donacion['publicacion_titulo']} "
+        f"cambió de {estado_anterior} a {estado_nuevo}."
+    )
+
+    if nuevo_estado == "recibida":
+        titulo = "Donación recibida"
+        mensaje = (
+            f"La organización confirmó que recibió tu donación para "
+            f"{donacion['publicacion_titulo']}."
+        )
+
     crear_notificacion(
         cursor,
         donacion["id_donante"],
         "estado_donacion",
-        "Estado de donación actualizado",
-        (
-            f"Tu donación para {donacion['publicacion_titulo']} "
-            f"cambió de {estado_anterior} a {estado_nuevo}."
-        ),
+        titulo,
+        mensaje,
         f"/donaciones/{donacion['id_donacion']}"
     )
 

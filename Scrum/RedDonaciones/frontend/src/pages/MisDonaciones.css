@@ -423,6 +423,26 @@
 }
 
 /* DETALLE */
+.donation-received-confirmation {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 20px;
+  padding: 18px 20px;
+  border: 1px solid var(--badge-donation-received-border);
+  border-radius: 16px;
+  background: var(--badge-donation-received-bg);
+  color: var(--badge-donation-received-text);
+}
+
+.donation-received-confirmation strong {
+  font-size: 1.05rem;
+}
+
+.donation-received-confirmation span {
+  line-height: 1.5;
+}
+
 .detail-back-figma {
   margin-bottom: 18px;
   font-size: 0.96rem;

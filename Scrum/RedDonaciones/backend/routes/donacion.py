@@ -8,8 +8,12 @@ from auth_utils import (
     _organizacion_verificada,
 )
 from db.connection import get_db_connection, db_cursor
-from db.notificaciones import asegurar_tabla_notificaciones, crear_notificacion
-from services.donacion_service import (cambiar_estado_donacion, obtener_donacion_estado, validar_estado_donacion, )
+from services.donacion_service import (
+    cambiar_estado_donacion,
+    crear_notificaciones_nueva_donacion,
+    obtener_donacion_estado,
+    validar_estado_donacion,
+)
 donacion_bp = Blueprint("donacion", __name__)
 
 # Ruta para obtener donaciones
@@ -472,31 +476,13 @@ def crear_donacion():
 
         id_donacion = cursor.lastrowid
 
-        # Notificaciones
-        asegurar_tabla_notificaciones(cursor)
-        crear_notificacion(
+        crear_notificaciones_nueva_donacion(
             cursor,
+            publicacion,
             id_donante,
-            "donacion_registrada",
-            "Donacion registrada",
-            (
-                f"Tu aporte de {cantidad_donada} unidades para "
-                f"{publicacion['titulo']} fue registrado."
-            ),
-            f"/donaciones/{id_donacion}"
-        )
-
-        crear_notificacion(
-            cursor,
-            publicacion["id_intermediario"],
-            "nueva_donacion",
-            "Nueva donacion recibida",
-            (
-                f"{nombre_contacto.strip()} dono "
-                f"{cantidad_donada} unidades para "
-                f"{publicacion['titulo']}."
-            ),
-            "/intermediario"
+            id_donacion,
+            nombre_contacto.strip(),
+            cantidad_donada
         )
 
         # Confirmar toda la operación
