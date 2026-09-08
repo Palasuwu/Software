@@ -2,10 +2,11 @@
 
 /* ═══════════════════════════════════════════════════════════════════════════
    LANDING PAGE — Swiss Editorial Design System
-   Palette: dark #17342d · accent #76ab8c · white #fff · beige #f0ebe0
+   Paleta Liga Juvenil: Azul Profundo #0B2E56 · Azul Civico #1C5FBF
+   Celeste Liga #3FB6EA · Oro Quetzal #C97F16 · Nube #F4F8FC
    ═══════════════════════════════════════════════════════════════════════════ */
 .ld-root {
-  --ld-font: 'DM Sans', sans-serif;
+  --ld-font: var(--font-body);
   background: var(--surface);
   color: var(--text);
   font-family: var(--ld-font);
@@ -20,8 +21,8 @@
   right: 0;
   z-index: 200;
   height: 64px;
-  background: var(--text);
-  border-bottom: 1px solid rgba(118, 171, 140, 0.2);
+  background: var(--surface-dark);
+  border-bottom: 1px solid rgba(63, 182, 234, 0.22);
   overflow: hidden;
   transition: height 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -54,13 +55,8 @@
   transition: color 0.2s;
 }
 
-.ld-nav-brand svg {
-  color: var(--primary);
-  flex-shrink: 0;
-}
-
 .ld-nav-brand:hover {
-  color: var(--primary);
+  color: var(--accent);
 }
 
 .ld-nav-links {
@@ -127,9 +123,9 @@
   position: absolute;
   inset: 0;
   background: linear-gradient(135deg,
-      rgba(23, 52, 45, 0.82) 0%,
-      rgba(23, 52, 45, 0.55) 60%,
-      rgba(23, 52, 45, 0.30) 100%);
+      rgba(11, 46, 86, 0.84) 0%,
+      rgba(11, 46, 86, 0.58) 60%,
+      rgba(11, 46, 86, 0.32) 100%);
 }
 
 .ld-hero-content {
@@ -148,11 +144,12 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--primary);
+  color: var(--accent);
 }
 
 .ld-hero-title {
   margin: 0 0 28px;
+  font-family: var(--font-display);
   font-size: clamp(3.5rem, 9vw, 9rem);
   font-weight: 700;
   line-height: 0.95;
@@ -218,8 +215,8 @@
 /* ── Section Divider (beige band with SVG icons) ─────────────────────────── */
 .ld-divider {
   background: var(--ld-beige);
-  border-top: 1px solid rgba(23, 52, 45, 0.12);
-  border-bottom: 1px solid rgba(23, 52, 45, 0.12);
+  border-top: 1px solid rgba(11, 46, 86, 0.14);
+  border-bottom: 1px solid rgba(11, 46, 86, 0.14);
   padding: 18px 48px;
 }
 
@@ -241,7 +238,7 @@
   width: 28px;
   height: 28px;
   flex-shrink: 0;
-  filter: invert(18%) sepia(34%) saturate(900%) hue-rotate(119deg);
+  filter: invert(27%) sepia(64%) saturate(1800%) hue-rotate(202deg);
   opacity: 0.55;
 }
 
@@ -250,14 +247,14 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(23, 52, 45, 0.45);
+  color: rgba(11, 46, 86, 0.5);
   white-space: nowrap;
 }
 
 .ld-divider-rule {
   flex: 1;
   height: 1px;
-  background: rgba(23, 52, 45, 0.15);
+  background: rgba(11, 46, 86, 0.16);
 }
 
 /* ── Sticky Horizontal Carousel ─────────────────────────────────────────── */
@@ -281,7 +278,7 @@
   justify-content: flex-end;
   padding: 56px 44px;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
-  background: var(--text);
+  background: var(--surface-dark);
 }
 
 .ld-scroll-label {
@@ -290,11 +287,12 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--primary);
+  color: var(--accent);
 }
 
 .ld-scroll-heading {
   margin: 0 0 20px;
+  font-family: var(--font-display);
   font-size: clamp(1.75rem, 2.4vw, 2.8rem);
   font-weight: 700;
   line-height: 1.05;
@@ -318,13 +316,13 @@
   text-transform: uppercase;
   color: var(--surface);
   text-decoration: none;
-  border-bottom: 2px solid var(--primary);
+  border-bottom: 2px solid var(--accent);
   padding-bottom: 3px;
   transition: color 0.2s, border-color 0.2s;
 }
 
 .ld-scroll-cta:hover {
-  color: var(--primary);
+  color: var(--accent);
 }
 
 /* Right: snap carousel */
@@ -378,7 +376,7 @@
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.12em;
-  color: rgba(23, 52, 45, 0.35);
+  color: rgba(11, 46, 86, 0.38);
   transition: color 0.4s ease;
 }
 
@@ -401,23 +399,23 @@
   height: 2px;
   padding: 0;
   border: none;
-  background: rgba(23, 52, 45, 0.25);
+  background: rgba(11, 46, 86, 0.25);
   cursor: pointer;
   transition: background 0.3s ease, width 0.3s ease;
 }
 
 .ld-carousel-dot:hover {
-  background: rgba(23, 52, 45, 0.5);
+  background: rgba(11, 46, 86, 0.5);
 }
 
 .ld-carousel-dot--active {
-  background: var(--text);
+  background: var(--surface-dark);
   width: 44px;
 }
 
 /* ── Footer ─────────────────────────────────────────────────────────────── */
 .ld-footer {
-  background: var(--text);
+  background: var(--surface-dark);
   color: var(--surface);
 }
 
@@ -437,6 +435,7 @@
 
 .ld-footer-name {
   margin: 0 0 8px;
+  font-family: var(--font-display);
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -466,7 +465,7 @@
 }
 
 .ld-footer-links a:hover {
-  color: var(--primary);
+  color: var(--accent);
 }
 
 .ld-footer-rule {
@@ -485,6 +484,289 @@
   color: rgba(255, 255, 255, 0.3);
 }
 
+/* ── Marca del navbar (monograma LJ + nombre en dos lineas) ─────────────── */
+.ld-nav-brand img {
+  width: 26px;
+  height: 26px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.ld-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.ld-brand-sub {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SECCIONES EDITORIALES — quienes somos · pilares · valores · cita · CTA
+   Mismo lenguaje que el resto del landing: plano, sin radios, reglas de 1px,
+   etiquetas en mayusculas y titulares grandes con tracking negativo.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.ld-section {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 96px 48px;
+}
+
+.ld-section-label {
+  margin: 0 0 22px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.ld-section-heading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+/* ── Quienes somos ──────────────────────────────────────────────────────── */
+.ld-about {
+  background: var(--surface);
+  /* el navbar es fixed (64px, 84px en hover): el ancla no debe quedar debajo */
+  scroll-margin-top: 84px;
+}
+
+.ld-about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+  align-items: start;
+}
+
+.ld-about-text {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.85;
+  color: var(--text-soft);
+}
+
+/* ── Pilares ────────────────────────────────────────────────────────────── */
+.ld-pillars {
+  background: var(--ld-light);
+}
+
+.ld-pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 56px;
+  border-top: 1px solid rgba(11, 46, 86, 0.14);
+}
+
+.ld-pillar {
+  padding: 40px 32px 8px 0;
+  border-right: 1px solid rgba(11, 46, 86, 0.14);
+}
+
+.ld-pillar:not(:first-child) {
+  padding-left: 32px;
+}
+
+.ld-pillar:last-child {
+  border-right: none;
+}
+
+.ld-pillar-num {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+}
+
+.ld-pillar-title {
+  margin: 16px 0 14px;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.ld-pillar-desc {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: var(--text-soft);
+}
+
+/* ── Valores ────────────────────────────────────────────────────────────── */
+.ld-values {
+  background: var(--surface);
+}
+
+.ld-values-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: 48px;
+  border-top: 1px solid var(--outline);
+}
+
+.ld-value {
+  padding: 32px 24px 8px 0;
+  border-right: 1px solid var(--outline);
+}
+
+.ld-value:not(:first-child) {
+  padding-left: 24px;
+}
+
+.ld-value:last-child {
+  border-right: none;
+}
+
+.ld-value-title {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.ld-value-desc {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--text-soft);
+}
+
+/* ── Linea de campana (banda oscura) ────────────────────────────────────── */
+.ld-quote {
+  background: var(--surface-dark);
+}
+
+.ld-quote-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 88px 48px;
+}
+
+.ld-quote-text {
+  margin: 0 0 20px;
+  max-width: 900px;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3.2vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1.28;
+  letter-spacing: -0.02em;
+  color: var(--surface);
+}
+
+.ld-quote-label {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* ── CTA final ──────────────────────────────────────────────────────────── */
+.ld-cta {
+  background: var(--ld-beige);
+  border-top: 1px solid rgba(11, 46, 86, 0.14);
+}
+
+.ld-cta-sub {
+  margin: 20px 0 0;
+  max-width: 560px;
+  font-size: 1.02rem;
+  line-height: 1.75;
+  color: var(--text-soft);
+}
+
+.ld-cta-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 38px;
+}
+
+/* CTA calido del kit: Oro Quetzal con texto Grafito (4.98:1) */
+.ld-btn-gold {
+  display: inline-flex;
+  align-items: center;
+  height: 52px;
+  padding: 0 36px;
+  background: var(--gold);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: filter 0.2s, transform 0.15s;
+}
+
+.ld-btn-gold:hover {
+  filter: brightness(0.93);
+  transform: translateY(-2px);
+}
+
+/* Variante de .ld-btn-ghost para fondos claros */
+.ld-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  height: 52px;
+  padding: 0 28px;
+  border: 1.5px solid var(--secondary);
+  color: var(--secondary);
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+.ld-btn-outline:hover {
+  background: var(--secondary);
+  color: var(--surface);
+}
+
+/* ── Instagram en el footer ─────────────────────────────────────────────── */
+.ld-footer-social {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  /* padding vertical para llegar al minimo de 44px de area tactil */
+  padding: 12px 0;
+  margin-top: 6px;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.ld-footer-social:hover {
+  color: var(--surface);
+}
+
+.ld-footer-social img {
+  width: 20px;
+  height: 20px;
+  display: block;
+  flex-shrink: 0;
+}
+
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .ld-scroll-sticky {
@@ -497,6 +779,22 @@
 
   .ld-carousel-item {
     width: calc(100vw - 280px - 40px - 48px);
+  }
+
+  .ld-section {
+    padding: 72px 32px;
+  }
+
+  .ld-quote-inner {
+    padding: 72px 32px;
+  }
+
+  .ld-values-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ld-value:nth-child(2) {
+    border-right: none;
   }
 }
 
@@ -562,6 +860,52 @@
   .ld-footer-bottom {
     flex-direction: column;
     gap: 6px;
+  }
+
+  /* Secciones editoriales: una sola columna, reglas horizontales */
+  .ld-section {
+    padding: 56px 24px;
+  }
+
+  .ld-quote-inner {
+    padding: 56px 24px;
+  }
+
+  .ld-about-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .ld-pillars-grid,
+  .ld-values-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ld-pillar,
+  .ld-value {
+    padding: 28px 0 4px;
+    border-right: none;
+    border-bottom: 1px solid rgba(11, 46, 86, 0.14);
+  }
+
+  .ld-pillar:not(:first-child),
+  .ld-value:not(:first-child) {
+    padding-left: 0;
+  }
+
+  .ld-pillar:last-child,
+  .ld-value:last-child {
+    border-bottom: none;
+  }
+
+  .ld-cta-actions {
+    gap: 14px;
+  }
+
+  .ld-btn-gold,
+  .ld-btn-outline {
+    width: 100%;
+    justify-content: center;
   }
 }
 

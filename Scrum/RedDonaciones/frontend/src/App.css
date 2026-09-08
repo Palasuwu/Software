@@ -84,22 +84,48 @@ a {
   gap: 24px;
 }
 
+/* Es un <Link> al landing: hereda color y no se subraya como enlace. */
 .brand-block {
   display: flex;
   align-items: center;
   min-width: 0;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 20px;
+}
+
+.brand-block:hover .brand-mark {
+  border-color: var(--primary-muted);
+  box-shadow: var(--shadow-sm);
+}
+
+.brand-block:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
 }
 
 .brand-mark {
   width: 54px;
   height: 54px;
   border-radius: 18px;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  color: white;
+  /* Plato claro: el logo de la Liga lleva trazo negro y necesita
+     espacio en blanco propio, no un fondo de color encima. */
+  background: var(--surface);
+  border: 1px solid var(--outline);
+  padding: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.brand-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .brand-icon {
@@ -109,11 +135,22 @@ a {
 
 .header-title {
   margin: 0;
+  display: flex;
+  flex-direction: column;
   font-size: 2rem;
   line-height: 1;
   font-weight: 700;
   color: var(--text);
   letter-spacing: -0.03em;
+}
+
+.header-title-sub {
+  margin-top: 4px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--primary);
 }
 
 .top-nav {
