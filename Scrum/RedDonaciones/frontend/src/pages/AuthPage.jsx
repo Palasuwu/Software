@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { guardarTokenSesion, guardarUsuarioSesion } from '../utils/session'
-import { IconBrand } from '../components/icons'
+import logoMark from '../assets/LogoOwnerMark.svg'
 import './AuthPage.css'
 
 const INITIAL_LOGIN = { correo: '', password: '' }
@@ -82,9 +82,9 @@ function BrandPanel({ isRegister, isTransitioning, onSwitchTo }) {
         <div className="auth-brand">
             <div className="auth-brand-inner">
                 <div className="auth-brand-logo">
-                    <IconBrand aria-hidden="true" />
+                    <img src={logoMark} alt="" aria-hidden="true" />
                 </div>
-                <h1 className="auth-brand-title">Red de Donaciones</h1>
+                <h1 className="auth-brand-title">Liga Juvenil · Donaciones</h1>
                 <p className="auth-brand-sub">
                     Conectamos a quienes quieren ayudar con quienes mas lo necesitan.
                 </p>
@@ -226,11 +226,11 @@ function RegisterForm({ onAuthSuccess }) {
         fetch('/api/organizaciones')
             .then(async (res) => {
                 const body = await res.json().catch(() => null)
-                if (!res.ok) throw new Error(body?.error || 'No se pudo cargar la lista de organizaciones')
+                if (!res.ok) throw new Error(body?.error || 'No se pudo cargar la organización')
                 if (!Array.isArray(body)) throw new Error('Respuesta invalida del servidor')
                 setOrganizaciones(body)
             })
-            .catch((err) => setOrgError(err.message || 'No se pudo cargar organizaciones'))
+            .catch((err) => setOrgError(err.message || 'No se pudo cargar la organización'))
             .finally(() => setOrgLoading(false))
     }, [isIntermediario, organizaciones.length])
 
@@ -357,7 +357,7 @@ function RegisterForm({ onAuthSuccess }) {
                                     <option key={org.id_organizacion} value={org.id_organizacion}>{org.nombre}</option>
                                 ))}
                             </select>
-                            {orgLoading && <span className="auth-help-text">Cargando organizaciones...</span>}
+                            {orgLoading && <span className="auth-help-text">Cargando organización...</span>}
                             {orgError && <span className="auth-error-text">{orgError}</span>}
                         </Field>
                         <Field label="Cargo" id="reg-cargo" error={errors.cargo}>

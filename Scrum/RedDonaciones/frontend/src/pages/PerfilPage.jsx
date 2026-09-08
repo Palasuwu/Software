@@ -452,7 +452,7 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
                             </div>
 
                             <div className="achievement-box">
-                                <p className="achievement-label">Organizaciones apoyadas</p>
+                                <p className="achievement-label">Organización apoyada</p>
                                 <p className="profile-user-name">{resumen.organizaciones}</p>
                             </div>
 

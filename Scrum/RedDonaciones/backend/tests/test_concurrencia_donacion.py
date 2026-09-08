@@ -5,7 +5,7 @@ from app import app
 from auth_utils import generate_token
 
 # Prueba de concurrencia para POST /donaciones.
-# El mock simula el lock de fila (FOR UPDATE) con un threading.Lock.
+# El mock simula el UPDATE condicional atómico con un threading.Lock.
 
 
 class EstadoPublicacion:
@@ -21,19 +21,21 @@ class DonacionCursor:
     def __init__(self, estado, row_lock):
         self.estado = estado
         self.row_lock = row_lock
-        self.locked = False
         self._resultado = None
         self._ultimo_id = 0
+        self._rowcount = 0
 
     def execute(self, sql, params=None):
         sql_norm = " ".join(sql.split())
+        self._rowcount = 0
 
         if sql_norm.startswith("SELECT id_usuario FROM donante"):
             self._resultado = {"id_usuario": params[0]}
 
-        elif "FROM publicacion" in sql_norm and "FOR UPDATE" in sql_norm:
-            self.row_lock.acquire()
-            self.locked = True
+        elif (
+            sql_norm.startswith("SELECT")
+            and "FROM publicacion" in sql_norm
+        ):
             self._resultado = {
                 "id_publicacion": params[0],
                 "id_intermediario": self.estado.id_intermediario,
@@ -43,15 +45,35 @@ class DonacionCursor:
                 "estado": self.estado.estado,
             }
 
-        elif sql_norm.startswith("INSERT INTO donacion"):
-            self._ultimo_id += 1
-            self._resultado = None
-
         elif sql_norm.startswith("UPDATE publicacion"):
             cantidad = params[0]
-            self.estado.cantidad_recibida += cantidad
-            if self.estado.cantidad_recibida >= self.estado.cantidad_necesaria:
-                self.estado.estado = "finalizada"
+
+            # Simula que el UPDATE condicional de MySQL es atómico.
+            with self.row_lock:
+                puede_actualizar = (
+                    self.estado.estado == "activa"
+                    and self.estado.cantidad_recibida + cantidad
+                    <= self.estado.cantidad_necesaria
+                )
+
+                if puede_actualizar:
+                    self.estado.cantidad_recibida += cantidad
+
+                    if (
+                        self.estado.cantidad_recibida
+                        >= self.estado.cantidad_necesaria
+                    ):
+                        self.estado.estado = "finalizada"
+
+                    self._rowcount = 1
+                else:
+                    self._rowcount = 0
+
+            self._resultado = None
+
+        elif sql_norm.startswith("INSERT INTO donacion"):
+            self._ultimo_id += 1
+            self._rowcount = 1
             self._resultado = None
 
         else:
@@ -64,6 +86,10 @@ class DonacionCursor:
     def lastrowid(self):
         return self._ultimo_id
 
+    @property
+    def rowcount(self):
+        return self._rowcount
+
     def close(self):
         pass
 
@@ -71,19 +97,16 @@ class DonacionCursor:
 class DonacionConexion:
     def __init__(self, estado, row_lock):
         self.cursor_mock = DonacionCursor(estado, row_lock)
+        self.autocommit = True
 
     def cursor(self, dictionary=False):
         return self.cursor_mock
 
     def commit(self):
-        if self.cursor_mock.locked:
-            self.cursor_mock.locked = False
-            self.cursor_mock.row_lock.release()
+        pass
 
     def rollback(self):
-        if self.cursor_mock.locked:
-            self.cursor_mock.locked = False
-            self.cursor_mock.row_lock.release()
+        pass
 
     def close(self):
         pass
@@ -98,6 +121,15 @@ def headers_donante(id_usuario):
 def test_donaciones_concurrentes_no_exceden_la_meta(monkeypatch):
     estado = EstadoPublicacion()
     row_lock = threading.Lock()
+
+    monkeypatch.setattr(
+        "auth_utils._obtener_usuario_actual",
+        lambda id_usuario: {
+            "id_usuario": id_usuario,
+            "rol": "donante",
+            "activo": 1,
+        },
+    )
 
     monkeypatch.setattr(
         "routes.donacion.get_db_connection",

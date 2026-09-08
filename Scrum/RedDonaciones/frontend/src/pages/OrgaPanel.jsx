@@ -22,7 +22,11 @@ const CAMP_INITIAL_FORM = {
   fecha_limite: '',
   estado: 'activa',
   id_articulo: '',
-  imagen_url: ''
+  imagen_url: '',
+  departamento: '',
+  municipio: '',
+  zona: '',
+  direccion_detalle: ''
 }
 
 export default function OrgaPanel() {
@@ -193,7 +197,11 @@ export default function OrgaPanel() {
       fecha_limite: publicacion.fecha_limite || '',
       estado: publicacion.estado || 'activa',
       id_articulo: publicacion.id_articulo || '',
-      imagen_url: publicacion.imagen_url || ''
+      imagen_url: publicacion.imagen_url || '',
+      departamento: publicacion.departamento || '',
+      municipio: publicacion.municipio || '',
+      zona: publicacion.zona || '',
+      direccion_detalle: publicacion.direccion_detalle || ''
     })
 
     setModalError('')

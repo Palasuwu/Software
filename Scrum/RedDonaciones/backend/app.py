@@ -12,7 +12,30 @@ from routes.notificacion import notificacion_bp
 from routes.landing import landing_bp
 
 app = Flask(__name__)
-CORS(app)
+CORS(
+    app,
+    resources={
+        r"/(login|usuarios|organizaciones|articulos|publicaciones|donaciones|intermediario|notificaciones|upload|uploads|carrusel)(/.*)?$": {
+            "origins": [
+                "http://localhost:3000",
+                "http://20.97.176.27",
+            ],
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE",
+                "OPTIONS",
+            ],
+            "allow_headers": [
+                "Content-Type",
+                "Authorization",
+            ],
+            "supports_credentials": False,
+        }
+    },
+)
 
 # Evitar secuencias de escape ASCII en respuestas JSON para conservar tildes reales
 app.json.ensure_ascii = False

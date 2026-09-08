@@ -3,6 +3,7 @@ import logging
 from flask import Blueprint, jsonify, request
 from auth_utils import admin_required
 from db.connection import get_db_connection, db_cursor
+from services.plataforma_config import obtener_id_organizacion_principal
 from services.publicacion_service import (articulo_existe, actualizar_estado_publicacion_db, crear_publicacion_db, intermediario_pertenece_a_organizacion, organizacion_verificada, validar_estado_publicacion, validar_publicacion_payload, )
 
 publicacion_bp = Blueprint("publicacion", __name__)
@@ -58,6 +59,10 @@ def listar_publicaciones():
                     p.fecha_publicacion,
                     p.fecha_limite,
                     p.imagen_url,
+                    p.departamento,
+                    p.municipio,
+                    p.zona,
+                    p.direccion_detalle,
                     o.nombre AS organizacion,
                     o.direccion AS direccion,
                     c.nombre AS categoria
@@ -101,6 +106,9 @@ def crear_publicacion():
             return jsonify({
                 "error": "No se enviaron datos"
             }), 400
+
+        if not data.get("id_organizacion"):
+            data["id_organizacion"] = obtener_id_organizacion_principal()
 
         valido, errores, payload = validar_publicacion_payload(
             data
@@ -268,6 +276,10 @@ def obtener_publicacion(id_publicacion):
                     p.cantidad_recibida,
                     p.estado,
                     p.imagen_url,
+                    p.departamento,
+                    p.municipio,
+                    p.zona,
+                    p.direccion_detalle,
                     DATE_FORMAT(
                         p.fecha_publicacion,
                         '%Y-%m-%d'
@@ -393,6 +405,10 @@ def obtener_publicacion(id_publicacion):
                     "fecha_limite": ( publicacion["fecha_limite"]  ),
                     "organizacion": (publicacion["organizacion"]),
                     "direccion": (publicacion["direccion"]),
+                    "departamento": (publicacion.get("departamento")),
+                    "municipio": (publicacion.get("municipio")),
+                    "zona": (publicacion.get("zona")),
+                    "direccion_detalle": (publicacion.get("direccion_detalle")),
                     "categoria": (articulo.get("categoria")
                         or publicacion.get("categoria")
                         or "Sin categoria"

@@ -4,10 +4,11 @@
 // NavBar/BottomNav/AppRoutes via props (mismas firmas que antes).
 import React from 'react'
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import NavBar from './components/NavBar'
 import BottomNav from './components/BottomNav'
 import AppRoutes from './AppRoutes'
-import { IconBrand } from './components/icons'
+import logoMark from './assets/LogoOwnerMark.svg'
 import { useAuth } from './context/AuthContext'
 
 export default function AppShell() {
@@ -29,9 +30,9 @@ export default function AppShell() {
                         : { paddingTop: 6, paddingBottom: 6 }}
                     transition={{ type: 'spring', stiffness: 320, damping: 32, mass: 0.7 }}
                 >
-                    <div className="brand-block">
+                    <Link to="/" className="brand-block" aria-label="Liga Juvenil Donaciones — ir al inicio">
                         <div className="brand-mark">
-                            <IconBrand className="brand-icon" />
+                            <img src={logoMark} alt="" aria-hidden="true" />
                         </div>
                         <motion.h1
                             className="header-title"
@@ -42,9 +43,10 @@ export default function AppShell() {
                             transition={{ type: 'spring', stiffness: 320, damping: 32, mass: 0.7 }}
                             style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}
                         >
-                            Red de Donaciones
+                            Liga Juvenil
+                            <span className="header-title-sub">Donaciones</span>
                         </motion.h1>
-                    </div>
+                    </Link>
 
                     <NavBar
                         isAuthenticated={isAuthenticated}

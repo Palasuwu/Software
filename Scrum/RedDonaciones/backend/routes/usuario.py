@@ -1,3 +1,5 @@
+# Rutas relacionadas con la gestión de usuarios
+
 from flask import Blueprint, jsonify, request
 import bcrypt
 import logging
@@ -8,29 +10,14 @@ import secrets
 import string
 from datetime import datetime
 from db.connection import get_db_connection, db_cursor
-from db.intentos_login import (
-    asegurar_columnas_intentos_login,
-    registrar_intento_fallido,
-    reiniciar_intentos_login,
-)
-from auth_utils import (
-    generate_token,
-    token_required,
-    admin_required,
-    validar_admin_request,
-)
-
-from utils.validation import (
-    limpiar_espacios,
-    telefono_valido,
-    EMAIL_REGEX,
-    PHONE_REGEX,
-    NAME_REGEX,
-)
+from db.intentos_login import (asegurar_columnas_intentos_login, registrar_intento_fallido, reiniciar_intentos_login)
+from auth_utils import (generate_token, token_required, admin_required, validar_admin_request,)
+from services.plataforma_config import obtener_id_organizacion_principal
+from utils.validation import (limpiar_espacios, telefono_valido, EMAIL_REGEX, PHONE_REGEX, NAME_REGEX,)
 
 usuario_bp = Blueprint("usuario", __name__)
 
-
+# Para cargar los datos específicos del perfil según el rol del usuario
 def _cargar_perfil_usuario(cursor, id_usuario, rol):
     """Carga los datos específicos del perfil según el rol del usuario."""
     if rol == "donante":
@@ -56,24 +43,20 @@ def _cargar_perfil_usuario(cursor, id_usuario, rol):
         return cursor.fetchone() or {}
     return {}
 
-
+# Validación de datos de usuario
 def validar_usuario_base(nombre, correo, telefono):
     errores = {}
-
     if len(nombre) < 3:
         errores["nombre"] = "El nombre debe tener al menos 3 caracteres"
     elif not NAME_REGEX.match(nombre):
         errores["nombre"] = "El nombre solo debe contener letras y espacios"
-
     if not EMAIL_REGEX.match(correo):
         errores["correo"] = "El correo debe ser valido"
-
     if not telefono_valido(telefono):
         errores["telefono"] = "El telefono debe ser valido"
-
     return errores
 
-
+# Validación de datos de donante
 def validar_datos_donante(data):
     departamento = limpiar_espacios(data.get("departamento"))
     municipio = limpiar_espacios(data.get("municipio"))
@@ -94,7 +77,7 @@ def validar_datos_donante(data):
         "direccion_detalle": direccion_detalle,
     }, None
 
-
+# Validación de password para registro
 def validar_password_registro(password):
     if len(password) < 8:
         return "El password debe tener al menos 8 caracteres"
@@ -102,81 +85,62 @@ def validar_password_registro(password):
         return "El password debe incluir letras y numeros"
     return None
 
-
+# Función para verificar si el usuario está autorizado para acceder a un recurso basado en su ID
 def usuario_autorizado_para_id(id_usuario):
     return request.usuario_rol == "administrador" or request.usuario_id == id_usuario
-
 
 # Ruta para obtener la lista de usuarios
 @usuario_bp.route("/usuarios", methods=["GET"])
 @admin_required  # Solo administradores pueden listar usuarios
 def obtener_usuarios():
-    conn = None
-    cursor = None
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-
-        # SELECT ESPECÍFICO que EXCLUYE password
-        cursor.execute("""
-            SELECT id_usuario, nombre, correo, telefono, rol, fecha_registro, activo 
-            FROM usuario
-        """)
-        data = cursor.fetchall()
-
+        with db_cursor(
+            dictionary=True,
+            connection_factory=get_db_connection
+        ) as (conn, cursor):
+            cursor.execute("""
+                SELECT id_usuario, nombre, correo, telefono, rol, fecha_registro, activo 
+                FROM usuario
+            """)
+            data = cursor.fetchall()
         return jsonify(data), 200
-
     except Exception:
         logging.exception("Error al obtener usuarios")
         return jsonify({
             "error": "Error al obtener usuarios",
         }), 500
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
 
-
+# Ruta para obtener un usuario por su ID
 @usuario_bp.route("/usuarios/<int:id_usuario>", methods=["GET"])
 @token_required  # Protegido con token
 def obtener_usuario_por_id(id_usuario):
-    conn = None
-    cursor = None
-
     if not usuario_autorizado_para_id(id_usuario):
         return jsonify({"error": "No autorizado para acceder a este usuario"}), 403
-
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
+        with db_cursor(
+            dictionary=True,
+            connection_factory=get_db_connection
+        ) as (conn, cursor):
+            cursor.execute(
+                """
+                SELECT id_usuario, nombre, correo, telefono, rol, fecha_registro
+                FROM usuario
+                WHERE id_usuario = %s
+                """,
+                (id_usuario,)
+            )
+            usuario = cursor.fetchone()
+            if not usuario:
+                return jsonify({"error": "Usuario no encontrado"}), 404
 
-        cursor.execute(
-            """
-            SELECT id_usuario, nombre, correo, telefono, rol, fecha_registro
-            FROM usuario
-            WHERE id_usuario = %s
-            """,
-            (id_usuario,)
-        )
-        usuario = cursor.fetchone()
-
-        if not usuario:
-            return jsonify({"error": "Usuario no encontrado"}), 404
-
-        usuario["perfil"] = _cargar_perfil_usuario(cursor, id_usuario, usuario["rol"])
+            usuario["perfil"] = _cargar_perfil_usuario(cursor, id_usuario, usuario["rol"])
 
         return jsonify(usuario), 200
 
     except Exception:
         return jsonify({"error": "Error al obtener perfil de usuario"}), 500
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
 
-
+# Ruta para actualizar un usuario por su ID
 @usuario_bp.route("/usuarios/<int:id_usuario>", methods=["PUT"])
 @token_required  # Protegido con token
 def actualizar_usuario(id_usuario):
@@ -185,35 +149,29 @@ def actualizar_usuario(id_usuario):
 
     if not usuario_autorizado_para_id(id_usuario):
         return jsonify({"error": "No autorizado para actualizar este usuario"}), 403
-
     try:
         data = request.get_json()
-
         if not data:
             return jsonify({"error": "No se enviaron datos"}), 400
 
         nombre = limpiar_espacios(data.get("nombre"))
         correo = (data.get("correo") or "").strip().lower()
         telefono = (data.get("telefono") or "").strip()
-
         errores_base = validar_usuario_base(nombre, correo, telefono)
         if errores_base:
             return jsonify({"error": "Datos invalidos", "campos": errores_base}), 400
 
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-
         cursor.execute(
             "SELECT id_usuario, rol FROM usuario WHERE id_usuario = %s",
             (id_usuario,)
         )
         usuario_actual = cursor.fetchone()
-
         if not usuario_actual:
             return jsonify({"error": "Usuario no encontrado"}), 404
 
         rol = usuario_actual["rol"]
-
         if rol == "intermediario" and "id_organizacion" in data:
             return jsonify({
                 "error": "La organización no puede modificarse desde el perfil"
@@ -254,14 +212,12 @@ def actualizar_usuario(id_usuario):
 
         elif rol == "intermediario":
             cargo = limpiar_espacios(data.get("cargo"))
-
             if not cargo:
                 conn.rollback()
                 return jsonify({"error": "Faltan datos obligatorios para intermediario"}), 400
             if len(cargo) < 3:
                 conn.rollback()
                 return jsonify({"error": "El cargo debe tener al menos 3 caracteres"}), 400
-
             cursor.execute(
                 """
                 UPDATE intermediario
@@ -282,7 +238,6 @@ def actualizar_usuario(id_usuario):
             (id_usuario,)
         )
         usuario = cursor.fetchone()
-
         usuario["perfil"] = _cargar_perfil_usuario(cursor, id_usuario, usuario["rol"])
 
         return jsonify({
@@ -310,7 +265,7 @@ def actualizar_usuario(id_usuario):
         if conn:
             conn.close()
 
-
+# Ruta para eliminar un usuario por su ID
 @usuario_bp.route("/usuarios/<int:id_usuario>", methods=["DELETE"])
 @admin_required
 def eliminar_usuario(id_usuario):
@@ -319,22 +274,18 @@ def eliminar_usuario(id_usuario):
 
     if request.usuario_id == id_usuario:
         return jsonify({"error": "No puedes eliminar tu propio usuario administrador"}), 400
-
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-
         cursor.execute(
             "SELECT id_usuario, rol FROM usuario WHERE id_usuario = %s",
             (id_usuario,)
         )
         usuario = cursor.fetchone()
-
         if not usuario:
             return jsonify({"error": "Usuario no encontrado"}), 404
 
         rol = usuario["rol"]
-
         if rol == "donante":
             cursor.execute(
                 "SELECT COUNT(*) AS total FROM donacion WHERE id_donante = %s",
@@ -361,20 +312,17 @@ def eliminar_usuario(id_usuario):
 
         cursor.execute("DELETE FROM usuario WHERE id_usuario = %s", (id_usuario,))
         conn.commit()
-
         return jsonify({"message": "Usuario eliminado"}), 200
 
     except mysql.connector.IntegrityError:
         if conn:
             conn.rollback()
-
         return jsonify({
             "error": "No se puede eliminar el usuario porque tiene informacion relacionada"
         }), 409
     except Exception:
         if conn:
             conn.rollback()
-
         return jsonify({"error": "No se pudo eliminar el usuario"}), 500
     finally:
         if cursor:
@@ -388,10 +336,8 @@ def eliminar_usuario(id_usuario):
 def crear_usuario():
     conn = None
     cursor = None
-
     try:
         data = request.get_json()
-
         if not data:
             return jsonify({"error": "No se enviaron datos"}), 400
 
@@ -401,7 +347,6 @@ def crear_usuario():
         telefono = (data.get("telefono") or "").strip()
         rol = data.get("rol")
 
-        # El password ya no es estrictamente obligatorio en la entrada si se genera temporalmente
         if not nombre or not correo or not telefono or not rol:
             return jsonify({"error": "Faltan campos obligatorios"}), 400
 
@@ -439,7 +384,7 @@ def crear_usuario():
                 return jsonify({"error": error_donante}), 400
 
         if rol == "intermediario":
-            id_organizacion = data.get("id_organizacion")
+            id_organizacion = data.get("id_organizacion") or obtener_id_organizacion_principal()
             cargo = limpiar_espacios(data.get("cargo"))
             if not id_organizacion or not cargo:
                 return jsonify({"error": "Faltan datos obligatorios para intermediario"}), 400
@@ -453,7 +398,6 @@ def crear_usuario():
 
         conn = get_db_connection()
         cursor = conn.cursor()
-
         hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
         sql = """
@@ -554,7 +498,6 @@ def login_usuario():
 
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-
         asegurar_columnas_intentos_login(cursor)
 
         sql = """
@@ -653,16 +596,18 @@ def login_usuario():
     finally:
         if cursor:
             cursor.close()
-
         if conn:
             conn.close()
 
-
+# Rutas para desactivar, activar y anonimizar usuarios
 @usuario_bp.route("/usuarios/<int:id_usuario>/desactivar", methods=["PUT"])
 @admin_required
 def desactivar_usuario(id_usuario):
     try:
-        with db_cursor() as (conn, cursor):
+        with db_cursor(
+            dictionary=True,
+            connection_factory=get_db_connection
+        ) as (conn, cursor):
             cursor.execute("SELECT id_usuario FROM usuario WHERE id_usuario = %s", (id_usuario,))
             usuario = cursor.fetchone()
             if not usuario:
@@ -677,12 +622,15 @@ def desactivar_usuario(id_usuario):
         logging.exception("Error al desactivar el usuario %s", id_usuario)
         return jsonify({"error": "No se pudo desactivar el usuario"}), 500
 
-
+# Rutas para activar y anonimizar usuarios
 @usuario_bp.route("/usuarios/<int:id_usuario>/activar", methods=["PUT"])
 @admin_required
 def activar_usuario(id_usuario):
     try:
-        with db_cursor() as (conn, cursor):
+        with db_cursor(
+            dictionary=True,
+            connection_factory=get_db_connection
+        ) as (conn, cursor):
             cursor.execute("SELECT id_usuario FROM usuario WHERE id_usuario = %s", (id_usuario,))
             usuario = cursor.fetchone()
             if not usuario:
@@ -697,12 +645,15 @@ def activar_usuario(id_usuario):
         logging.exception("Error al activar el usuario %s", id_usuario)
         return jsonify({"error": "No se pudo activar el usuario"}), 500
 
-
+# Rutas para anonimizar usuarios
 @usuario_bp.route("/usuarios/<int:id_usuario>/anonimizar", methods=["PUT"])
 @admin_required
 def anonimizar_usuario(id_usuario):
     try:
-        with db_cursor() as (conn, cursor):
+        with db_cursor(
+            dictionary=True,
+            connection_factory=get_db_connection
+        ) as (conn, cursor):
             cursor.execute("SELECT id_usuario FROM usuario WHERE id_usuario = %s", (id_usuario,))
             usuario = cursor.fetchone()
             if not usuario:

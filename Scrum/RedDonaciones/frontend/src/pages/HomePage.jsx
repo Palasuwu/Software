@@ -54,7 +54,7 @@ function HeroSection({ finalizadas, activas, total }) {
       <div className="hero-content">
         <h1 className="hero-title">Transforma vidas con tu ayuda</h1>
         <p className="hero-subtitle">
-          Encuentra organizaciones y causas que necesitan tu apoyo.<br />
+          Encuentra causas de nuestra organización que necesitan tu apoyo.<br />
           Cada donación cuenta para crear un mundo mejor.
         </p>
         <div className="hero-stats">
@@ -97,7 +97,7 @@ export default function HomePage({ isAuthenticated }) {
             title: p.titulo,
             description: p.descripcion,
             category: p.categoria || 'Sin categoría',
-            location: p.direccion,
+            location: [p.municipio, p.departamento].filter(Boolean).join(', ') || p.direccion,
             organizacion: p.organizacion || 'Sin organización',
             estado,
             esProxima,

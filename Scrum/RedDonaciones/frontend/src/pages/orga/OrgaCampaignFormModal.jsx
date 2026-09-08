@@ -93,6 +93,50 @@ export default function OrgaCampaignFormModal({
                             </div>
 
                             <div className="form-field">
+                                <label className="form-label">Departamento</label>
+
+                                <input
+                                    className="form-input"
+                                    name="departamento"
+                                    value={campForm.departamento}
+                                    onChange={onChange}
+                                />
+                            </div>
+
+                            <div className="form-field">
+                                <label className="form-label">Municipio</label>
+
+                                <input
+                                    className="form-input"
+                                    name="municipio"
+                                    value={campForm.municipio}
+                                    onChange={onChange}
+                                />
+                            </div>
+
+                            <div className="form-field">
+                                <label className="form-label">Zona</label>
+
+                                <input
+                                    className="form-input"
+                                    name="zona"
+                                    value={campForm.zona}
+                                    onChange={onChange}
+                                />
+                            </div>
+
+                            <div className="form-field">
+                                <label className="form-label">Dirección detallada</label>
+
+                                <input
+                                    className="form-input"
+                                    name="direccion_detalle"
+                                    value={campForm.direccion_detalle}
+                                    onChange={onChange}
+                                />
+                            </div>
+
+                            <div className="form-field">
                                 <label className="form-label">
                                     Fecha publicación
                                 </label>

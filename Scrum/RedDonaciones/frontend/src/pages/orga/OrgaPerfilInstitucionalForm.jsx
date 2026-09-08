@@ -15,6 +15,10 @@ const CAMPOS = [
 ]
 
 const FORM_VACIO = {
+    direccion: '',
+    departamento: '',
+    municipio: '',
+    zona: '',
     quienes_somos: '',
     que_hacemos: '',
     como_trabajamos: '',
@@ -30,6 +34,7 @@ export default function OrgaPerfilInstitucionalForm() {
     const [loadError, setLoadError] = React.useState('')
     const [isSaving, setIsSaving] = React.useState(false)
     const [saveError, setSaveError] = React.useState('')
+    const [fieldErrors, setFieldErrors] = React.useState({})
     const [saveSuccess, setSaveSuccess] = React.useState('')
     const [logoPreview, setLogoPreview] = React.useState(null)
     const [portadaPreview, setPortadaPreview] = React.useState(null)
@@ -44,6 +49,10 @@ export default function OrgaPerfilInstitucionalForm() {
             .then((data) => {
                 setOrganizacion(data)
                 setForm({
+                    direccion: data.direccion || '',
+                    departamento: data.departamento || '',
+                    municipio: data.municipio || '',
+                    zona: data.zona || '',
                     quienes_somos: data.quienes_somos || '',
                     que_hacemos: data.que_hacemos || '',
                     como_trabajamos: data.como_trabajamos || '',
@@ -68,6 +77,12 @@ export default function OrgaPerfilInstitucionalForm() {
         const { name, value } = event.target
         setForm((previous) => ({ ...previous, [name]: value }))
         setSaveSuccess('')
+        setFieldErrors((previous) => {
+            if (!previous[name]) return previous
+            const next = { ...previous }
+            delete next[name]
+            return next
+        })
     }
 
     const handleLogoChange = async (event) => {
@@ -122,12 +137,18 @@ export default function OrgaPerfilInstitucionalForm() {
         setIsSaving(true)
         setSaveError('')
         setSaveSuccess('')
+        setFieldErrors({})
 
         try {
             await apiPut('/api/intermediario/organizacion', form)
             setSaveSuccess('Perfil institucional actualizado')
         } catch (error) {
-            setSaveError(error.message || 'No se pudo guardar el perfil institucional')
+            const camposInvalidos = error.body?.campos
+            if (camposInvalidos && typeof camposInvalidos === 'object') {
+                setFieldErrors(camposInvalidos)
+            } else {
+                setSaveError(error.message || 'No se pudo guardar el perfil institucional')
+            }
         } finally {
             setIsSaving(false)
         }
@@ -147,6 +168,56 @@ export default function OrgaPerfilInstitucionalForm() {
                 Esta información se muestra en el perfil público de{' '}
                 <strong>{organizacion?.nombre}</strong>.
             </p>
+
+            <div className="form-field">
+                <label className="form-label" htmlFor="perfil-direccion">Dirección</label>
+                <input
+                    id="perfil-direccion"
+                    className={`form-input ${fieldErrors.direccion ? 'form-input-invalid' : ''}`}
+                    name="direccion"
+                    value={form.direccion}
+                    onChange={handleChange}
+                />
+                {fieldErrors.direccion && <span className="form-error-text">{fieldErrors.direccion}</span>}
+            </div>
+
+            <div className="form-row">
+                <div className="form-field">
+                    <label className="form-label" htmlFor="perfil-departamento">Departamento</label>
+                    <input
+                        id="perfil-departamento"
+                        className={`form-input ${fieldErrors.departamento ? 'form-input-invalid' : ''}`}
+                        name="departamento"
+                        value={form.departamento}
+                        onChange={handleChange}
+                    />
+                    {fieldErrors.departamento && <span className="form-error-text">{fieldErrors.departamento}</span>}
+                </div>
+
+                <div className="form-field">
+                    <label className="form-label" htmlFor="perfil-municipio">Municipio</label>
+                    <input
+                        id="perfil-municipio"
+                        className={`form-input ${fieldErrors.municipio ? 'form-input-invalid' : ''}`}
+                        name="municipio"
+                        value={form.municipio}
+                        onChange={handleChange}
+                    />
+                    {fieldErrors.municipio && <span className="form-error-text">{fieldErrors.municipio}</span>}
+                </div>
+
+                <div className="form-field">
+                    <label className="form-label" htmlFor="perfil-zona">Zona</label>
+                    <input
+                        id="perfil-zona"
+                        className={`form-input ${fieldErrors.zona ? 'form-input-invalid' : ''}`}
+                        name="zona"
+                        value={form.zona}
+                        onChange={handleChange}
+                    />
+                    {fieldErrors.zona && <span className="form-error-text">{fieldErrors.zona}</span>}
+                </div>
+            </div>
 
             {CAMPOS.map(({ name, label }) => (
                 <div className="form-field" key={name}>

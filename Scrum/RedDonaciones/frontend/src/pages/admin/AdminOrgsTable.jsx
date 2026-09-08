@@ -7,19 +7,25 @@ export default function AdminOrgsTable({
     organizaciones,
     orgLoading,
     orgError,
-    isSubmitting,
     onRetry,
     onEdit,
     onArchivar
 }) {
+    // Solo se administra la organizacion activa de la plataforma; las
+    // organizaciones archivadas (legado de cuando existian varias) quedan
+    // fuera de esta vista.
+    const organizacionesActivas = organizaciones.filter(
+        (org) => org.estado_verificacion !== 'archivada'
+    )
+
     return (
         <>
             {orgError && <ErrorView message={orgError} onRetry={onRetry} />}
-            {orgLoading && <div className="empty-box">Cargando organizaciones...</div>}
-            {!orgLoading && !orgError && organizaciones.length === 0 && (
-                <div className="empty-box">No hay organizaciones registradas.</div>
+            {orgLoading && <div className="empty-box">Cargando organización...</div>}
+            {!orgLoading && !orgError && organizacionesActivas.length === 0 && (
+                <div className="empty-box">No hay ninguna organización registrada.</div>
             )}
-            {!orgLoading && !orgError && organizaciones.length > 0 && (
+            {!orgLoading && !orgError && organizacionesActivas.length > 0 && (
                 <div className="admin-table-wrap">
                     <table className="admin-table admin-table-orgs">
                         <thead>
@@ -33,7 +39,7 @@ export default function AdminOrgsTable({
                             </tr>
                         </thead>
                         <tbody>
-                            {organizaciones.map((org) => (
+                            {organizacionesActivas.map((org) => (
                                 <tr key={org.id_organizacion}>
                                     <td>
                                         <div className="admin-table-primary">{org.nombre}</div>
@@ -58,9 +64,9 @@ export default function AdminOrgsTable({
                                                 type="button"
                                                 className="admin-icon-button admin-icon-button-danger"
                                                 onClick={() => onArchivar(org)}
-                                                disabled={isSubmitting}
-                                                title="Archivar"
-                                                aria-label={`Archivar ${org.nombre}`}
+                                                disabled
+                                                title="No se puede archivar: es la unica organizacion de la plataforma"
+                                                aria-label={`Archivar ${org.nombre} (deshabilitado)`}
                                             >
                                                 <IconTrash className="admin-action-icon" />
                                             </button>

@@ -6,6 +6,7 @@ from flask import Blueprint, jsonify, request
 
 from db.connection import get_db_connection, db_cursor
 from auth_utils import admin_required, validar_admin_request
+from services.plataforma_config import obtener_id_organizacion_principal
 from utils.validation import EMAIL_REGEX, PHONE_REGEX, limpiar_espacios
 
 logging.basicConfig(level=logging.INFO)
@@ -18,6 +19,9 @@ def normalizar_organizacion_payload(data):
     nombre = limpiar_espacios(data.get("nombre"))
     descripcion = limpiar_espacios(data.get("descripcion"))
     direccion = limpiar_espacios(data.get("direccion"))
+    departamento = limpiar_espacios(data.get("departamento"))
+    municipio = limpiar_espacios(data.get("municipio"))
+    zona = (data.get("zona") or "").strip()
     telefono = (data.get("telefono") or "").strip()
     correo = (data.get("correo") or "").strip().lower()
     estado_verificacion = (data.get("estado_verificacion") or "pendiente").strip().lower()
@@ -36,6 +40,12 @@ def normalizar_organizacion_payload(data):
         errores["descripcion"] = "La descripcion debe tener al menos 10 caracteres"
     if len(direccion) < 8:
         errores["direccion"] = "La direccion debe ser mas especifica"
+    if len(departamento) < 3:
+        errores["departamento"] = "El departamento debe tener al menos 3 caracteres"
+    if len(municipio) < 3:
+        errores["municipio"] = "El municipio debe tener al menos 3 caracteres"
+    if not zona.isdigit() or len(zona) > 2:
+        errores["zona"] = "La zona debe ser un numero valido"
     if not PHONE_REGEX.match(telefono) or len(re.findall(r"\d", telefono)) < 8:
         errores["telefono"] = "El telefono debe ser valido"
     if not EMAIL_REGEX.match(correo):
@@ -51,6 +61,9 @@ def normalizar_organizacion_payload(data):
         "nombre": nombre,
         "descripcion": descripcion,
         "direccion": direccion,
+        "departamento": departamento,
+        "municipio": municipio,
+        "zona": zona,
         "telefono": telefono,
         "correo": correo,
         "estado_verificacion": estado_verificacion,
@@ -66,7 +79,8 @@ def normalizar_organizacion_payload(data):
 def obtener_organizacion(cursor, id_organizacion):
     cursor.execute(
         """
-        SELECT id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion,
+        SELECT id_organizacion, nombre, descripcion, direccion, departamento, municipio, zona,
+               telefono, correo, estado_verificacion,
                quienes_somos, que_hacemos, como_trabajamos, donde_trabajamos, url_logo, imagen_portada
         FROM organizacion
         WHERE id_organizacion = %s
@@ -91,7 +105,8 @@ def listar_organizaciones():
 
             cursor.execute(
                 f"""
-                SELECT id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion,
+                SELECT id_organizacion, nombre, descripcion, direccion, departamento, municipio, zona,
+                       telefono, correo, estado_verificacion,
                        quienes_somos, que_hacemos, como_trabajamos, donde_trabajamos, url_logo, imagen_portada
                 FROM organizacion
                 {where_sql}
@@ -107,43 +122,57 @@ def listar_organizaciones():
         return jsonify({"error": "Error al obtener organizaciones"}), 500
 
 
+def _detalle_organizacion_response(id_organizacion):
+    with db_cursor() as (conn, cursor):
+        cursor.execute(
+            """
+            SELECT id_organizacion, nombre, descripcion, direccion, departamento, municipio, zona,
+                   telefono, correo, estado_verificacion,
+                   quienes_somos, que_hacemos, como_trabajamos, donde_trabajamos, url_logo, imagen_portada
+            FROM organizacion
+            WHERE id_organizacion = %s AND estado_verificacion = 'verificada'
+            """,
+            (id_organizacion,),
+        )
+        organizacion = cursor.fetchone()
+
+        if not organizacion:
+            return jsonify({"error": "Organización no encontrada"}), 404
+
+        cursor.execute(
+            """
+            SELECT id_publicacion, titulo, descripcion, cantidad_necesaria, cantidad_recibida, estado
+            FROM publicacion
+            WHERE id_organizacion = %s
+            ORDER BY fecha_publicacion DESC
+            """,
+            (id_organizacion,),
+        )
+        publicaciones = cursor.fetchall()
+
+        return jsonify({
+            "organizacion": organizacion,
+            "publicaciones": publicaciones
+        }), 200
+
+
 # Para el detalle
 @organizacion_bp.route("/organizaciones/<int:id_organizacion>", methods=["GET"])
 def obtener_detalle_organizacion(id_organizacion):
     try:
-        with db_cursor() as (conn, cursor):
-            cursor.execute(
-                """
-                SELECT id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion,
-                       quienes_somos, que_hacemos, como_trabajamos, donde_trabajamos, url_logo, imagen_portada
-                FROM organizacion
-                WHERE id_organizacion = %s AND estado_verificacion = 'verificada'
-                """,
-                (id_organizacion,),
-            )
-            organizacion = cursor.fetchone()
-
-            if not organizacion:
-                return jsonify({"error": "Organización no encontrada"}), 404
-
-            cursor.execute(
-                """
-                SELECT id_publicacion, titulo, descripcion, cantidad_necesaria, cantidad_recibida, estado
-                FROM publicacion
-                WHERE id_organizacion = %s
-                ORDER BY fecha_publicacion DESC
-                """,
-                (id_organizacion,),
-            )
-            publicaciones = cursor.fetchall()
-
-            return jsonify({
-                "organizacion": organizacion,
-                "publicaciones": publicaciones
-            }), 200
-
+        return _detalle_organizacion_response(id_organizacion)
     except Exception:
         logging.exception("Error al obtener detalles de organización")
+        return jsonify({"error": "Error al obtener detalles"}), 500
+
+
+# Organizacion principal configurada para la plataforma
+@organizacion_bp.route("/organizaciones/principal", methods=["GET"])
+def obtener_organizacion_principal():
+    try:
+        return _detalle_organizacion_response(obtener_id_organizacion_principal())
+    except Exception:
+        logging.exception("Error al obtener la organización principal")
         return jsonify({"error": "Error al obtener detalles"}), 500
 
 
@@ -166,15 +195,18 @@ def crear_organizacion():
         cursor.execute(
             """
             INSERT INTO organizacion (
-                nombre, descripcion, direccion, telefono, correo, estado_verificacion,
+                nombre, descripcion, direccion, departamento, municipio, zona, telefono, correo, estado_verificacion,
                 quienes_somos, que_hacemos, como_trabajamos, donde_trabajamos, url_logo, imagen_portada
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 payload["nombre"],
                 payload["descripcion"],
                 payload["direccion"],
+                payload["departamento"],
+                payload["municipio"],
+                payload["zona"],
                 payload["telefono"],
                 payload["correo"],
                 payload["estado_verificacion"],
@@ -231,6 +263,9 @@ def actualizar_organizacion(id_organizacion):
             SET nombre = %s,
                 descripcion = %s,
                 direccion = %s,
+                departamento = %s,
+                municipio = %s,
+                zona = %s,
                 telefono = %s,
                 correo = %s,
                 estado_verificacion = %s,
@@ -246,6 +281,9 @@ def actualizar_organizacion(id_organizacion):
                 payload["nombre"],
                 payload["descripcion"],
                 payload["direccion"],
+                payload["departamento"],
+                payload["municipio"],
+                payload["zona"],
                 payload["telefono"],
                 payload["correo"],
                 payload["estado_verificacion"],

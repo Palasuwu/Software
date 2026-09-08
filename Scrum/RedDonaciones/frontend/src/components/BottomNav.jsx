@@ -16,7 +16,7 @@ export default function BottomNav({ isAuthenticated, usuarioSesion, onLogout }) 
 
             <NavLink to="/organizaciones" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
                 <IconUsers className="meta-icon" />
-                <span>Organizaciones</span>
+                <span>Nosotros</span>
             </NavLink>
 
             {isAuthenticated ? (

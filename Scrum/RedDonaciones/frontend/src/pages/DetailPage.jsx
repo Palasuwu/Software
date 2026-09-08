@@ -267,7 +267,14 @@ export default function DetailPage() {
               </svg>
               <span>Ver en mapa</span>
             </div>
-            <p className="dp-address">{info?.direccion || 'Dirección no disponible'}</p>
+            <p className="dp-address">
+              {[
+                info?.direccion_detalle,
+                info?.zona && `Zona ${info.zona}`,
+                info?.municipio,
+                info?.departamento
+              ].filter(Boolean).join(', ') || info?.direccion || 'Dirección no disponible'}
+            </p>
           </div>
         </div>
 
