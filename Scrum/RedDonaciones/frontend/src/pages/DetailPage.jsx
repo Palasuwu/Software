@@ -80,6 +80,26 @@ export default function DetailPage() {
   const info = data[0]
   const items = data.map(item => ({ name: item.articulo, qty: item.descripcion_detalle }))
 
+  const estadoCampana = (info?.estado || 'activa').toLowerCase()
+  const fechaLimiteStr = info?.fecha_limite ? String(info.fecha_limite).slice(0, 10) : null
+  const d = new Date()
+  const hoyStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const haVencido = Boolean(fechaLimiteStr && fechaLimiteStr < hoyStr)
+
+  let mensajeBloqueo = null
+  let tipoBloqueo = null
+
+  if (estadoCampana === 'finalizada') {
+    mensajeBloqueo = 'Esta campaña ha finalizado y ya no acepta donaciones'
+    tipoBloqueo = 'finalizada'
+  } else if (haVencido) {
+    mensajeBloqueo = 'Ha pasado la fecha límite de la campaña y ya no acepta donaciones'
+    tipoBloqueo = 'cancelada'
+  } else if (estadoCampana === 'cancelada') {
+    mensajeBloqueo = 'Esta campaña está cancelada y no acepta donaciones'
+    tipoBloqueo = 'cancelada'
+  }
+
   const handleChange = (e) => {
     const { name, type, value, checked } = e.target
     setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }))
@@ -91,6 +111,19 @@ export default function DetailPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setSubmitError('')
+
+    if (estadoCampana === 'finalizada') {
+      setSubmitError('Esta campaña ha finalizado y ya no acepta donaciones')
+      return
+    }
+    if (haVencido) {
+      setSubmitError('Ha pasado la fecha límite de la campaña y ya no acepta donaciones')
+      return
+    }
+    if (estadoCampana === 'cancelada') {
+      setSubmitError('Esta campaña está cancelada y no acepta donaciones')
+      return
+    }
 
     const usuario = obtenerUsuarioSesion()
     if (!usuario?.id_usuario) {
@@ -205,7 +238,19 @@ export default function DetailPage() {
             </div>
             <div className="dp-stat">
               <span className="dp-stat-label">Estado</span>
-              <span className="dp-stat-value dp-stat-active">{info.estado}</span>
+              <span className={`dp-stat-value ${
+                estadoCampana === 'finalizada'
+                  ? 'dp-stat-finished'
+                  : (haVencido || estadoCampana === 'cancelada')
+                    ? 'dp-stat-canceled'
+                    : 'dp-stat-active'
+              }`}>
+                {estadoCampana === 'finalizada'
+                  ? 'Finalizada'
+                  : (haVencido || estadoCampana === 'cancelada')
+                    ? 'Cancelada'
+                    : 'Activa'}
+              </span>
             </div>
             <div className="dp-stat">
               <span className="dp-stat-label">Horario</span>
@@ -291,6 +336,41 @@ export default function DetailPage() {
                 </div>
                 <h3>Donación registrada</h3>
                 <p>Tu donación quedó en estado <strong>pendiente</strong>. Te redirigimos a tu historial...</p>
+              </div>
+            ) : mensajeBloqueo ? (
+              <div className="dp-blocked">
+                <div className={`dp-blocked-icon dp-blocked-icon--${tipoBloqueo}`}>
+                  {tipoBloqueo === 'finalizada' ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                      <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
+                  ) : tipoBloqueo === 'vencida' ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="15" y1="9" x2="9" y2="15" />
+                      <line x1="9" y1="9" x2="15" y2="15" />
+                    </svg>
+                  )}
+                </div>
+                <h3>
+                  {tipoBloqueo === 'finalizada'
+                    ? 'Campaña finalizada'
+                    : 'Campaña cancelada'}
+                </h3>
+                <p>{mensajeBloqueo}</p>
+                <button
+                  type="button"
+                  className="dp-blocked-button"
+                  onClick={() => navigate('/home')}
+                >
+                  Ver otras causas
+                </button>
               </div>
             ) : (
               <>

@@ -29,6 +29,9 @@ export default function DonationCard({ org, index = 0 }) {
           loading="lazy"
           onError={(e) => { e.currentTarget.src = defaultImg }}
         />
+        {org.estado === 'finalizada' && (
+          <span className="campaign-badge-finalizada">Finalizada</span>
+        )}
         <span className="campaign-tag">{org.category}</span>
       </div>
 

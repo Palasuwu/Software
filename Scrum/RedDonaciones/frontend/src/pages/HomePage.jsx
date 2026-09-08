@@ -87,8 +87,12 @@ export default function HomePage({ isAuthenticated }) {
         if (!Array.isArray(data)) throw new Error('Respuesta invalida del servidor')
 
         const ahora = new Date()
+        const hoyStr = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`
+
         const adaptadas = data.map((p) => {
-          const estado = p.estado || 'activa'
+          const fechaLimiteStr = p.fecha_limite ? String(p.fecha_limite).slice(0, 10) : null
+          const esVencida = Boolean(fechaLimiteStr && fechaLimiteStr < hoyStr)
+          const estado = esVencida ? 'cancelada' : (p.estado || 'activa').toLowerCase()
           const fechaPublicacion = p.fecha_publicacion ? new Date(p.fecha_publicacion) : null
           const esProxima = estado === 'activa' && fechaPublicacion !== null && fechaPublicacion > ahora
 
@@ -109,7 +113,8 @@ export default function HomePage({ isAuthenticated }) {
           }
         })
 
-        setPublicaciones(adaptadas.filter((p) => p.estado !== 'cancelada'))
+        // En /home solo se muestran campañas activas o finalizadas (ocultando canceladas)
+        setPublicaciones(adaptadas.filter((p) => p.estado === 'activa' || p.estado === 'finalizada'))
         setError(null)
         setLoading(false)
       })

@@ -1,7 +1,7 @@
 # Rutas relacionadas con publicaciones
 import logging
 from flask import Blueprint, jsonify, request
-from auth_utils import admin_required
+from auth_utils import admin_required, validar_admin_request
 from db.connection import get_db_connection, db_cursor
 from services.plataforma_config import obtener_id_organizacion_principal
 from services.publicacion_service import (articulo_existe, actualizar_estado_publicacion_db, crear_publicacion_db, intermediario_pertenece_a_organizacion, organizacion_verificada, validar_estado_publicacion, validar_publicacion_payload, )
@@ -43,19 +43,46 @@ def listar_articulos():
 #  LISTAR PUBLICACIONES
 @publicacion_bp.route("/publicaciones", methods=["GET"])
 def listar_publicaciones():
+    incluir_todas = request.args.get("vista") == "admin"
+
+    if incluir_todas:
+        error_response = validar_admin_request()
+        if error_response:
+            return error_response
+
     try:
         with db_cursor(
             connection_factory=get_db_connection
         ) as (conn, cursor):
 
-            sql = """
+            where_sql = "" if incluir_todas else """
+                WHERE (
+                    o.estado_verificacion = 'verificada'
+                    AND (
+                        COALESCE(p.estado, 'activa') = 'finalizada'
+                        OR (
+                            COALESCE(p.estado, 'activa') = 'activa'
+                            AND (p.fecha_limite IS NULL OR p.fecha_limite >= CURDATE())
+                        )
+                    )
+                ) OR (
+                    o.estado_verificacion = 'archivada'
+                    AND COALESCE(p.estado, 'activa') = 'finalizada'
+                )
+            """
+
+            sql = f"""
                 SELECT
                     p.id_publicacion,
                     p.titulo,
                     p.descripcion,
                     p.cantidad_necesaria,
                     p.cantidad_recibida,
-                    p.estado,
+                    CASE
+                        WHEN (p.estado = 'activa' OR p.estado IS NULL) AND p.fecha_limite IS NOT NULL AND p.fecha_limite < CURDATE()
+                        THEN 'cancelada'
+                        ELSE COALESCE(p.estado, 'activa')
+                    END AS estado,
                     p.fecha_publicacion,
                     p.fecha_limite,
                     p.imagen_url,
@@ -73,13 +100,8 @@ def listar_publicaciones():
                     ON p.id_articulo = a.id_articulo
                 LEFT JOIN categoria_articulo c
                     ON a.id_categoria = c.id_categoria
-                WHERE (
-                    o.estado_verificacion = 'verificada'
-                    AND p.estado IN ('activa', 'finalizada')
-                ) OR (
-                    o.estado_verificacion = 'archivada'
-                    AND p.estado = 'finalizada'
-                )
+                {where_sql}
+                ORDER BY p.fecha_publicacion DESC
             """
 
             cursor.execute(sql)
@@ -274,7 +296,11 @@ def obtener_publicacion(id_publicacion):
                     p.descripcion,
                     p.cantidad_necesaria,
                     p.cantidad_recibida,
-                    p.estado,
+                    CASE
+                        WHEN (p.estado = 'activa' OR p.estado IS NULL) AND p.fecha_limite IS NOT NULL AND p.fecha_limite < CURDATE()
+                        THEN 'cancelada'
+                        ELSE COALESCE(p.estado, 'activa')
+                    END AS estado,
                     p.imagen_url,
                     p.departamento,
                     p.municipio,

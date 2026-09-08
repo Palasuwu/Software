@@ -764,6 +764,91 @@
   margin: 0;
 }
 
+/* ---- Estado de campaña cerrada / no disponible para donar ---- */
+.dp-blocked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 36px 24px;
+  gap: 16px;
+}
+
+.dp-blocked-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dp-blocked-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.dp-blocked-icon--finalizada {
+  background: var(--badge-campaign-finished-bg);
+  border: 1px solid var(--badge-campaign-finished-border);
+  color: var(--badge-campaign-finished-text);
+}
+
+.dp-blocked-icon--vencida {
+  background: var(--badge-donation-pending-bg);
+  border: 1px solid var(--badge-donation-pending-border);
+  color: var(--warning);
+}
+
+.dp-blocked-icon--cancelada {
+  background: var(--badge-campaign-canceled-bg);
+  border: 1px solid var(--badge-campaign-canceled-border);
+  color: var(--danger);
+}
+
+.dp-blocked h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.dp-blocked p {
+  font-size: 0.92rem;
+  color: var(--text-soft);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.dp-blocked-button {
+  margin-top: 8px;
+  padding: 10px 20px;
+  background: var(--primary);
+  color: var(--on-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.dp-blocked-button:hover {
+  background: var(--primary-strong);
+}
+
+.dp-stat-finished {
+  color: var(--badge-campaign-finished-text);
+}
+
+.dp-stat-expired {
+  color: var(--warning);
+}
+
+.dp-stat-canceled {
+  color: var(--danger);
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 940px) {
   .dp-layout {
