@@ -1,6 +1,7 @@
 # Para centralizar validaciones y operaciones compartidas entre admin e intermediario
 
 from datetime import datetime
+from utils.validation import validar_coordenadas
 # Estados permitidos para una publicación
 ESTADOS_PUBLICACION = (
     "activa",
@@ -69,14 +70,6 @@ def validar_publicacion_payload(
         errors.append("Falta el campo obligatorio: fecha_limite")
     if not requerido("estado"):
         errors.append("Falta el campo obligatorio: estado")
-    if not requerido("departamento"):
-        errors.append("Falta el campo obligatorio: departamento")
-    if not requerido("municipio"):
-        errors.append("Falta el campo obligatorio: municipio")
-    if not requerido("zona"):
-        errors.append("Falta el campo obligatorio: zona")
-    if not requerido("direccion_detalle"):
-        errors.append("Falta el campo obligatorio: direccion_detalle")
     if errors:
         return False, errors, None
     # Normalizar payload
@@ -114,31 +107,46 @@ def validar_publicacion_payload(
     if isinstance(imagen_url, str):
         imagen_url = imagen_url.strip() or None
     payload["imagen_url"] = imagen_url
-    payload["departamento"] = str(
-        data.get("departamento") or ""
-    ).strip()
-    payload["municipio"] = str(
-        data.get("municipio") or ""
-    ).strip()
-    payload["zona"] = str(
-        data.get("zona") or ""
-    ).strip()
-    payload["direccion_detalle"] = str(
-        data.get("direccion_detalle") or ""
-    ).strip()
+    # Ubicacion opcional: si viene vacia, se hereda de la organizacion.
+    departamento = str(data.get("departamento") or "").strip()
+    municipio = str(data.get("municipio") or "").strip()
+    zona = str(data.get("zona") or "").strip()
+    direccion_detalle = str(data.get("direccion_detalle") or "").strip()
+    tiene_ubicacion_propia = any((departamento, municipio, zona, direccion_detalle))
+
+    if tiene_ubicacion_propia:
+        payload["departamento"] = departamento
+        payload["municipio"] = municipio
+        payload["zona"] = zona
+        payload["direccion_detalle"] = direccion_detalle
+        latitud, longitud, error_coordenadas = validar_coordenadas(
+            data.get("latitud"), data.get("longitud")
+        )
+        if error_coordenadas:
+            errors.append(error_coordenadas)
+        payload["latitud"] = latitud
+        payload["longitud"] = longitud
+    else:
+        payload["departamento"] = None
+        payload["municipio"] = None
+        payload["zona"] = None
+        payload["direccion_detalle"] = None
+        payload["latitud"] = None
+        payload["longitud"] = None
     # Validar texto
     if not payload["titulo"]:
         errors.append( "Falta el campo obligatorio: titulo")
     if not payload["descripcion"]:
         errors.append("Falta el campo obligatorio: descripcion")
-    if not payload["departamento"]:
-        errors.append("Falta el campo obligatorio: departamento")
-    if not payload["municipio"]:
-        errors.append("Falta el campo obligatorio: municipio")
-    if not payload["zona"].isdigit() or len(payload["zona"]) > 2:
-        errors.append("zona debe ser un numero valido")
-    if len(payload["direccion_detalle"]) < 8:
-        errors.append("direccion_detalle debe ser mas especifica")
+    if tiene_ubicacion_propia:
+        if not payload["departamento"]:
+            errors.append("Falta el campo obligatorio: departamento")
+        if not payload["municipio"]:
+            errors.append("Falta el campo obligatorio: municipio")
+        if not payload["zona"].isdigit() or len(payload["zona"]) > 2:
+            errors.append("zona debe ser un numero valido")
+        if len(payload["direccion_detalle"]) < 8:
+            errors.append("direccion_detalle debe ser mas especifica")
     # Validar cantidad
     if not validar_cantidad_necesaria(
         payload["cantidad_necesaria"]
@@ -295,12 +303,14 @@ def crear_publicacion_db(
             departamento,
             municipio,
             zona,
-            direccion_detalle
+            direccion_detalle,
+            latitud,
+            longitud
         )
         VALUES (
             %s, %s, %s, %s, %s,
             %s, 0, %s, %s, %s, %s,
-            %s, %s, %s, %s
+            %s, %s, %s, %s, %s, %s
         )
     """
     cursor.execute(
@@ -319,7 +329,9 @@ def crear_publicacion_db(
             payload["departamento"],
             payload["municipio"],
             payload["zona"],
-            payload["direccion_detalle"]
+            payload["direccion_detalle"],
+            payload.get("latitud"),
+            payload.get("longitud")
         )
     )
 
@@ -342,7 +354,9 @@ def editar_publicacion_db(
             departamento = %s,
             municipio = %s,
             zona = %s,
-            direccion_detalle = %s
+            direccion_detalle = %s,
+            latitud = %s,
+            longitud = %s
         WHERE id_publicacion = %s
     """
     cursor.execute(
@@ -360,6 +374,8 @@ def editar_publicacion_db(
             payload["municipio"],
             payload["zona"],
             payload["direccion_detalle"],
+            payload.get("latitud"),
+            payload.get("longitud"),
             id_publicacion
         )
     )

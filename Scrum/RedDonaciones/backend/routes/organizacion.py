@@ -7,7 +7,7 @@ from flask import Blueprint, jsonify, request
 from db.connection import get_db_connection, db_cursor
 from auth_utils import admin_required, validar_admin_request
 from services.plataforma_config import obtener_id_organizacion_principal
-from utils.validation import EMAIL_REGEX, PHONE_REGEX, limpiar_espacios
+from utils.validation import EMAIL_REGEX, PHONE_REGEX, limpiar_espacios, validar_coordenadas
 
 logging.basicConfig(level=logging.INFO)
 
@@ -46,6 +46,9 @@ def normalizar_organizacion_payload(data):
         errores["municipio"] = "El municipio debe tener al menos 3 caracteres"
     if not zona.isdigit() or len(zona) > 2:
         errores["zona"] = "La zona debe ser un numero valido"
+    latitud, longitud, error_coordenadas = validar_coordenadas(data.get("latitud"), data.get("longitud"))
+    if error_coordenadas:
+        errores["latitud"] = error_coordenadas
     if not PHONE_REGEX.match(telefono) or len(re.findall(r"\d", telefono)) < 8:
         errores["telefono"] = "El telefono debe ser valido"
     if not EMAIL_REGEX.match(correo):
@@ -64,6 +67,8 @@ def normalizar_organizacion_payload(data):
         "departamento": departamento,
         "municipio": municipio,
         "zona": zona,
+        "latitud": latitud,
+        "longitud": longitud,
         "telefono": telefono,
         "correo": correo,
         "estado_verificacion": estado_verificacion,
@@ -80,7 +85,7 @@ def obtener_organizacion(cursor, id_organizacion):
     cursor.execute(
         """
         SELECT id_organizacion, nombre, descripcion, direccion, departamento, municipio, zona,
-               telefono, correo, estado_verificacion,
+               latitud, longitud, telefono, correo, estado_verificacion,
                quienes_somos, que_hacemos, como_trabajamos, donde_trabajamos, url_logo, imagen_portada
         FROM organizacion
         WHERE id_organizacion = %s
@@ -106,7 +111,7 @@ def listar_organizaciones():
             cursor.execute(
                 f"""
                 SELECT id_organizacion, nombre, descripcion, direccion, departamento, municipio, zona,
-                       telefono, correo, estado_verificacion,
+                       latitud, longitud, telefono, correo, estado_verificacion,
                        quienes_somos, que_hacemos, como_trabajamos, donde_trabajamos, url_logo, imagen_portada
                 FROM organizacion
                 {where_sql}
@@ -127,7 +132,7 @@ def _detalle_organizacion_response(id_organizacion):
         cursor.execute(
             """
             SELECT id_organizacion, nombre, descripcion, direccion, departamento, municipio, zona,
-                   telefono, correo, estado_verificacion,
+                   latitud, longitud, telefono, correo, estado_verificacion,
                    quienes_somos, que_hacemos, como_trabajamos, donde_trabajamos, url_logo, imagen_portada
             FROM organizacion
             WHERE id_organizacion = %s AND estado_verificacion = 'verificada'
@@ -195,10 +200,11 @@ def crear_organizacion():
         cursor.execute(
             """
             INSERT INTO organizacion (
-                nombre, descripcion, direccion, departamento, municipio, zona, telefono, correo, estado_verificacion,
+                nombre, descripcion, direccion, departamento, municipio, zona, latitud, longitud,
+                telefono, correo, estado_verificacion,
                 quienes_somos, que_hacemos, como_trabajamos, donde_trabajamos, url_logo, imagen_portada
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 payload["nombre"],
@@ -207,6 +213,8 @@ def crear_organizacion():
                 payload["departamento"],
                 payload["municipio"],
                 payload["zona"],
+                payload["latitud"],
+                payload["longitud"],
                 payload["telefono"],
                 payload["correo"],
                 payload["estado_verificacion"],
@@ -266,6 +274,8 @@ def actualizar_organizacion(id_organizacion):
                 departamento = %s,
                 municipio = %s,
                 zona = %s,
+                latitud = %s,
+                longitud = %s,
                 telefono = %s,
                 correo = %s,
                 estado_verificacion = %s,
@@ -284,6 +294,8 @@ def actualizar_organizacion(id_organizacion):
                 payload["departamento"],
                 payload["municipio"],
                 payload["zona"],
+                payload["latitud"],
+                payload["longitud"],
                 payload["telefono"],
                 payload["correo"],
                 payload["estado_verificacion"],

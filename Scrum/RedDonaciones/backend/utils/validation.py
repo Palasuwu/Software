@@ -17,3 +17,27 @@ def telefono_valido(value):
 def correo_valido(value):
     correo = (value or "").strip().lower()
     return bool(EMAIL_REGEX.match(correo))
+
+
+def validar_coordenadas(latitud, longitud):
+    """Valida lat/lng como par opcional (van juntas o ninguna); retorna (lat, lng, error)."""
+    tiene_lat = latitud not in (None, "")
+    tiene_lng = longitud not in (None, "")
+
+    if not tiene_lat and not tiene_lng:
+        return None, None, None
+    if tiene_lat != tiene_lng:
+        return None, None, "La latitud y la longitud deben indicarse juntas"
+
+    try:
+        lat = float(latitud)
+        lng = float(longitud)
+    except (TypeError, ValueError):
+        return None, None, "Las coordenadas deben ser numericas"
+
+    if not (-90 <= lat <= 90):
+        return None, None, "La latitud debe estar entre -90 y 90"
+    if not (-180 <= lng <= 180):
+        return None, None, "La longitud debe estar entre -180 y 180"
+
+    return lat, lng, None

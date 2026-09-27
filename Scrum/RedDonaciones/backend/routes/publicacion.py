@@ -86,10 +86,13 @@ def listar_publicaciones():
                     p.fecha_publicacion,
                     p.fecha_limite,
                     p.imagen_url,
-                    p.departamento,
-                    p.municipio,
-                    p.zona,
-                    p.direccion_detalle,
+                    COALESCE(p.departamento, o.departamento) AS departamento,
+                    COALESCE(p.municipio, o.municipio) AS municipio,
+                    COALESCE(p.zona, o.zona) AS zona,
+                    COALESCE(p.direccion_detalle, o.direccion) AS direccion_detalle,
+                    COALESCE(p.latitud, o.latitud) AS latitud,
+                    COALESCE(p.longitud, o.longitud) AS longitud,
+                    (p.departamento IS NULL) AS ubicacion_heredada,
                     o.nombre AS organizacion,
                     o.direccion AS direccion,
                     c.nombre AS categoria
@@ -308,10 +311,13 @@ def obtener_publicacion(id_publicacion):
                         ELSE COALESCE(p.estado, 'activa')
                     END AS estado,
                     p.imagen_url,
-                    p.departamento,
-                    p.municipio,
-                    p.zona,
-                    p.direccion_detalle,
+                    COALESCE(p.departamento, o.departamento) AS departamento,
+                    COALESCE(p.municipio, o.municipio) AS municipio,
+                    COALESCE(p.zona, o.zona) AS zona,
+                    COALESCE(p.direccion_detalle, o.direccion) AS direccion_detalle,
+                    COALESCE(p.latitud, o.latitud) AS latitud,
+                    COALESCE(p.longitud, o.longitud) AS longitud,
+                    (p.departamento IS NULL) AS ubicacion_heredada,
                     DATE_FORMAT(
                         p.fecha_publicacion,
                         '%Y-%m-%d'
@@ -447,6 +453,9 @@ def obtener_publicacion(id_publicacion):
                     "municipio": (publicacion.get("municipio")),
                     "zona": (publicacion.get("zona")),
                     "direccion_detalle": (publicacion.get("direccion_detalle")),
+                    "latitud": (publicacion.get("latitud")),
+                    "longitud": (publicacion.get("longitud")),
+                    "ubicacion_heredada": bool(publicacion.get("ubicacion_heredada")),
                     "categoria": (articulo.get("categoria")
                         or publicacion.get("categoria")
                         or "Sin categoria"

@@ -25,7 +25,7 @@ from services.donacion_service import (
     cambiar_estado_donaciones_masivo,
     consultar_donaciones_recibidas_db,
 )
-from utils.validation import limpiar_espacios
+from utils.validation import limpiar_espacios, validar_coordenadas
 
 intermediario_bp = Blueprint("intermediario", __name__)
 
@@ -60,6 +60,9 @@ def obtener_publicaciones_intermediario():
                     p.municipio,
                     p.zona,
                     p.direccion_detalle,
+                    p.latitud,
+                    p.longitud,
+                    (p.departamento IS NULL) AS ubicacion_heredada,
                     o.nombre AS organizacion,
                     a.nombre AS articulo
                 FROM publicacion p
@@ -550,6 +553,8 @@ def obtener_perfil_institucional():
                     departamento,
                     municipio,
                     zona,
+                    latitud,
+                    longitud,
                     quienes_somos,
                     que_hacemos,
                     como_trabajamos,
@@ -610,6 +615,9 @@ def actualizar_perfil_institucional():
             errores["municipio"] = "El municipio debe tener al menos 3 caracteres"
         if not zona.isdigit() or len(zona) > 2:
             errores["zona"] = "La zona debe ser un numero valido"
+        latitud, longitud, error_coordenadas = validar_coordenadas(data.get("latitud"), data.get("longitud"))
+        if error_coordenadas:
+            errores["latitud"] = error_coordenadas
         if errores:
             return jsonify({"error": "Datos invalidos", "campos": errores}), 400
 
@@ -618,6 +626,8 @@ def actualizar_perfil_institucional():
             departamento,
             municipio,
             zona,
+            latitud,
+            longitud,
             (data.get("quienes_somos") or "").strip() or None,
             (data.get("que_hacemos") or "").strip() or None,
             (data.get("como_trabajamos") or "").strip() or None,
@@ -638,6 +648,8 @@ def actualizar_perfil_institucional():
                     departamento = %s,
                     municipio = %s,
                     zona = %s,
+                    latitud = %s,
+                    longitud = %s,
                     quienes_somos = %s,
                     que_hacemos = %s,
                     como_trabajamos = %s,
