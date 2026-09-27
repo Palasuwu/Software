@@ -25,7 +25,7 @@ from services.donacion_service import (
     cambiar_estado_donaciones_masivo,
     consultar_donaciones_recibidas_db,
 )
-from utils.validation import limpiar_espacios, validar_coordenadas
+from utils.validation import limpiar_espacios, validar_coordenadas, normalizar_fila_coordenadas
 
 intermediario_bp = Blueprint("intermediario", __name__)
 
@@ -78,7 +78,7 @@ def obtener_publicaciones_intermediario():
                 (request.id_organizacion,)
             )
 
-            publicaciones = cursor.fetchall()
+            publicaciones = [normalizar_fila_coordenadas(fila) for fila in cursor.fetchall()]
 
             return jsonify(publicaciones), 200
 
@@ -567,7 +567,7 @@ def obtener_perfil_institucional():
                 (request.id_organizacion,)
             )
 
-            organizacion = cursor.fetchone()
+            organizacion = normalizar_fila_coordenadas(cursor.fetchone())
 
             if not organizacion:
                 return jsonify({

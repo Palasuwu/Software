@@ -222,7 +222,7 @@ VALUES
     (5, 'Intermediario Refugio', 'inter.refugio@reddonaciones.local', '$2b$12$OLdylhqBPU4iMScJAXUGg.tMOCXMKd.cY4aqVmZnAW0c0EoTwzATK', '3000000005', 'intermediario');
 
 -- ORGANIZACIONES
-INSERT IGNORE INTO organizacion (id_organizacion,nombre,descripcion,direccion,departamento,municipio,zona,telefono,correo,estado_verificacion, quienes_somos, que_hacemos, como_trabajamos, donde_trabajamos )
+INSERT IGNORE INTO organizacion (id_organizacion,nombre,descripcion,direccion,departamento,municipio,zona,latitud,longitud,telefono,correo,estado_verificacion, quienes_somos, que_hacemos, como_trabajamos, donde_trabajamos )
 VALUES
 (
     1,
@@ -232,6 +232,8 @@ VALUES
     'Guatemala',
     'Ciudad de Guatemala',
     '1',
+    14.6349000,
+    -90.5069000,
     '3100000001',
     'contacto@laesperanza.org',
     'verificada',
@@ -248,6 +250,8 @@ VALUES
     'Guatemala',
     'Ciudad de Guatemala',
     '6',
+    NULL,
+    NULL,
     '3100000002',
     'contacto@elrefugio.org',
     'archivada',

@@ -41,3 +41,14 @@ def validar_coordenadas(latitud, longitud):
         return None, None, "La longitud debe estar entre -180 y 180"
 
     return lat, lng, None
+
+
+def normalizar_fila_coordenadas(fila):
+    """Convierte latitud/longitud de Decimal (MySQL) a float antes de jsonify, para no serializarlas como string."""
+    if fila is None:
+        return fila
+    if fila.get("latitud") is not None:
+        fila["latitud"] = float(fila["latitud"])
+    if fila.get("longitud") is not None:
+        fila["longitud"] = float(fila["longitud"])
+    return fila

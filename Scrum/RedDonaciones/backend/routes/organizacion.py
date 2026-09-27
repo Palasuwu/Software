@@ -7,7 +7,7 @@ from flask import Blueprint, jsonify, request
 from db.connection import get_db_connection, db_cursor
 from auth_utils import admin_required, validar_admin_request
 from services.plataforma_config import obtener_id_organizacion_principal
-from utils.validation import EMAIL_REGEX, PHONE_REGEX, limpiar_espacios, validar_coordenadas
+from utils.validation import EMAIL_REGEX, PHONE_REGEX, limpiar_espacios, validar_coordenadas, normalizar_fila_coordenadas
 
 logging.basicConfig(level=logging.INFO)
 
@@ -92,7 +92,7 @@ def obtener_organizacion(cursor, id_organizacion):
         """,
         (id_organizacion,),
     )
-    return cursor.fetchone()
+    return normalizar_fila_coordenadas(cursor.fetchone())
 
 
 @organizacion_bp.route("/organizaciones", methods=["GET"])
@@ -118,7 +118,7 @@ def listar_organizaciones():
                 ORDER BY FIELD(estado_verificacion, 'pendiente', 'verificada', 'rechazada', 'inactiva', 'archivada'), nombre
                 """
             )
-            organizaciones = cursor.fetchall()
+            organizaciones = [normalizar_fila_coordenadas(fila) for fila in cursor.fetchall()]
 
             return jsonify(organizaciones), 200
 
@@ -139,7 +139,7 @@ def _detalle_organizacion_response(id_organizacion):
             """,
             (id_organizacion,),
         )
-        organizacion = cursor.fetchone()
+        organizacion = normalizar_fila_coordenadas(cursor.fetchone())
 
         if not organizacion:
             return jsonify({"error": "Organización no encontrada"}), 404

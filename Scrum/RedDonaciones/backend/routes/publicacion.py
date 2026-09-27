@@ -5,6 +5,7 @@ from auth_utils import admin_required, validar_admin_request
 from db.connection import get_db_connection, db_cursor
 from services.plataforma_config import obtener_id_organizacion_principal
 from services.publicacion_service import (articulo_existe, actualizar_estado_publicacion_db, crear_publicacion_db, intermediario_pertenece_a_organizacion, organizacion_verificada, validar_estado_publicacion, validar_publicacion_payload, )
+from utils.validation import normalizar_fila_coordenadas
 
 publicacion_bp = Blueprint("publicacion", __name__)
 
@@ -114,7 +115,7 @@ def listar_publicaciones():
             """
 
             cursor.execute(sql)
-            publicaciones = cursor.fetchall()
+            publicaciones = [normalizar_fila_coordenadas(fila) for fila in cursor.fetchall()]
 
             return jsonify(publicaciones), 200
 
@@ -350,7 +351,7 @@ def obtener_publicacion(id_publicacion):
                 (id_publicacion,)
             )
 
-            publicacion = cursor.fetchone()
+            publicacion = normalizar_fila_coordenadas(cursor.fetchone())
 
             if not publicacion:
                 return jsonify({
