@@ -23,3 +23,40 @@ export function validateCoordinates(form) {
     }
     return errors
 }
+
+export function buildCampaignLocationPayload(form) {
+    const propia = form.ubicacion_modo === 'propia'
+    return {
+        departamento: propia ? texto(form.departamento) : null,
+        municipio: propia ? texto(form.municipio) : null,
+        zona: propia ? texto(form.zona) : null,
+        direccion_detalle: propia ? texto(form.direccion_detalle) : null,
+        ...(propia ? buildCoordinatesPayload(form) : { latitud: null, longitud: null })
+    }
+}
+
+export function validateCampaignLocation(form) {
+    if (form.ubicacion_modo !== 'propia') return {}
+    const errors = validateCoordinates(form)
+    if (!texto(form.departamento)) errors.departamento = 'El departamento es obligatorio'
+    if (!texto(form.municipio)) errors.municipio = 'El municipio es obligatorio'
+    if (!/^\d{1,2}$/.test(texto(form.zona))) errors.zona = 'La zona debe ser un número de uno o dos dígitos'
+    if (texto(form.direccion_detalle).length < 8) errors.direccion_detalle = 'Ingresa una dirección de al menos 8 caracteres'
+    return errors
+}
+
+export function campaignLocationForm(publicacion) {
+    // El indicador del backend distingue los valores heredados de los propios.
+    const heredada = publicacion.ubicacion_heredada == null
+        ? !texto(publicacion.departamento)
+        : Boolean(publicacion.ubicacion_heredada)
+    return {
+        ubicacion_modo: heredada ? 'organizacion' : 'propia',
+        departamento: heredada ? '' : publicacion.departamento ?? '',
+        municipio: heredada ? '' : publicacion.municipio ?? '',
+        zona: heredada ? '' : publicacion.zona ?? '',
+        direccion_detalle: heredada ? '' : publicacion.direccion_detalle ?? '',
+        latitud: heredada ? '' : publicacion.latitud ?? '',
+        longitud: heredada ? '' : publicacion.longitud ?? ''
+    }
+}

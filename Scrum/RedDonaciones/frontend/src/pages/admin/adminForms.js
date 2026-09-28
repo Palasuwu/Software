@@ -30,7 +30,10 @@ export const CAMP_INITIAL_FORM = {
     departamento: '',
     municipio: '',
     zona: '',
-    direccion_detalle: ''
+    direccion_detalle: '',
+    ubicacion_modo: 'organizacion',
+    latitud: '',
+    longitud: ''
 }
 
 const ORG_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/

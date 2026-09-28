@@ -21,3 +21,23 @@ El alcance se basa en sus títulos y en los endpoints de ubicaciones ya integrad
 
 Cada commit se registra al terminar el trabajo, con su fecha real. El día 2 comienza cuando Rodrigo lo indique.
 La vista pública de mapas (SCRUM-189) pertenece a Jorge; las pruebas generales de ubicación (SCRUM-203) pertenecen a Jorge Carlos. Las comprobaciones del día 1 validan únicamente estos formularios y su integración.
+
+## Verificación del día 1 — 28 de septiembre
+
+- Suite del frontend en Docker: 30 pruebas aprobadas, incluidas 17 nuevas de formularios de ubicación.
+- Backend: 17 pruebas de validación/esquema aprobadas y 2 comprobaciones de los endpoints con la base local aprobadas.
+- Compilación del frontend y arranque de frontend, backend y MySQL correctos; web y listado de publicaciones responden HTTP 200.
+- Se aplicó a la base local la migración existente `asegurar_columnas_ubicacion`; faltaban las columnas de coordenadas. No se eliminaron datos.
+- La prueba de login fallaba con el Node local por incompatibilidad de AbortSignal; pasó en el entorno Docker definido por el proyecto.
+- Pendiente: revisión manual de Rodrigo con su sesión. Las pruebas de formularios utilizan API simulada; no sustituyen su revisión de guardado real desde el navegador.
+
+### Dónde revisar
+
+Abrir http://localhost:3000 e iniciar sesión con administrador o intermediario.
+En administrador: Organizaciones → crear/editar, campos de latitud y longitud; Campañas → crear, selector de ubicación.
+En intermediario: perfil institucional, coordenadas; campañas/publicaciones → crear/editar, ubicación de organización o propia.
+Guardar y volver a editar para comprobar persistencia. Probar ambos campos vacíos, un solo campo lleno y latitud fuera de -90 a 90.
+La ubicación propia exige dirección completa; las coordenadas siguen siendo opcionales. Si se omiten, el backend actual resuelve las coordenadas desde la organización.
+
+Los cambios principales están en `CoordinatesFields.jsx`, `CampaignLocationFields.jsx`, `utils/ubicacion.js` y los formularios de `pages/admin/` y `pages/orga/`.
+Los servicios quedan corriendo mediante Docker Compose. Esta entrega no incluye push ni merge; el día 2 continúa pendiente.

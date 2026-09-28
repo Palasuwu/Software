@@ -2,6 +2,7 @@
 // llamadas a la API. La presentacion (tablas, modales, formularios) vive en
 // pages/admin/ y recibe todo por props.
 import React from 'react'
+import { buildCampaignLocationPayload, validateCampaignLocation } from '../utils/ubicacion'
 import { apiDelete, apiGet, apiPost, apiPut, apiUpload } from '../utils/api'
 import { IconUsers, IconCampaigns, IconPlus, IconDonation, IconImage } from '../components/icons'
 import {
@@ -470,10 +471,7 @@ export default function AdminPanel({ usuarioSesion }) {
         if (!campForm.id_intermediario) errors.id_intermediario = 'Selecciona un intermediario'
         if (!campForm.id_organizacion) errors.id_organizacion = 'Selecciona una organización'
         if (!campForm.id_articulo) errors.id_articulo = 'Selecciona un artículo'
-        if (!campForm.departamento.trim()) errors.departamento = 'El departamento es obligatorio'
-        if (!campForm.municipio.trim()) errors.municipio = 'El municipio es obligatorio'
-        if (!/^\d{1,2}$/.test(campForm.zona.trim())) errors.zona = 'La zona debe ser un numero valido'
-        if (!campForm.direccion_detalle.trim()) errors.direccion_detalle = 'La direccion es obligatoria'
+        Object.assign(errors, validateCampaignLocation(campForm))
 
         if (Object.keys(errors).length > 0) {
             setCampFormErrors(errors)
@@ -495,10 +493,7 @@ export default function AdminPanel({ usuarioSesion }) {
                 id_organizacion: Number(campForm.id_organizacion),
                 id_articulo: Number(campForm.id_articulo),
                 imagen_url: campForm.imagen_url || null,
-                departamento: campForm.departamento.trim(),
-                municipio: campForm.municipio.trim(),
-                zona: campForm.zona.trim(),
-                direccion_detalle: campForm.direccion_detalle.trim()
+                ...buildCampaignLocationPayload(campForm)
             })
             setSuccessMessage('Campaña creada con éxito')
             await loadCampaigns()

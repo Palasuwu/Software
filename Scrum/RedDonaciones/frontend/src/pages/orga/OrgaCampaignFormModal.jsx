@@ -3,10 +3,13 @@
 // panel no tiene boton de cerrar ("x"), a diferencia de AdminModal que
 // siempre lo incluye. Reusarlo agregaria un boton que hoy no existe.
 import React from 'react'
+import CampaignLocationFields from '../../components/CampaignLocationFields'
 
 export default function OrgaCampaignFormModal({
     isCreate,
     campForm,
+    campFormErrors,
+    organizacion,
     articulos,
     onChange,
     onImageChange,
@@ -33,7 +36,7 @@ export default function OrgaCampaignFormModal({
                         </div>
                     )}
 
-                    <form onSubmit={onSubmit}>
+                    <form onSubmit={onSubmit} noValidate>
                         <div className="form-grid">
 
                             <div className="form-field">
@@ -92,49 +95,7 @@ export default function OrgaCampaignFormModal({
                                 </select>
                             </div>
 
-                            <div className="form-field">
-                                <label className="form-label">Departamento</label>
-
-                                <input
-                                    className="form-input"
-                                    name="departamento"
-                                    value={campForm.departamento}
-                                    onChange={onChange}
-                                />
-                            </div>
-
-                            <div className="form-field">
-                                <label className="form-label">Municipio</label>
-
-                                <input
-                                    className="form-input"
-                                    name="municipio"
-                                    value={campForm.municipio}
-                                    onChange={onChange}
-                                />
-                            </div>
-
-                            <div className="form-field">
-                                <label className="form-label">Zona</label>
-
-                                <input
-                                    className="form-input"
-                                    name="zona"
-                                    value={campForm.zona}
-                                    onChange={onChange}
-                                />
-                            </div>
-
-                            <div className="form-field">
-                                <label className="form-label">Dirección detallada</label>
-
-                                <input
-                                    className="form-input"
-                                    name="direccion_detalle"
-                                    value={campForm.direccion_detalle}
-                                    onChange={onChange}
-                                />
-                            </div>
+                            <CampaignLocationFields form={campForm} errors={campFormErrors} onChange={onChange} organizacion={organizacion} disabled={isSubmitting} />
 
                             <div className="form-field">
                                 <label className="form-label">
