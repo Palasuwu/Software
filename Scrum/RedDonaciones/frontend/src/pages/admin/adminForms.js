@@ -1,5 +1,6 @@
 // Estado inicial de formularios y validaciones puras del panel de administrador.
 // Sin JSX, sin llamadas a la API: solo transforma y valida datos de formulario.
+import { buildCoordinatesPayload, validateCoordinates } from '../../utils/ubicacion'
 
 export const USER_INITIAL_FORM = {
     nombre: '',
@@ -46,6 +47,7 @@ export function countDigits(value) {
 
 export function buildOrgPayload(form) {
     return {
+        ...buildCoordinatesPayload(form),
         nombre: cleanSpaces(form.nombre),
         descripcion: cleanSpaces(form.descripcion),
         direccion: cleanSpaces(form.direccion),
@@ -77,7 +79,7 @@ export function validateImageFile(file) {
 }
 
 export function validateOrgForm(form) {
-    const errors = {}
+    const errors = validateCoordinates(form)
     const payload = buildOrgPayload(form)
 
     if (payload.nombre.length < 3) errors.nombre = 'Ingresa al menos 3 caracteres'

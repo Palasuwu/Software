@@ -60,6 +60,8 @@ export default function AdminPanel({ usuarioSesion }) {
         telefono: '',
         correo: '',
         estado_verificacion: 'pendiente',
+        latitud: '',
+        longitud: '',
         url_logo: '',
         imagen_portada: ''
     })
@@ -521,6 +523,8 @@ export default function AdminPanel({ usuarioSesion }) {
             telefono: org.telefono || '',
             correo: org.correo || '',
             estado_verificacion: org.estado_verificacion || 'pendiente',
+            latitud: org.latitud ?? '',
+            longitud: org.longitud ?? '',
             url_logo: org.url_logo || '',
             imagen_portada: org.imagen_portada || ''
         })

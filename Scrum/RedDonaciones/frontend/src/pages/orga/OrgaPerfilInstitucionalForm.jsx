@@ -6,6 +6,8 @@ import { apiGet, apiPut, apiUpload } from '../../utils/api'
 import Spinner from '../../components/Spinner'
 import ErrorView from '../../components/ErrorView'
 import { validateImageFile } from '../admin/adminForms'
+import CoordinatesFields from '../../components/CoordinatesFields'
+import { buildCoordinatesPayload, validateCoordinates } from '../../utils/ubicacion'
 
 const CAMPOS = [
     { name: 'quienes_somos', label: 'Quiénes somos' },
@@ -19,6 +21,8 @@ const FORM_VACIO = {
     departamento: '',
     municipio: '',
     zona: '',
+    latitud: '',
+    longitud: '',
     quienes_somos: '',
     que_hacemos: '',
     como_trabajamos: '',
@@ -53,6 +57,8 @@ export default function OrgaPerfilInstitucionalForm() {
                     departamento: data.departamento || '',
                     municipio: data.municipio || '',
                     zona: data.zona || '',
+                    latitud: data.latitud ?? '',
+                    longitud: data.longitud ?? '',
                     quienes_somos: data.quienes_somos || '',
                     que_hacemos: data.que_hacemos || '',
                     como_trabajamos: data.como_trabajamos || '',
@@ -134,13 +140,17 @@ export default function OrgaPerfilInstitucionalForm() {
     const handleSubmit = async (event) => {
         event.preventDefault()
 
+        const errors = validateCoordinates(form)
+        setFieldErrors(errors)
+        if (Object.keys(errors).length > 0) return
+
         setIsSaving(true)
         setSaveError('')
         setSaveSuccess('')
         setFieldErrors({})
 
         try {
-            await apiPut('/api/intermediario/organizacion', form)
+            await apiPut('/api/intermediario/organizacion', { ...form, ...buildCoordinatesPayload(form) })
             setSaveSuccess('Perfil institucional actualizado')
         } catch (error) {
             const camposInvalidos = error.body?.campos
@@ -218,6 +228,8 @@ export default function OrgaPerfilInstitucionalForm() {
                     {fieldErrors.zona && <span className="form-error-text">{fieldErrors.zona}</span>}
                 </div>
             </div>
+
+            <CoordinatesFields form={form} errors={fieldErrors} onChange={handleChange} disabled={isSaving} />
 
             {CAMPOS.map(({ name, label }) => (
                 <div className="form-field" key={name}>
