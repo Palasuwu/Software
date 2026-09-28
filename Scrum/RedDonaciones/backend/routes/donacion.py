@@ -299,7 +299,7 @@ def crear_donacion():
         conn.autocommit = False
         cursor = conn.cursor(dictionary=True)
 
-        # . Primero se debe verificar el donante
+        # 1. Primero se debe verificar el donante
         cursor.execute(
             """
             SELECT id_usuario
@@ -328,7 +328,6 @@ def crear_donacion():
                 fecha_limite
 
             FROM publicacion
-
             WHERE id_publicacion = %s
             """,
             (id_publicacion,)
@@ -409,19 +408,17 @@ def crear_donacion():
                 )
             }), 400
 
-        # ACTUALIZACION ATOMICA
-        # Esta es la protección contra la condición de carrera.
-        # Solamente actualizará la publicación si todavía existe suficiente cantidad disponible EN EL MOMENTO DEL UPDATE
-        # Dos solicitudes concurrentes no pueden hacer que cantidad_recibida supere cantidad_necesaria.
+        # Actualización atómica:
+        # evaluar el estado antes de incrementar la cantidad recibida.
         update_sql = """
             UPDATE publicacion
             SET
-                cantidad_recibida = cantidad_recibida + %s,
                 estado = CASE
-                    WHEN (cantidad_recibida + %s) >= cantidad_necesaria
+                    WHEN cantidad_recibida + %s >= cantidad_necesaria
                     THEN 'finalizada'
                     ELSE estado
-                END
+                END,
+                cantidad_recibida = cantidad_recibida + %s
             WHERE id_publicacion = %s
               AND (estado = 'activa' OR estado IS NULL)
               AND (fecha_limite IS NULL OR fecha_limite >= CURDATE())
@@ -429,7 +426,12 @@ def crear_donacion():
         """
         cursor.execute(
             update_sql,
-            (cantidad_donada, cantidad_donada, id_publicacion, cantidad_donada)
+            (
+                cantidad_donada,
+                cantidad_donada,
+                id_publicacion,
+                cantidad_donada,
+            )
         )
 
         # Si otra transacción consumió el cupo entre el SELECT anterior y este UPDATE, no se actualiza ninguna fila
