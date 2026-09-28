@@ -24,6 +24,7 @@ class DonacionCursor:
         self._resultado = None
         self._ultimo_id = 0
         self._rowcount = 0
+        self.donaciones_creadas = []
 
     def execute(self, sql, params=None):
         sql_norm = " ".join(sql.split())
@@ -74,6 +75,7 @@ class DonacionCursor:
         elif sql_norm.startswith("INSERT INTO donacion"):
             self._ultimo_id += 1
             self._rowcount = 1
+            self.donaciones_creadas.append(params)
             self._resultado = None
 
         else:
@@ -98,15 +100,17 @@ class DonacionConexion:
     def __init__(self, estado, row_lock):
         self.cursor_mock = DonacionCursor(estado, row_lock)
         self.autocommit = True
+        self.commit_count = 0
+        self.rollback_count = 0
 
     def cursor(self, dictionary=False):
         return self.cursor_mock
 
     def commit(self):
-        pass
+        self.commit_count += 1
 
     def rollback(self):
-        pass
+        self.rollback_count += 1
 
     def close(self):
         pass
@@ -116,6 +120,78 @@ def headers_donante(id_usuario):
     os.environ["JWT_SECRET_KEY"] = "test-secret-key-with-at-least-32-bytes"
     token = generate_token(id_usuario, "donante")
     return {"Authorization": f"Bearer {token}"}
+
+
+def payload_donacion(cantidad_donada):
+    return {
+        "id_publicacion": 1,
+        "descripcion": "Ropa de invierno",
+        "nombre_contacto": "Donante",
+        "telefono_contacto": "12345678",
+        "hora_preferida": "10:00",
+        "fecha_donacion": "2026-07-26",
+        "cantidad_donada": cantidad_donada,
+    }
+
+
+def preparar_donacion(monkeypatch, cantidad_recibida=90):
+    estado = EstadoPublicacion()
+    estado.cantidad_recibida = cantidad_recibida
+    row_lock = threading.Lock()
+    conexion = DonacionConexion(estado, row_lock)
+
+    monkeypatch.setattr(
+        "auth_utils._obtener_usuario_actual",
+        lambda id_usuario: {
+            "id_usuario": id_usuario,
+            "rol": "donante",
+            "activo": 1,
+        },
+    )
+    monkeypatch.setattr(
+        "routes.donacion.get_db_connection",
+        lambda: conexion,
+    )
+
+    return estado, conexion
+
+
+def test_crear_donacion_actualiza_cantidad_estado_y_confirma_transaccion(
+    monkeypatch,
+):
+    estado, conexion = preparar_donacion(monkeypatch, cantidad_recibida=95)
+
+    response = app.test_client().post(
+        "/donaciones",
+        json=payload_donacion(5),
+        headers=headers_donante(1),
+    )
+
+    assert response.status_code == 201
+    assert response.get_json()["id_donacion"] == 1
+    assert estado.cantidad_recibida == 100
+    assert estado.estado == "finalizada"
+    assert len(conexion.cursor_mock.donaciones_creadas) == 1
+    assert conexion.commit_count == 1
+    assert conexion.rollback_count == 0
+
+
+def test_crear_donacion_mayor_al_cupo_no_inserta_ni_actualiza(
+    monkeypatch,
+):
+    estado, conexion = preparar_donacion(monkeypatch, cantidad_recibida=95)
+
+    response = app.test_client().post(
+        "/donaciones",
+        json=payload_donacion(6),
+        headers=headers_donante(1),
+    )
+
+    assert response.status_code == 400
+    assert estado.cantidad_recibida == 95
+    assert estado.estado == "activa"
+    assert conexion.cursor_mock.donaciones_creadas == []
+    assert conexion.commit_count == 0
 
 
 def test_donaciones_concurrentes_no_exceden_la_meta(monkeypatch):
@@ -138,15 +214,7 @@ def test_donaciones_concurrentes_no_exceden_la_meta(monkeypatch):
 
     app.config["TESTING"] = True
 
-    payload = {
-        "id_publicacion": 1,
-        "descripcion": "Ropa de invierno",
-        "nombre_contacto": "Donante",
-        "telefono_contacto": "12345678",
-        "hora_preferida": "10:00",
-        "fecha_donacion": "2026-07-26",
-        "cantidad_donada": 10
-    }
+    payload = payload_donacion(10)
 
     resultados = {}
 
@@ -173,3 +241,24 @@ def test_donaciones_concurrentes_no_exceden_la_meta(monkeypatch):
     assert codigos == [201, 400]
     assert estado.cantidad_recibida == 100
     assert estado.estado == "finalizada"
+
+
+
+def test_donacion_por_debajo_de_meta_mantiene_campana_activa(monkeypatch):
+    estado, conexion = preparar_donacion(
+        monkeypatch,
+        cantidad_recibida=80,
+    )
+
+    response = app.test_client().post(
+        "/donaciones",
+        json=payload_donacion(10),
+        headers=headers_donante(1),
+    )
+
+    assert response.status_code == 201
+    assert estado.cantidad_recibida == 90
+    assert estado.estado == "activa"
+    assert len(conexion.cursor_mock.donaciones_creadas) == 1
+    assert conexion.commit_count == 1
+    assert conexion.rollback_count == 0
