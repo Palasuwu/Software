@@ -406,3 +406,8 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ---- Ubicacion / como llegar (ver components/UbicacionEnlaces.jsx) ---- */
+.org-detail-ubicacion {
+  margin-bottom: 36px;
+}

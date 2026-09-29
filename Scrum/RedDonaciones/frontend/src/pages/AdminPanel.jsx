@@ -3,7 +3,7 @@
 // pages/admin/ y recibe todo por props.
 import React from 'react'
 import { apiDelete, apiGet, apiPost, apiPut, apiUpload } from '../utils/api'
-import { IconUsers, IconCampaigns, IconPlus, IconDonation, IconImage } from '../components/icons'
+import { IconUsers, IconCampaigns, IconPlus, IconDonation, IconImage, IconChart } from '../components/icons'
 import {
     USER_INITIAL_FORM,
     CAMP_INITIAL_FORM,
@@ -22,6 +22,7 @@ import AdminOrgsTable from './admin/AdminOrgsTable'
 import AdminCampaignsTable from './admin/AdminCampaignsTable'
 import AdminDonacionesTable from './admin/AdminDonacionesTable'
 import CarruselTable from './admin/CarruselTable'
+import AdminReportes from './admin/AdminReportes'
 import AdminModal from './admin/AdminModal'
 import UserFormModal from './admin/UserFormModal'
 import CampaignFormModal from './admin/CampaignFormModal'
@@ -1120,6 +1121,14 @@ export default function AdminPanel({ usuarioSesion }) {
                         <IconImage className="admin-svg-icon" />
                         <span>Carrusel</span>
                     </button>
+                    <button
+                        type="button"
+                        className={`admin-tab-button ${activeTab === 'reportes' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('reportes')}
+                    >
+                        <IconChart className="admin-svg-icon" />
+                        <span>Reportes</span>
+                    </button>
                 </aside>
 
                 <section className="admin-content-panel">
@@ -1238,7 +1247,7 @@ export default function AdminPanel({ usuarioSesion }) {
                                 onToggleAll={toggleAllDonacionesSelected}
                             />
                         </>
-                    ) : (
+                    ) : activeTab === 'carrusel' ? (
                         <>
                             <div className="admin-section-head">
                                 <div>
@@ -1259,6 +1268,16 @@ export default function AdminPanel({ usuarioSesion }) {
                                 onEdit={openEditCarrusel}
                                 onDelete={openDeleteCarrusel}
                             />
+                        </>
+                    ) : (
+                        <>
+                            <div className="admin-section-head">
+                                <div>
+                                    <h2>Estadísticas y reportes</h2>
+                                    <p>Consulta el comportamiento de las donaciones y exporta los datos a CSV.</p>
+                                </div>
+                            </div>
+                            <AdminReportes />
                         </>
                     )}
                 </section>

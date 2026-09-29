@@ -195,3 +195,16 @@ export function IconCheck({ className = '', ...props }) {
     </svg>
   )
 }
+
+// Icono de la pestana de reportes del panel admin.
+export function IconChart({ className = '', ...props }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2"
+      strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+      <rect x="7" y="12" width="3" height="5" />
+      <rect x="12.5" y="8" width="3" height="9" />
+      <rect x="18" y="5" width="3" height="12" />
+    </svg>
+  )
+}

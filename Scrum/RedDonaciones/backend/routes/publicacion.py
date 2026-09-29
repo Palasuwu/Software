@@ -3,6 +3,8 @@ import logging
 from flask import Blueprint, jsonify, request
 from auth_utils import admin_required, validar_admin_request
 from db.connection import get_db_connection, db_cursor
+from db.resultado_campana_schema import asegurar_tabla_resultado_campana
+from db.ubicaciones_schema import asegurar_columnas_ubicacion
 from services.plataforma_config import obtener_id_organizacion_principal
 from services.publicacion_service import (articulo_existe, actualizar_estado_publicacion_db, crear_publicacion_db, intermediario_pertenece_a_organizacion, organizacion_verificada, validar_estado_publicacion, validar_publicacion_payload, )
 from utils.validation import normalizar_fila_coordenadas
@@ -55,6 +57,8 @@ def listar_publicaciones():
         with db_cursor(
             connection_factory=get_db_connection
         ) as (conn, cursor):
+            asegurar_columnas_ubicacion(cursor)
+            asegurar_tabla_resultado_campana(cursor)
 
             where_sql = "" if incluir_todas else """
                 WHERE (
@@ -159,6 +163,7 @@ def crear_publicacion():
             dictionary=False,
             connection_factory=get_db_connection
         ) as (conn, cursor):
+            asegurar_columnas_ubicacion(cursor)
 
             # La organización debe existir y estar verificada.
             if not organizacion_verificada(
@@ -296,6 +301,8 @@ def obtener_publicacion(id_publicacion):
         with db_cursor(
             connection_factory=get_db_connection
         ) as (conn, cursor):
+            asegurar_columnas_ubicacion(cursor)
+            asegurar_tabla_resultado_campana(cursor)
 
             # Obtener información principal de la publicación.
             publicacion_sql = """

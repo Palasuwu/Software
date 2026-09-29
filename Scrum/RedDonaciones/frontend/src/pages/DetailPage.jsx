@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { obtenerUsuarioSesion } from '../utils/session'
 import { apiGet, apiPost } from '../utils/api'
+import UbicacionEnlaces from '../components/UbicacionEnlaces'
 import Spinner from '../components/Spinner'
 import ErrorView from '../components/ErrorView'
 import CauseContext from '../components/CauseContext'
@@ -261,6 +262,16 @@ export default function DetailPage() {
               <span className="dp-stat-label">Progreso</span>
               <span className="dp-stat-value">{pct}%</span>
             </div>
+          </div>
+
+          {/* Ubicación del punto de entrega: propia o heredada de la organización */}
+          <div className="dp-ubicacion">
+            <UbicacionEnlaces
+              ubicacion={info}
+              nombre={info.organizacion}
+              titulo="Dónde entregar"
+              heredada={Boolean(info.ubicacion_heredada)}
+            />
           </div>
 
           {/* Barra de progreso */}

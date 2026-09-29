@@ -991,3 +991,182 @@
     padding: 24px;
     max-width: 640px;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   REPORTES Y ESTADÍSTICAS (ver admin/AdminReportes.jsx)
+   ═══════════════════════════════════════════════════════════ */
+.rep-filtros {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(140px, 1fr)) auto;
+    gap: 14px;
+    align-items: end;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-sm);
+    background: var(--surface-soft);
+}
+
+.rep-filtros-acciones {
+    display: flex;
+    gap: 10px;
+}
+
+.rep-kpis {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.rep-kpi {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 22px 24px;
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--hero-gradient-start) 0%, var(--hero-gradient-end-panel) 100%);
+}
+
+.rep-kpi-valor {
+    font-family: var(--font-display);
+    font-size: 2.1rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--primary);
+    /* cifras tabulares: los KPI no bailan al cambiar de filtro */
+    font-variant-numeric: tabular-nums;
+}
+
+.rep-kpi-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+.rep-columnas {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.rep-bloque {
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    padding: 18px 20px;
+}
+
+.rep-bloque-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.rep-bloque-titulo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.rep-bloque-head .rep-bloque-titulo {
+    margin-bottom: 14px;
+}
+
+.rep-conteo {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: var(--surface-tinted);
+    border: 1px solid var(--outline);
+    border-radius: 999px;
+    padding: 3px 10px;
+}
+
+.rep-export {
+    min-height: 38px;
+    padding: 0 16px;
+    border: 1px solid var(--primary-muted);
+    border-radius: var(--radius-sm);
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.rep-export:hover:not(:disabled) {
+    background: var(--primary-muted);
+}
+
+.rep-export:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.rep-paginacion {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.rep-pagina-actual {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1024px) {
+    .rep-filtros {
+        grid-template-columns: repeat(2, minmax(140px, 1fr));
+    }
+
+    .rep-filtros-acciones {
+        grid-column: 1 / -1;
+    }
+
+    .rep-columnas {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .rep-kpis {
+        grid-template-columns: 1fr;
+    }
+
+    .rep-filtros {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Tablas de resumen de reportes: viven en una rejilla de 2 columnas, donde el
+   min-width de 820px de .admin-table las desbordaria y ocultaria columnas. */
+.admin-table-compacta {
+    min-width: 0;
+}
+
+.admin-table-compacta th,
+.admin-table-compacta td {
+    padding: 11px 12px;
+}
+
+.admin-table-compacta td:not(:first-child),
+.admin-table-compacta th:not(:first-child) {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}

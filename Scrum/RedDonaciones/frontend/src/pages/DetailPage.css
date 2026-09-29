@@ -945,3 +945,8 @@
     padding: 20px;
   }
 }
+
+/* ---- Ubicacion del punto de entrega (ver components/UbicacionEnlaces.jsx) ---- */
+.dp-ubicacion {
+  margin: 24px 0;
+}

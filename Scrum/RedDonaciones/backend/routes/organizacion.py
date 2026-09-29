@@ -5,6 +5,7 @@ import re
 from flask import Blueprint, jsonify, request
 
 from db.connection import get_db_connection, db_cursor
+from db.ubicaciones_schema import asegurar_columnas_ubicacion
 from auth_utils import admin_required, validar_admin_request
 from services.plataforma_config import obtener_id_organizacion_principal
 from utils.validation import EMAIL_REGEX, PHONE_REGEX, limpiar_espacios, validar_coordenadas, normalizar_fila_coordenadas
@@ -106,6 +107,7 @@ def listar_organizaciones():
 
     try:
         with db_cursor() as (conn, cursor):
+            asegurar_columnas_ubicacion(cursor)
             where_sql = "" if incluir_todas else "WHERE estado_verificacion = 'verificada'"
 
             cursor.execute(
@@ -129,6 +131,7 @@ def listar_organizaciones():
 
 def _detalle_organizacion_response(id_organizacion):
     with db_cursor() as (conn, cursor):
+        asegurar_columnas_ubicacion(cursor)
         cursor.execute(
             """
             SELECT id_organizacion, nombre, descripcion, direccion, departamento, municipio, zona,
