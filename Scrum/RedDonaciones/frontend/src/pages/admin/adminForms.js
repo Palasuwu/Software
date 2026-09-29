@@ -1,5 +1,6 @@
 // Estado inicial de formularios y validaciones puras del panel de administrador.
 // Sin JSX, sin llamadas a la API: solo transforma y valida datos de formulario.
+import { buildCoordinatesPayload, validateCoordinates } from '../../utils/ubicacion'
 
 export const USER_INITIAL_FORM = {
     nombre: '',
@@ -29,7 +30,10 @@ export const CAMP_INITIAL_FORM = {
     departamento: '',
     municipio: '',
     zona: '',
-    direccion_detalle: ''
+    direccion_detalle: '',
+    ubicacion_modo: 'organizacion',
+    latitud: '',
+    longitud: ''
 }
 
 const ORG_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
@@ -46,6 +50,7 @@ export function countDigits(value) {
 
 export function buildOrgPayload(form) {
     return {
+        ...buildCoordinatesPayload(form),
         nombre: cleanSpaces(form.nombre),
         descripcion: cleanSpaces(form.descripcion),
         direccion: cleanSpaces(form.direccion),
@@ -77,17 +82,17 @@ export function validateImageFile(file) {
 }
 
 export function validateOrgForm(form) {
-    const errors = {}
+    const errors = validateCoordinates(form)
     const payload = buildOrgPayload(form)
 
     if (payload.nombre.length < 3) errors.nombre = 'Ingresa al menos 3 caracteres'
     if (payload.descripcion.length < 10) errors.descripcion = 'Ingresa una descripcion mas completa'
-    if (payload.direccion.length < 8) errors.direccion = 'Ingresa una direccion mas especifica'
+    if (payload.direccion && payload.direccion.length < 8) errors.direccion = 'Ingresa una direccion mas especifica'
     if (payload.departamento.length < 3) errors.departamento = 'Ingresa al menos 3 caracteres'
     if (payload.municipio.length < 3) errors.municipio = 'Ingresa al menos 3 caracteres'
-    if (!/^\d{1,2}$/.test(payload.zona)) errors.zona = 'La zona debe ser un numero valido'
-    if (!ORG_PHONE_REGEX.test(payload.telefono) || countDigits(payload.telefono) < 8) errors.telefono = 'Ingresa un telefono valido'
-    if (!ORG_EMAIL_REGEX.test(payload.correo)) errors.correo = 'Ingresa un correo valido'
+    if (payload.zona && !/^\d{1,2}$/.test(payload.zona)) errors.zona = 'La zona debe ser un numero valido'
+    if (payload.telefono && (!ORG_PHONE_REGEX.test(payload.telefono) || countDigits(payload.telefono) < 8)) errors.telefono = 'Ingresa un telefono valido'
+    if (payload.correo && !ORG_EMAIL_REGEX.test(payload.correo)) errors.correo = 'Ingresa un correo valido'
     if (!ORG_STATUSES.includes(payload.estado_verificacion)) errors.estado_verificacion = 'Selecciona un estado valido'
 
     return errors

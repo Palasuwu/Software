@@ -39,20 +39,20 @@ def normalizar_organizacion_payload(data):
         errores["nombre"] = "El nombre debe tener al menos 3 caracteres"
     if len(descripcion) < 10:
         errores["descripcion"] = "La descripcion debe tener al menos 10 caracteres"
-    if len(direccion) < 8:
+    if direccion and len(direccion) < 8:
         errores["direccion"] = "La direccion debe ser mas especifica"
     if len(departamento) < 3:
         errores["departamento"] = "El departamento debe tener al menos 3 caracteres"
     if len(municipio) < 3:
         errores["municipio"] = "El municipio debe tener al menos 3 caracteres"
-    if not zona.isdigit() or len(zona) > 2:
+    if zona and (not zona.isdigit() or len(zona) > 2):
         errores["zona"] = "La zona debe ser un numero valido"
     latitud, longitud, error_coordenadas = validar_coordenadas(data.get("latitud"), data.get("longitud"))
     if error_coordenadas:
         errores["latitud"] = error_coordenadas
-    if not PHONE_REGEX.match(telefono) or len(re.findall(r"\d", telefono)) < 8:
+    if telefono and (not PHONE_REGEX.match(telefono) or len(re.findall(r"\d", telefono)) < 8):
         errores["telefono"] = "El telefono debe ser valido"
-    if not EMAIL_REGEX.match(correo):
+    if correo and not EMAIL_REGEX.match(correo):
         errores["correo"] = "El correo debe ser valido"
     if estado_verificacion not in ESTADOS_VALIDOS:
         errores["estado_verificacion"] = "Estado de verificacion no valido"

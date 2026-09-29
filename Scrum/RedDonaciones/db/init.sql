@@ -221,44 +221,17 @@ VALUES
     (4, 'Donante Video', 'donante.video@reddonaciones.local', '$2b$12$6sOX9qSrscwr5JS0lxrji.8nfhaUjhHJSGxlEFxaD5Jsi4.uhch2q', '3000000004', 'donante'),
     (5, 'Intermediario Refugio', 'inter.refugio@reddonaciones.local', '$2b$12$OLdylhqBPU4iMScJAXUGg.tMOCXMKd.cY4aqVmZnAW0c0EoTwzATK', '3000000005', 'intermediario');
 
--- ORGANIZACIONES
-INSERT IGNORE INTO organizacion (id_organizacion,nombre,descripcion,direccion,departamento,municipio,zona,latitud,longitud,telefono,correo,estado_verificacion, quienes_somos, que_hacemos, como_trabajamos, donde_trabajamos )
-VALUES
-(
-    1,
-    'Hogar de Ninos La Esperanza',
-    'Apoyo integral para niños en situación de vulnerabilidad.',
-    'Zona Centro, Ciudad',
-    'Guatemala',
-    'Ciudad de Guatemala',
-    '1',
-    14.6349000,
-    -90.5069000,
-    '3100000001',
-    'contacto@laesperanza.org',
-    'verificada',
-    'Somos una organización dedicada a brindar apoyo y acompañamiento a niños y familias en situación de vulnerabilidad.',
-    'Organizamos campañas de donación para recolectar ropa, alimentos y otros artículos esenciales destinados a niños y familias que los necesitan.',
-    'Trabajamos en coordinación con donantes e intermediarios para identificar necesidades, organizar campañas y gestionar la recepción y entrega de las donaciones.',
-    'Desarrollamos nuestras actividades principalmente en comunidades de la Ciudad de Guatemala y áreas cercanas.'
-),
-(
-    2,
-    'Asilo de Ancianos El Refugio',
-    'Cuidado y apoyo para adultos mayores en situación de vulnerabilidad.',
-    'Barrio San Juan, Ciudad',
-    'Guatemala',
-    'Ciudad de Guatemala',
-    '6',
-    NULL,
-    NULL,
-    '3100000002',
-    'contacto@elrefugio.org',
-    'archivada',
-    'Somos una organización dedicada al cuidado y bienestar de adultos mayores que requieren acompañamiento y apoyo.',
-    'Brindamos atención a adultos mayores y coordinamos campañas para recolectar ropa, artículos de cuidado personal y otros recursos necesarios para su bienestar.',
-    'Trabajamos con el apoyo de donantes y voluntarios, identificando las necesidades de nuestros residentes y coordinando la recepción y distribución de las donaciones.',
-    'Realizamos nuestras actividades en la Ciudad de Guatemala y apoyamos principalmente a adultos mayores de comunidades cercanas.'
+-- ORGANIZACION PRINCIPAL
+-- Contacto y ubicacion exacta pendientes de confirmacion; no usar datos ficticios.
+INSERT IGNORE INTO organizacion (id_organizacion,nombre,descripcion,direccion,departamento,municipio,zona,latitud,longitud,telefono,correo,estado_verificacion,quienes_somos,que_hacemos,como_trabajamos,donde_trabajamos,url_logo)
+VALUES (
+    1, 'Liga Juvenil Nacional',
+    'Formación, liderazgo y acción para la juventud guatemalteca.',
+    '', 'Guatemala', 'Ciudad de Guatemala', '', NULL, NULL, '', '', 'verificada',
+    'Somos una organización juvenil, social y cultural que cree en la participación, el liderazgo y el cambio generacional.',
+    'Formación, liderazgo y acción para la juventud guatemalteca.',
+    'Trabajamos junto a jóvenes guatemaltecos, desde encuentros comunitarios hasta el Congreso de la República, para formar la voz del presente y del futuro.',
+    'Ciudad de Guatemala.', '/liga-juvenil.svg'
 );
 
 -- DONANTE
@@ -271,7 +244,7 @@ VALUES
 INSERT IGNORE INTO intermediario (id_usuario, id_organizacion, cargo)
 VALUES
     (2, 1, 'Coordinador de Donaciones'),
-    (5, 2, 'Coordinador de Donaciones');
+    (5, 1, 'Coordinador de Donaciones');
 
 -- CATEGORIA
 INSERT IGNORE INTO categoria_articulo (id_categoria, nombre, descripcion)
@@ -299,8 +272,7 @@ VALUES
 
 -- PUBLICACIONES
 -- Nota: id_organizacion=1 para ambas porque la plataforma opera con una unica
--- organizacion principal (ver ID_ORGANIZACION_PRINCIPAL); la organizacion 2
--- queda archivada como legado, sin publicaciones propias.
+-- organizacion principal (ver ID_ORGANIZACION_PRINCIPAL).
 INSERT IGNORE INTO publicacion (
     id_publicacion,
     id_intermediario,
@@ -321,15 +293,9 @@ INSERT IGNORE INTO publicacion (
 )
 VALUES
     (1, 2, 1, 1, 'Ropa de invierno para abril', 'Recoleccion de chaquetas, buzos y pantalones.', 120, 70, '2026-04-01', '2026-04-20', 'activa',
-     'https://placehold.co/600x340/d4c5a9/5c3d1e?text=Hogar+La+Esperanza', 'Guatemala', 'Ciudad de Guatemala', '1', 'Centro de acopio'),
+     NULL, 'Guatemala', 'Ciudad de Guatemala', '1', 'Centro de acopio'),
     (2, 2, 1, 1, 'Jornada de ropa infantil', 'Donaciones de ropa para ninos.', 90, 90, '2026-03-15', '2026-03-30', 'finalizada',
-     'https://placehold.co/600x340/b8d5c8/1e3d2e?text=Hogar+La+Esperanza', 'Guatemala', 'Ciudad de Guatemala', '1', 'Bodega de donaciones');
-
--- Actualizar URLs en registros ya existentes que no tengan imagen
-UPDATE publicacion SET imagen_url = 'https://placehold.co/600x340/d4c5a9/5c3d1e?text=Hogar+La+Esperanza'
-    WHERE id_publicacion = 1 AND (imagen_url IS NULL OR imagen_url = '');
-UPDATE publicacion SET imagen_url = 'https://placehold.co/600x340/b8d5c8/1e3d2e?text=Hogar+La+Esperanza'
-    WHERE id_publicacion = 2 AND (imagen_url IS NULL OR imagen_url = '');
+     NULL, 'Guatemala', 'Ciudad de Guatemala', '1', 'Bodega de donaciones');
 
 -- DONACIONES
 INSERT IGNORE INTO donacion (id_donacion, id_donante, id_publicacion, descripcion, nombre_contacto, telefono_contacto, hora_preferida, nota, cantidad_donada, fecha_donacion, estado

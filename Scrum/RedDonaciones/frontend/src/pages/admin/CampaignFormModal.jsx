@@ -2,6 +2,7 @@
 // modal en pages/orga porque su formulario no incluye organizacion/intermediario).
 import React from 'react'
 import AdminModal from './AdminModal'
+import CampaignLocationFields from '../../components/CampaignLocationFields'
 
 export default function CampaignFormModal({
     campForm,
@@ -97,29 +98,7 @@ export default function CampaignFormModal({
                         {campFormErrors.id_organizacion && <span className="form-error-text">{campFormErrors.id_organizacion}</span>}
                     </div>
 
-                    <div className="form-field">
-                        <label className="form-label">Departamento</label>
-                        <input className={`form-input ${campFormErrors.departamento ? 'form-input-invalid' : ''}`} name="departamento" value={campForm.departamento} onChange={onChange} />
-                        {campFormErrors.departamento && <span className="form-error-text">{campFormErrors.departamento}</span>}
-                    </div>
-
-                    <div className="form-field">
-                        <label className="form-label">Municipio</label>
-                        <input className={`form-input ${campFormErrors.municipio ? 'form-input-invalid' : ''}`} name="municipio" value={campForm.municipio} onChange={onChange} />
-                        {campFormErrors.municipio && <span className="form-error-text">{campFormErrors.municipio}</span>}
-                    </div>
-
-                    <div className="form-field">
-                        <label className="form-label">Zona</label>
-                        <input className={`form-input ${campFormErrors.zona ? 'form-input-invalid' : ''}`} name="zona" value={campForm.zona} onChange={onChange} />
-                        {campFormErrors.zona && <span className="form-error-text">{campFormErrors.zona}</span>}
-                    </div>
-
-                    <div className="form-field">
-                        <label className="form-label">Dirección detallada</label>
-                        <input className={`form-input ${campFormErrors.direccion_detalle ? 'form-input-invalid' : ''}`} name="direccion_detalle" value={campForm.direccion_detalle} onChange={onChange} />
-                        {campFormErrors.direccion_detalle && <span className="form-error-text">{campFormErrors.direccion_detalle}</span>}
-                    </div>
+                    <CampaignLocationFields form={campForm} errors={campFormErrors} onChange={onChange} organizacion={organizacionAsignada} disabled={isSubmitting} />
 
                     <div className="form-field">
                         <label className="form-label">Artículo</label>

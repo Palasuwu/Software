@@ -1,6 +1,7 @@
 // Modal de crear/editar organizacion.
 import React from 'react'
 import AdminModal from './AdminModal'
+import CoordinatesFields from '../../components/CoordinatesFields'
 
 export default function OrgFormModal({
     isEdit,
@@ -41,7 +42,7 @@ export default function OrgFormModal({
         >
             {modalError && <div className="error-box">{modalError}</div>}
 
-            <form id="org-form" onSubmit={onSubmit}>
+            <form id="org-form" onSubmit={onSubmit} noValidate>
                 <div className="form-grid">
                     <div className="form-field">
                         <label className="form-label">Nombre</label>
@@ -108,6 +109,8 @@ export default function OrgFormModal({
                         />
                         {orgFormErrors.zona && <span className="form-error-text org-field-error-text">{orgFormErrors.zona}</span>}
                     </div>
+
+                    <CoordinatesFields form={orgForm} errors={orgFormErrors} onChange={onChange} disabled={isSubmitting} />
 
                     <div className="form-field">
                         <label className="form-label">Telefono</label>
