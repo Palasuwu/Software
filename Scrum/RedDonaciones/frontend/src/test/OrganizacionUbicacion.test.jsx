@@ -31,6 +31,13 @@ beforeEach(() => {
 })
 
 describe('Ubicación de organización', () => {
+    it('permite contacto pendiente y sigue rechazando datos incorrectos', () => {
+        const pendiente = { ...organizacion, direccion: '', zona: '', telefono: '', correo: '', latitud: '', longitud: '' }
+        expect(validateOrgForm(pendiente)).toEqual({})
+        expect(validateOrgForm({ ...pendiente, correo: 'incorrecto', telefono: 'abc', zona: 'xx', direccion: 'abc' })).toMatchObject({
+            correo: expect.any(String), telefono: expect.any(String), zona: expect.any(String), direccion: expect.any(String)
+        })
+    })
     it('conserva el cero y convierte campos vacíos a null en el payload administrativo', () => {
         expect(buildOrgPayload({ ...organizacion, latitud: '0', longitud: '0' })).toMatchObject({ latitud: 0, longitud: 0 })
         expect(buildOrgPayload({ ...organizacion, latitud: '', longitud: '' })).toMatchObject({ latitud: null, longitud: null })

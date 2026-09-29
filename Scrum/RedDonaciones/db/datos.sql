@@ -15,7 +15,7 @@ VALUES
 -- ORGANIZACIONES
 INSERT IGNORE INTO organizacion (id_organizacion, nombre, descripcion, direccion, telefono, correo, estado_verificacion)
 VALUES
-    (1, 'Hogar de Ninos La Esperanza', 'Apoyo integral para ninos en situacion de vulnerabilidad.', 'Zona Centro, Ciudad', '3100000001', 'contacto@laesperanza.org', 'verificada');
+    (1, 'Liga Juvenil Nacional', 'Formación, liderazgo y acción para la juventud guatemalteca.', '', '', '', 'verificada');
 
 -- DONANTE
 INSERT IGNORE INTO donante (id_usuario, departamento, municipio, zona, direccion_detalle)

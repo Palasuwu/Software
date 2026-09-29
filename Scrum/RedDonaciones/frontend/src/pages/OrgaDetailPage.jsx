@@ -151,18 +151,18 @@ function OrgaDetailPage() {
           <div className="org-detail-contact">
             <div className="org-detail-contact-item">
               <span className="org-detail-contact-label">Ubicación</span>
-              <span className="org-detail-contact-value">{organizacion.direccion}</span>
+              <span className="org-detail-contact-value">{organizacion.direccion || 'Pendiente de confirmar'}</span>
               <span className="org-detail-contact-value">
                 {[organizacion.municipio, organizacion.departamento].filter(Boolean).join(', ')}
               </span>
             </div>
             <div className="org-detail-contact-item">
               <span className="org-detail-contact-label">Teléfono</span>
-              <span className="org-detail-contact-value">{organizacion.telefono}</span>
+              <span className="org-detail-contact-value">{organizacion.telefono || 'Pendiente de confirmar'}</span>
             </div>
             <div className="org-detail-contact-item">
               <span className="org-detail-contact-label">Correo</span>
-              <span className="org-detail-contact-value">{organizacion.correo}</span>
+              <span className="org-detail-contact-value">{organizacion.correo || 'Pendiente de confirmar'}</span>
             </div>
           </div>
         </div>

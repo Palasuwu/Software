@@ -87,12 +87,12 @@ export function validateOrgForm(form) {
 
     if (payload.nombre.length < 3) errors.nombre = 'Ingresa al menos 3 caracteres'
     if (payload.descripcion.length < 10) errors.descripcion = 'Ingresa una descripcion mas completa'
-    if (payload.direccion.length < 8) errors.direccion = 'Ingresa una direccion mas especifica'
+    if (payload.direccion && payload.direccion.length < 8) errors.direccion = 'Ingresa una direccion mas especifica'
     if (payload.departamento.length < 3) errors.departamento = 'Ingresa al menos 3 caracteres'
     if (payload.municipio.length < 3) errors.municipio = 'Ingresa al menos 3 caracteres'
-    if (!/^\d{1,2}$/.test(payload.zona)) errors.zona = 'La zona debe ser un numero valido'
-    if (!ORG_PHONE_REGEX.test(payload.telefono) || countDigits(payload.telefono) < 8) errors.telefono = 'Ingresa un telefono valido'
-    if (!ORG_EMAIL_REGEX.test(payload.correo)) errors.correo = 'Ingresa un correo valido'
+    if (payload.zona && !/^\d{1,2}$/.test(payload.zona)) errors.zona = 'La zona debe ser un numero valido'
+    if (payload.telefono && (!ORG_PHONE_REGEX.test(payload.telefono) || countDigits(payload.telefono) < 8)) errors.telefono = 'Ingresa un telefono valido'
+    if (payload.correo && !ORG_EMAIL_REGEX.test(payload.correo)) errors.correo = 'Ingresa un correo valido'
     if (!ORG_STATUSES.includes(payload.estado_verificacion)) errors.estado_verificacion = 'Selecciona un estado valido'
 
     return errors
