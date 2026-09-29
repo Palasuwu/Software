@@ -1,4 +1,25 @@
+def _tabla_notificaciones_existe(cursor):
+    cursor.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM information_schema.TABLES
+        WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = %s
+        """,
+        ("notificacion",)
+    )
+    fila = cursor.fetchone()
+    if isinstance(fila, dict):
+        return bool(fila.get("total"))
+    return bool(fila and fila[0])
+
+
 def asegurar_tabla_notificaciones(cursor):
+    # CREATE TABLE confirma la transacción en curso aunque la tabla ya exista,
+    # por eso solo se ejecuta cuando falta.
+    if _tabla_notificaciones_existe(cursor):
+        return
+
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS notificacion (
