@@ -20,6 +20,10 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 @upload_bp.route("/upload", methods=["POST"])
 @token_required
 def upload_imagen():
+    # token_required establece el rol actual del usuario desde la BD.
+    if request.usuario_rol not in ("administrador", "intermediario"):
+        return jsonify({"error": "No tienes permiso para subir imágenes"}), 403
+
     if "file" not in request.files:
         return jsonify({"error": "No se envió ningún archivo"}), 400
 
