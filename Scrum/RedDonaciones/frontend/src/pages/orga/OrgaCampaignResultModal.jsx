@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function OrgaCampaignResultModal({ publicacion, form, onChange, onSubmit, onClose, saving, error }) {
+export default function OrgaCampaignResultModal({ publicacion, form, onChange, onImageChange, imagePreview, uploadingImage, onSubmit, onClose, saving, error }) {
     return (
         <div className="admin-modal-backdrop">
             <section className="admin-modal">
@@ -39,19 +39,32 @@ export default function OrgaCampaignResultModal({ publicacion, form, onChange, o
                                 />
                             </div>
                             <div className="form-field">
-                                <label className="form-label">URL de imagen (opcional)</label>
+                                <label className="form-label" htmlFor="campaign-result-image">Imagen (opcional)</label>
                                 <input
-                                    className="form-input"
-                                    name="imagen_url"
-                                    value={form.imagen_url}
-                                    onChange={onChange}
-                                    placeholder="https://..."
+                                    id="campaign-result-image"
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/gif,image/webp"
+                                    className="form-input form-file-input"
+                                    onChange={onImageChange}
+                                    disabled={uploadingImage}
                                 />
+                                {uploadingImage && (
+                                    <span className="form-error-text form-uploading-text" role="status">
+                                        Subiendo imagen...
+                                    </span>
+                                )}
+                                {imagePreview && (
+                                    <img
+                                        src={imagePreview}
+                                        alt="Vista previa de resultados"
+                                        style={{ marginTop: '8px', maxHeight: '120px', borderRadius: '6px', objectFit: 'cover' }}
+                                    />
+                                )}
                             </div>
                         </div>
                         <div className="admin-modal-footer">
                             <button type="button" className="profile-cancel-button" onClick={onClose}>Cancelar</button>
-                            <button type="submit" className="btn-confirmar" disabled={saving}>
+                            <button type="submit" className="btn-confirmar" disabled={saving || uploadingImage}>
                                 {saving ? 'Publicando...' : 'Publicar resultados'}
                             </button>
                         </div>

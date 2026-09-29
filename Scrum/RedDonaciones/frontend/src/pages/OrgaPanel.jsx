@@ -2,7 +2,6 @@
 // y las llamadas a la API. La presentacion vive en pages/orga/ y pages/admin/
 // (piezas compartidas con AdminPanel: SkeletonRows, adminHelpers, icons).
 import React from 'react'
-import { buildCampaignLocationPayload, validateCampaignLocation, campaignLocationForm } from '../utils/ubicacion'
 import { apiGet, apiPut, apiPost, apiUpload } from '../utils/api'
 import { IconCampaigns, IconUsers, IconPlus, IconDonation, IconUser } from '../components/icons'
 import OrgaCampaignsTable from './orga/OrgaCampaignsTable'
@@ -12,6 +11,7 @@ import OrgaPerfilInstitucionalForm from './orga/OrgaPerfilInstitucionalForm'
 import OrgaCampaignFormModal from './orga/OrgaCampaignFormModal'
 import OrgaCampaignResultModal from './orga/OrgaCampaignResultModal'
 import { donationStatusLabel } from './admin/adminHelpers'
+import { validateImageFile } from './admin/adminForms'
 import './admin/admin-panel.css'
 
 const ESTADOS_DONACION = ['pendiente', 'recibida', 'en_proceso', 'entregada', 'rechazada']
@@ -28,10 +28,7 @@ const CAMP_INITIAL_FORM = {
   departamento: '',
   municipio: '',
   zona: '',
-  direccion_detalle: '',
-  ubicacion_modo: 'organizacion',
-  latitud: '',
-  longitud: ''
+  direccion_detalle: ''
 }
 
 export default function OrgaPanel() {
@@ -51,14 +48,16 @@ export default function OrgaPanel() {
 
   const [modal, setModal] = React.useState(null)
   const [campForm, setCampForm] = React.useState(CAMP_INITIAL_FORM)
-  const [campFormErrors, setCampFormErrors] = React.useState({})
-  const [organizacion, setOrganizacion] = React.useState(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [modalError, setModalError] = React.useState('')
   const [articulos, setArticulos] = React.useState([])
   const [imagePreview, setImagePreview] = React.useState(null)
   const [uploadingImage, setUploadingImage] = React.useState(false)
   const [resultForm, setResultForm] = React.useState({ resumen: '', personas_beneficiadas: '', imagen_url: '' })
+  const [resultImagePreview, setResultImagePreview] = React.useState(null)
+  const [uploadingResultImage, setUploadingResultImage] = React.useState(false)
+  const resultFormSessionRef = React.useRef(0)
+  const resultImageObjectUrlRef = React.useRef(null)
 
   const [donaciones, setDonaciones] = React.useState([])
   const [loadingDonaciones, setLoadingDonaciones] = React.useState(true)
@@ -77,6 +76,14 @@ export default function OrgaPanel() {
 
     return () => clearTimeout(timeout)
   }, [successMessage])
+
+  React.useEffect(() => () => {
+    resultFormSessionRef.current += 1
+    if (resultImageObjectUrlRef.current && typeof URL.revokeObjectURL === 'function') {
+      URL.revokeObjectURL(resultImageObjectUrlRef.current)
+      resultImageObjectUrlRef.current = null
+    }
+  }, [])
 
   const loadCampaigns = React.useCallback(async () => {
     setLoadingCampaigns(true)
@@ -189,17 +196,7 @@ export default function OrgaPanel() {
     }
   }
 
-  const loadOrganization = async () => {
-    try {
-      setOrganizacion(await apiGet('/api/intermediario/organizacion'))
-    } catch {
-      setOrganizacion(null)
-    }
-  }
-
   const openCreateCampaign = () => {
-    loadOrganization()
-    setCampFormErrors({})
     setCampForm(CAMP_INITIAL_FORM)
     setModalError('')
     setImagePreview(null)
@@ -207,8 +204,6 @@ export default function OrgaPanel() {
   }
 
   const openEditCampaign = (publicacion) => {
-    loadOrganization()
-    setCampFormErrors({})
     setCampForm({
       titulo: publicacion.titulo || '',
       descripcion: publicacion.descripcion || '',
@@ -218,7 +213,10 @@ export default function OrgaPanel() {
       estado: publicacion.estado || 'activa',
       id_articulo: publicacion.id_articulo || '',
       imagen_url: publicacion.imagen_url || '',
-      ...campaignLocationForm(publicacion)
+      departamento: publicacion.departamento || '',
+      municipio: publicacion.municipio || '',
+      zona: publicacion.zona || '',
+      direccion_detalle: publicacion.direccion_detalle || ''
     })
 
     setModalError('')
@@ -229,26 +227,52 @@ export default function OrgaPanel() {
     })
   }
 
-  const closeModal = () => setModal(null)
+  const closeModal = () => {
+    resultFormSessionRef.current += 1
+    setUploadingResultImage(false)
+    updateResultImagePreview(null)
+    setModal(null)
+  }
+
+  const updateResultImagePreview = (preview) => {
+    const previousObjectUrl = resultImageObjectUrlRef.current
+    if (previousObjectUrl && previousObjectUrl !== preview) {
+      if (typeof URL.revokeObjectURL === 'function') URL.revokeObjectURL(previousObjectUrl)
+      resultImageObjectUrlRef.current = null
+    }
+    if (typeof preview === 'string' && preview.startsWith('blob:')) {
+      resultImageObjectUrlRef.current = preview
+    }
+    setResultImagePreview(preview)
+  }
 
   const openResultModal = async (publicacion) => {
+    const formSession = ++resultFormSessionRef.current
     setModalError('')
     setResultForm({ resumen: '', personas_beneficiadas: '', imagen_url: '' })
+    updateResultImagePreview(null)
+    setUploadingResultImage(false)
     try {
       const result = await apiGet(`/api/publicaciones/${publicacion.id_publicacion}/resultado`)
-      setResultForm({
+      if (formSession !== resultFormSessionRef.current) return
+      const nextForm = {
         resumen: result.resumen || '',
         personas_beneficiadas: result.personas_beneficiadas ?? '',
         imagen_url: result.imagen_url || ''
-      })
+      }
+      setResultForm(nextForm)
+      updateResultImagePreview(nextForm.imagen_url || null)
     } catch (error) {
+      if (formSession !== resultFormSessionRef.current) return
       if (error.status !== 404) setModalError(error.message)
     }
+    if (formSession !== resultFormSessionRef.current) return
     setModal({ type: 'campaignResult', publicacion })
   }
 
   const submitResultForm = async (event) => {
     event.preventDefault()
+    if (uploadingResultImage) return
     setIsSubmitting(true)
     setModalError('')
     try {
@@ -263,11 +287,43 @@ export default function OrgaPanel() {
     }
   }
 
+  const handleResultImageChange = async (event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    const formSession = resultFormSessionRef.current
+    const fileInput = event.currentTarget
+
+    const validationError = validateImageFile(file)
+    if (validationError) {
+      setModalError(validationError)
+      event.target.value = ''
+      return
+    }
+
+    const previousImageUrl = resultForm.imagen_url
+    setModalError('')
+    updateResultImagePreview(URL.createObjectURL(file))
+    setUploadingResultImage(true)
+
+    try {
+      const result = await apiUpload(file)
+      if (formSession !== resultFormSessionRef.current) return
+      setResultForm((current) => ({ ...current, imagen_url: result.url }))
+      updateResultImagePreview(result.url)
+    } catch (error) {
+      if (formSession !== resultFormSessionRef.current) return
+      setModalError(error.message || 'No se pudo subir la imagen')
+      updateResultImagePreview(previousImageUrl || null)
+    } finally {
+      if (formSession === resultFormSessionRef.current) {
+        setUploadingResultImage(false)
+      }
+      fileInput.value = ''
+    }
+  }
+
   const handleCampChange = (event) => {
     const { name, value } = event.target
-
-    setCampFormErrors({})
-    setModalError('')
 
     setCampForm((prev) => ({
       ...prev,
@@ -313,10 +369,6 @@ export default function OrgaPanel() {
   const submitCampForm = async (event) => {
     event.preventDefault()
 
-    const errors = validateCampaignLocation(campForm)
-    setCampFormErrors(errors)
-    if (Object.keys(errors).length > 0) return
-
     setModalError('')
     setIsSubmitting(true)
 
@@ -324,7 +376,6 @@ export default function OrgaPanel() {
       if (modal?.type === 'createCampaign') {
         await apiPost('/api/intermediario/publicaciones', {
           ...campForm,
-          ...buildCampaignLocationPayload(campForm),
           cantidad_necesaria: Number(campForm.cantidad_necesaria),
           id_articulo: Number(campForm.id_articulo)
         })
@@ -335,7 +386,6 @@ export default function OrgaPanel() {
           `/api/intermediario/publicaciones/${modal.publicacion.id_publicacion}`,
           {
             ...campForm,
-            ...buildCampaignLocationPayload(campForm),
             cantidad_necesaria: Number(campForm.cantidad_necesaria),
             id_articulo: Number(campForm.id_articulo)
           }
@@ -593,6 +643,9 @@ export default function OrgaPanel() {
           publicacion={modal.publicacion}
           form={resultForm}
           onChange={(event) => setResultForm((current) => ({ ...current, [event.target.name]: event.target.value }))}
+          onImageChange={handleResultImageChange}
+          imagePreview={resultImagePreview}
+          uploadingImage={uploadingResultImage}
           onSubmit={submitResultForm}
           onClose={closeModal}
           saving={isSubmitting}
@@ -602,8 +655,6 @@ export default function OrgaPanel() {
         <OrgaCampaignFormModal
           isCreate={modal.type === 'createCampaign'}
           campForm={campForm}
-          campFormErrors={campFormErrors}
-          organizacion={organizacion}
           articulos={articulos}
           onChange={handleCampChange}
           onImageChange={handleImageChange}
