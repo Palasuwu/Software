@@ -2,6 +2,7 @@
 // y las llamadas a la API. La presentacion vive en pages/orga/ y pages/admin/
 // (piezas compartidas con AdminPanel: SkeletonRows, adminHelpers, icons).
 import React from 'react'
+import { buildCampaignLocationPayload, validateCampaignLocation, campaignLocationForm } from '../utils/ubicacion'
 import { apiGet, apiPut, apiPost, apiUpload } from '../utils/api'
 import { IconCampaigns, IconUsers, IconPlus, IconDonation, IconUser } from '../components/icons'
 import OrgaCampaignsTable from './orga/OrgaCampaignsTable'
@@ -28,7 +29,10 @@ const CAMP_INITIAL_FORM = {
   departamento: '',
   municipio: '',
   zona: '',
-  direccion_detalle: ''
+  direccion_detalle: '',
+  ubicacion_modo: 'organizacion',
+  latitud: '',
+  longitud: ''
 }
 
 export default function OrgaPanel() {
@@ -48,6 +52,8 @@ export default function OrgaPanel() {
 
   const [modal, setModal] = React.useState(null)
   const [campForm, setCampForm] = React.useState(CAMP_INITIAL_FORM)
+  const [campFormErrors, setCampFormErrors] = React.useState({})
+  const [organizacion, setOrganizacion] = React.useState(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [modalError, setModalError] = React.useState('')
   const [articulos, setArticulos] = React.useState([])
@@ -196,7 +202,17 @@ export default function OrgaPanel() {
     }
   }
 
+  const loadOrganization = async () => {
+    try {
+      setOrganizacion(await apiGet('/api/intermediario/organizacion'))
+    } catch {
+      setOrganizacion(null)
+    }
+  }
+
   const openCreateCampaign = () => {
+    loadOrganization()
+    setCampFormErrors({})
     setCampForm(CAMP_INITIAL_FORM)
     setModalError('')
     setImagePreview(null)
@@ -204,6 +220,8 @@ export default function OrgaPanel() {
   }
 
   const openEditCampaign = (publicacion) => {
+    loadOrganization()
+    setCampFormErrors({})
     setCampForm({
       titulo: publicacion.titulo || '',
       descripcion: publicacion.descripcion || '',
@@ -213,10 +231,7 @@ export default function OrgaPanel() {
       estado: publicacion.estado || 'activa',
       id_articulo: publicacion.id_articulo || '',
       imagen_url: publicacion.imagen_url || '',
-      departamento: publicacion.departamento || '',
-      municipio: publicacion.municipio || '',
-      zona: publicacion.zona || '',
-      direccion_detalle: publicacion.direccion_detalle || ''
+      ...campaignLocationForm(publicacion)
     })
 
     setModalError('')
@@ -325,6 +340,7 @@ export default function OrgaPanel() {
   const handleCampChange = (event) => {
     const { name, value } = event.target
 
+    setCampFormErrors({})
     setCampForm((prev) => ({
       ...prev,
       [name]: value
@@ -369,6 +385,10 @@ export default function OrgaPanel() {
   const submitCampForm = async (event) => {
     event.preventDefault()
 
+    const errors = validateCampaignLocation(campForm)
+    setCampFormErrors(errors)
+    if (Object.keys(errors).length > 0) return
+
     setModalError('')
     setIsSubmitting(true)
 
@@ -376,6 +396,7 @@ export default function OrgaPanel() {
       if (modal?.type === 'createCampaign') {
         await apiPost('/api/intermediario/publicaciones', {
           ...campForm,
+          ...buildCampaignLocationPayload(campForm),
           cantidad_necesaria: Number(campForm.cantidad_necesaria),
           id_articulo: Number(campForm.id_articulo)
         })
@@ -386,6 +407,7 @@ export default function OrgaPanel() {
           `/api/intermediario/publicaciones/${modal.publicacion.id_publicacion}`,
           {
             ...campForm,
+            ...buildCampaignLocationPayload(campForm),
             cantidad_necesaria: Number(campForm.cantidad_necesaria),
             id_articulo: Number(campForm.id_articulo)
           }
@@ -655,6 +677,8 @@ export default function OrgaPanel() {
         <OrgaCampaignFormModal
           isCreate={modal.type === 'createCampaign'}
           campForm={campForm}
+          campFormErrors={campFormErrors}
+          organizacion={organizacion}
           articulos={articulos}
           onChange={handleCampChange}
           onImageChange={handleImageChange}
