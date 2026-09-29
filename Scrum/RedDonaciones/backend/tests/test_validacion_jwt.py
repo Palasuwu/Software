@@ -18,7 +18,14 @@ def simular_usuario_actual(monkeypatch, id_usuario, rol):
 
 
 def simular_conexion_organizaciones(monkeypatch):
-    connection = crear_conexion_mock(resultado_fetchall=[])
+    # El endpoint ejecuta asegurar_columnas_ubicacion antes de consultar: son
+    # cuatro lecturas de information_schema (latitud y longitud en dos tablas)
+    # y el mock responde que las columnas ya existen, para que no intente
+    # el ALTER TABLE. Las lecturas de IS_NULLABLE que siguen toleran None.
+    connection = crear_conexion_mock(
+        resultados_fetchone=[{"total": 1}] * 4,
+        resultado_fetchall=[],
+    )
     monkeypatch.setattr(
         "db.connection.get_db_connection",
         lambda: connection,

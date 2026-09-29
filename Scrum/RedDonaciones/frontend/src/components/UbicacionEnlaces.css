@@ -1,0 +1,92 @@
+/* Estilos de UbicacionEnlaces.jsx. Consume tokens.css. */
+
+.ubi-bloque {
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  padding: 20px 22px;
+}
+
+.ubi-titulo {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.ubi-direccion {
+  margin: 0 0 6px;
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.ubi-coords {
+  margin: 0 0 6px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  /* cifras tabulares: las coordenadas no bailan al cambiar de valor */
+  font-variant-numeric: tabular-nums;
+}
+
+.ubi-nota {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.ubi-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.ubi-boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  /* 44px de alto: minimo de area tactil */
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+}
+
+.ubi-boton:hover {
+  border-color: var(--primary-muted);
+  background: var(--primary-soft);
+  transform: translateY(-1px);
+}
+
+.ubi-boton:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.ubi-boton img {
+  width: 19px;
+  height: 19px;
+  display: block;
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .ubi-acciones {
+    flex-direction: column;
+  }
+
+  .ubi-boton {
+    width: 100%;
+    justify-content: center;
+  }
+}

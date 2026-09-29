@@ -7,6 +7,7 @@ import { apiGet } from '../utils/api'
 import Spinner from '../components/Spinner'
 import ErrorView from '../components/ErrorView'
 import { IconOrganizacion } from '../components/icons'
+import UbicacionEnlaces from '../components/UbicacionEnlaces'
 import './Organizaciones.css'
 
 function estadoLabel(estado) {
@@ -165,6 +166,15 @@ function OrgaDetailPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* ── UBICACIÓN: enlaces a Google Maps y Waze ── */}
+      <div className="org-detail-ubicacion">
+        <UbicacionEnlaces
+          ubicacion={organizacion}
+          nombre={organizacion.nombre}
+          titulo="Cómo llegar"
+        />
       </div>
 
       {/* ── INFORMACIÓN INSTITUCIONAL (solo si la organización ya la cargó) ── */}
