@@ -160,7 +160,7 @@ def crear_publicacion():
             }), 400
 
         with db_cursor(
-            dictionary=False,
+            dictionary=True,
             connection_factory=get_db_connection
         ) as (conn, cursor):
             asegurar_columnas_ubicacion(cursor)

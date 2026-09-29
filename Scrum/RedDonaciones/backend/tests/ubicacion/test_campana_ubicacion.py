@@ -174,7 +174,6 @@ def test_listado_del_intermediario_no_mezcla_la_ubicacion_de_la_organizacion(cli
     assert campanas[6]["latitud"] == 14.64
 
 
-@pytest.mark.xfail(strict=True, reason="asegurar_columnas_ubicacion recibe un cursor sin diccionario en POST /publicaciones")
 def test_admin_crea_campana_con_ubicacion_propia(client, bd, sesion):
     bd.agregar_organizacion(1, latitud=14.6, longitud=-90.5)
     bd.intermediarios[20] = 1
