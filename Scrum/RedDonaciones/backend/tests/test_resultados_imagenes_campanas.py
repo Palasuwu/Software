@@ -47,6 +47,9 @@ class MockResultadoCursor:
             }
 
     def fetchone(self):
+        if "information_schema" in self.last_query:
+            return {"total": 1, "nullable": "YES"}
+
         if "FROM intermediario" in self.last_query:
             if self.org_intermediario == self.publicacion.get("id_organizacion"):
                 return {"1": 1}

@@ -56,10 +56,33 @@ class MockConexion:
         pass
 
 
+ROLES_PRUEBA = {}
+ORGANIZACIONES_PRUEBA = {}
+
+
 def auth_headers(id_usuario, rol, id_organizacion=None):
     os.environ["JWT_SECRET_KEY"] = "test-secret-key-at-least-32-chars-long"
     token = generate_token(id_usuario, rol, id_organizacion)
+    ROLES_PRUEBA[id_usuario] = rol
+    ORGANIZACIONES_PRUEBA[id_usuario] = id_organizacion
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture(autouse=True)
+def usuarios_activos(monkeypatch):
+    monkeypatch.setattr(
+        "auth_utils._obtener_usuario_actual",
+        lambda id_usuario: {
+            "id_usuario": id_usuario,
+            "rol": ROLES_PRUEBA.get(id_usuario),
+            "activo": 1,
+        },
+    )
+    monkeypatch.setattr(
+        "routes.donacion._obtener_organizacion_actual_intermediario",
+        lambda id_usuario: ORGANIZACIONES_PRUEBA.get(id_usuario),
+    )
+    monkeypatch.setattr("routes.donacion._organizacion_verificada", lambda _: True)
 
 
 def sample_donacion(id_donacion=1, id_donante=10, id_organizacion=1, estado="pendiente"):
@@ -231,9 +254,9 @@ def test_donante_no_puede_ver_donacion_otro_donante(client, monkeypatch):
         headers=auth_headers(id_usuario=99, rol="donante")
     )
 
-    assert response.status_code == 403
+    assert response.status_code == 404
     data = response.get_json()
-    assert "No autorizado para consultar" in data["error"]
+    assert data["error"] == "Donación no encontrada"
 
 
 def test_donante_no_puede_modificar_estado_donacion(client, monkeypatch):

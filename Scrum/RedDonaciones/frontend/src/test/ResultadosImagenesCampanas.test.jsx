@@ -141,7 +141,7 @@ describe('Resultados e imágenes de campañas', () => {
   })
 
   // 5. Modal de resultados para la organización: campos, validaciones y envío
-  it('en OrgaCampaignResultModal renderiza los campos de resumen, personas beneficiadas y URL de imagen', () => {
+  it('en OrgaCampaignResultModal renderiza los campos de resumen, personas beneficiadas e imagen', () => {
     const handleClose = vi.fn()
     const handleChange = vi.fn()
     const handleSubmit = vi.fn((e) => e.preventDefault())
@@ -180,8 +180,8 @@ describe('Resultados e imágenes de campañas', () => {
     expect(personasInput).toHaveValue(40)
     expect(personasInput).toHaveAttribute('type', 'number')
 
-    const imagenInput = screen.getByPlaceholderText('https://...')
-    expect(imagenInput).toHaveValue('https://ejemplo.com/foto.jpg')
+    const imagenInput = screen.getByLabelText('Imagen (opcional)')
+    expect(imagenInput).toHaveAttribute('type', 'file')
 
     // Probar interacción de cambio y envío
     fireEvent.change(resumenInput, { target: { name: 'resumen', value: 'Nuevo resumen' } })

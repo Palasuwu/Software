@@ -234,7 +234,7 @@ describe('Gestion de donaciones en el frontend', () => {
         expect(screen.getByText('Error al conectar con la base de datos')).toBeInTheDocument()
     })
 
-    it('renderiza la tabla del administrador con columna de organizacion', () => {
+    it('renderiza la tabla del administrador con las donaciones', () => {
         render(
             <AdminDonacionesTable
                 donaciones={mockDonaciones}
@@ -247,8 +247,8 @@ describe('Gestion de donaciones en el frontend', () => {
             />
         )
 
-        expect(screen.getByText('Organización')).toBeInTheDocument()
-        expect(screen.getAllByText('Comedor Central').length).toBe(2)
+        expect(screen.getByText('Campaña')).toBeInTheDocument()
+        expect(screen.getByText('Donante')).toBeInTheDocument()
         expect(screen.getByText('Mario Ruiz')).toBeInTheDocument()
         expect(screen.getByText('Sofia Castro')).toBeInTheDocument()
     })

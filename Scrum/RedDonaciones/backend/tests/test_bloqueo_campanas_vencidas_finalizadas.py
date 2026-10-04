@@ -30,7 +30,7 @@ class MockBloqueoCursor:
             self.publicacion["estado"] = "cancelada"
             self._rowcount = 1
 
-        elif self.last_query.startswith("UPDATE publicacion SET cantidad_recibida"):
+        elif self.last_query.startswith("UPDATE publicacion") and "cantidad_recibida + %s" in self.last_query:
             cantidad = params[0]
             if (
                 self.publicacion["estado"] == "activa"
@@ -55,6 +55,9 @@ class MockBloqueoCursor:
             self._rowcount = 1
 
     def fetchone(self):
+        if "information_schema" in self.last_query:
+            return {"total": 1, "nullable": "YES"}
+
         if "FROM donante" in self.last_query:
             return {"id_usuario": 1} if self.donante_existe else None
 

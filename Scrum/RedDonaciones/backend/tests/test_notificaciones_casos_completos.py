@@ -141,10 +141,26 @@ class NotificacionesMockConexion:
         pass
 
 
+ROLES_PRUEBA = {}
+
+
 def auth_headers(id_usuario, rol="donante"):
     os.environ["JWT_SECRET_KEY"] = "test-secret-key-at-least-32-chars-long"
     token = generate_token(id_usuario, rol)
+    ROLES_PRUEBA[id_usuario] = rol
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture(autouse=True)
+def usuarios_activos(monkeypatch):
+    monkeypatch.setattr(
+        "auth_utils._obtener_usuario_actual",
+        lambda id_usuario: {
+            "id_usuario": id_usuario,
+            "rol": ROLES_PRUEBA.get(id_usuario),
+            "activo": 1,
+        },
+    )
 
 
 def sample_donacion(id_donacion=1, id_donante=10, estado="pendiente"):
@@ -173,8 +189,8 @@ def test_notifica_donante_cambio_estado_individual():
     notif = cursor.notificaciones[0]
     assert notif["id_usuario"] == 10
     assert notif["tipo"] == "estado_donacion"
-    assert notif["titulo"] == "Estado de donación actualizado"
-    assert "pendiente a recibida" in notif["mensaje"]
+    assert notif["titulo"] == "Donación recibida"
+    assert "confirmó que recibió tu donación" in notif["mensaje"]
     assert notif["enlace"] == "/donaciones/1"
 
 
@@ -235,12 +251,12 @@ def test_notificaciones_al_crear_nueva_donacion(client, monkeypatch):
 
     notif_donante = next(n for n in cursor.notificaciones if n["tipo"] == "donacion_registrada")
     assert notif_donante["id_usuario"] == 10
-    assert notif_donante["titulo"] == "Donacion registrada"
+    assert notif_donante["titulo"] == "Donación registrada"
     assert "5 unidades" in notif_donante["mensaje"]
 
     notif_inter = next(n for n in cursor.notificaciones if n["tipo"] == "nueva_donacion")
     assert notif_inter["id_usuario"] == 88
-    assert notif_inter["titulo"] == "Nueva donacion recibida"
+    assert notif_inter["titulo"] == "Nueva donación recibida"
     assert "Carlos Donante" in notif_inter["mensaje"]
 
 

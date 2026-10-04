@@ -67,10 +67,26 @@ class RegresionDonacionConexion:
         pass
 
 
+ROLES_PRUEBA = {}
+
+
 def auth_headers_donante(id_usuario=1):
     os.environ["JWT_SECRET_KEY"] = "test-secret-key-at-least-32-chars-long"
     token = generate_token(id_usuario, "donante")
+    ROLES_PRUEBA[id_usuario] = "donante"
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture(autouse=True)
+def usuarios_activos(monkeypatch):
+    monkeypatch.setattr(
+        "auth_utils._obtener_usuario_actual",
+        lambda id_usuario: {
+            "id_usuario": id_usuario,
+            "rol": ROLES_PRUEBA.get(id_usuario),
+            "activo": 1,
+        },
+    )
 
 
 def payload_base():
@@ -184,7 +200,7 @@ def test_crear_donacion_campana_ya_finalizada(client, monkeypatch):
 
     assert response.status_code == 400
     data = response.get_json()
-    assert "La campaña ya finalizo" in data["error"]
+    assert "ha finalizado" in data["error"]
 
 
 def test_crear_donacion_cantidad_invalida(client, monkeypatch):
