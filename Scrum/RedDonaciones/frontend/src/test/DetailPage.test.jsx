@@ -6,7 +6,6 @@ import DetailPage from '../pages/DetailPage'
 import { apiGet, apiPost } from '../utils/api'
 import { obtenerUsuarioSesion } from '../utils/session'
 
-
 vi.mock('../utils/api', () => ({
   apiGet: vi.fn(),
   apiPost: vi.fn()
@@ -15,7 +14,6 @@ vi.mock('../utils/api', () => ({
 vi.mock('../utils/session', () => ({
   obtenerUsuarioSesion: vi.fn()
 }))
-
 
 const publicacion = [{
   id_publicacion: 12,
@@ -31,7 +29,6 @@ const publicacion = [{
   direccion: 'Zona 1'
 }]
 
-
 function renderDetailPage() {
   return render(
     <MemoryRouter initialEntries={['/detalle/12']}>
@@ -42,8 +39,7 @@ function renderDetailPage() {
   )
 }
 
-
-describe('Compromiso de entrega', () => {
+describe('Compromiso de entrega en donaciones', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     apiGet.mockResolvedValue(publicacion)
@@ -77,5 +73,42 @@ describe('Compromiso de entrega', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Confirmar entrega' }))
 
     await waitFor(() => expect(apiPost).toHaveBeenCalledTimes(1))
+  })
+
+  it('aplica clase visual activa cuando se selecciona el compromiso de entrega', async () => {
+    const { container } = renderDetailPage()
+
+    await screen.findByText('Campaña de alimentos')
+    const checkbox = screen.getByRole('checkbox', {
+      name: /Confirmo mi compromiso de entrega/
+    })
+    const commitmentLabel = container.querySelector('.dp-commitment')
+
+    expect(commitmentLabel).not.toHaveClass('dp-commitment--checked')
+
+    fireEvent.click(checkbox)
+    expect(commitmentLabel).toHaveClass('dp-commitment--checked')
+
+    fireEvent.click(checkbox)
+    expect(commitmentLabel).not.toHaveClass('dp-commitment--checked')
+  })
+
+  it('rechaza el registro si el usuario autenticado no tiene rol donante', async () => {
+    obtenerUsuarioSesion.mockReturnValue({
+      id_usuario: 8,
+      nombre: 'Intermediario Demo',
+      rol: 'intermediario'
+    })
+
+    const { container } = renderDetailPage()
+    await screen.findByText('Campaña de alimentos')
+
+    fireEvent.click(screen.getByRole('checkbox', {
+      name: /Confirmo mi compromiso de entrega/
+    }))
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar entrega' }))
+
+    expect(await screen.findByText('Solo los usuarios con rol donante pueden registrar donaciones')).toBeInTheDocument()
+    expect(apiPost).not.toHaveBeenCalled()
   })
 })
