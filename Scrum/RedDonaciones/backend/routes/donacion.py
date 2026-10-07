@@ -413,12 +413,12 @@ def crear_donacion():
         update_sql = """
             UPDATE publicacion
             SET
-                cantidad_recibida = cantidad_recibida + %s,
                 estado = CASE
                     WHEN cantidad_recibida + %s >= cantidad_necesaria
                     THEN 'finalizada'
                     ELSE estado
-                END
+                END,
+                cantidad_recibida = cantidad_recibida + %s
             WHERE id_publicacion = %s
               AND (estado = 'activa' OR estado IS NULL)
               AND (fecha_limite IS NULL OR fecha_limite >= CURDATE())
