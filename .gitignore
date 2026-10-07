@@ -25,3 +25,6 @@ venv/
 # OS
 .DS_Store
 Thumbs.db
+
+# Reportes generados por las pruebas automatizadas
+Scrum/RedDonaciones/backend/reportes/

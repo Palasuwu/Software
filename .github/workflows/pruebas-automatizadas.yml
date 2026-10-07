@@ -1,0 +1,107 @@
+name: Pruebas de integración y regresión
+
+on:
+  push:
+    paths:
+      - "Scrum/RedDonaciones/backend/**"
+      - "Scrum/RedDonaciones/db/**"
+      - ".github/workflows/pruebas-automatizadas.yml"
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  backend:
+    name: API + MySQL (pytest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: donaciones
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: donaciones
+      JWT_SECRET_KEY: ci-secret-key-with-at-least-32-bytes
+      ID_ORGANIZACION_PRINCIPAL: "1"
+
+    defaults:
+      run:
+        working-directory: Scrum/RedDonaciones/backend
+
+    steps:
+      - name: Obtener el código
+        uses: actions/checkout@v4
+
+      - name: Preparar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: Scrum/RedDonaciones/backend/requirements.txt
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pytest-html
+
+      - name: Cargar el esquema de la base de datos (db/init.sql)
+        run: mysql -h 127.0.0.1 -uroot -proot donaciones < ../db/init.sql
+
+      - name: Preparar carpeta de uploads
+        # routes/upload.py crea /app/uploads al importarse (ruta del contenedor Docker).
+        run: sudo mkdir -p /app/uploads && sudo chown "$USER" /app/uploads
+
+      - name: Pruebas de integración (API + MySQL)
+        id: integracion
+        run: >-
+          pytest -m integracion tests/automatizadas -v
+          --junitxml=reportes/integracion.xml
+          --html=reportes/integracion.html --self-contained-html
+
+      - name: Pruebas de regresión
+        id: regresion
+        if: success() || steps.integracion.conclusion == 'failure'
+        run: >-
+          pytest -m regresion tests/automatizadas -v
+          --junitxml=reportes/regresion.xml
+          --html=reportes/regresion.html --self-contained-html
+
+      - name: Resumen de resultados
+        if: always()
+        run: |
+          python - <<'EOF' >> "$GITHUB_STEP_SUMMARY"
+          import glob
+          import xml.etree.ElementTree as ET
+
+          print("## Resultados de pruebas automatizadas\n")
+          print("| Suite | Prueba | Resultado | Tiempo (s) |")
+          print("|---|---|---|---|")
+          for archivo in sorted(glob.glob("reportes/*.xml")):
+              suite = archivo.split("/")[-1].removesuffix(".xml").capitalize()
+              for caso in ET.parse(archivo).getroot().iter("testcase"):
+                  fallo = caso.find("failure") is not None or caso.find("error") is not None
+                  resultado = "❌ Falló" if fallo else ("⏭️ Omitida" if caso.find("skipped") is not None else "✅ Pasó")
+                  print(f"| {suite} | `{caso.get('name')}` | {resultado} | {float(caso.get('time', 0)):.2f} |")
+          EOF
+
+      - name: Guardar reportes como artefacto
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes-pruebas-${{ github.run_number }}
+          path: Scrum/RedDonaciones/backend/reportes/
+          retention-days: 30
