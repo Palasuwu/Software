@@ -20,15 +20,12 @@
   left: 0;
   right: 0;
   z-index: 200;
+  /* Altura fija: antes crecia a 84px con el mouse encima, lo que movia el
+     contenido y no ocurria nunca en pantallas tactiles. */
   height: 64px;
   background: var(--surface-dark);
   border-bottom: 1px solid rgba(63, 182, 234, 0.22);
   overflow: hidden;
-  transition: height 0.32s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ld-nav:hover {
-  height: 84px;
 }
 
 .ld-nav-inner {
@@ -538,8 +535,8 @@
 /* ── Quienes somos ──────────────────────────────────────────────────────── */
 .ld-about {
   background: var(--surface);
-  /* el navbar es fixed (64px, 84px en hover): el ancla no debe quedar debajo */
-  scroll-margin-top: 84px;
+  /* el navbar es fixed y ahora mide siempre 64px: el ancla no debe quedar debajo */
+  scroll-margin-top: 80px;
 }
 
 .ld-about-grid {

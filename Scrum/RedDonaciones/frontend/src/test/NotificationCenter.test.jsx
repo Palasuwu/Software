@@ -32,7 +32,7 @@ describe('NotificationCenter', () => {
   it('muestra el contador y permite marcar una notificacion como leida', async () => {
     render(
       <MemoryRouter>
-        <NotificationCenter isExpanded />
+        <NotificationCenter />
       </MemoryRouter>
     )
 
