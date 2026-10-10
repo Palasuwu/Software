@@ -601,6 +601,7 @@ export default function OrgaPanel() {
 
                 <select
                   className="form-select admin-bulk-bar-select"
+                  aria-label="Nuevo estado de las donaciones seleccionadas"
                   value={estadoMasivo}
                   onChange={(e) => setEstadoMasivo(e.target.value)}
                   disabled={aplicandoMasivo}

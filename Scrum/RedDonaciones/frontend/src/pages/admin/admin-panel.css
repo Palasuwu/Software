@@ -1170,3 +1170,9 @@
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
 }
+
+.orga-edit-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}

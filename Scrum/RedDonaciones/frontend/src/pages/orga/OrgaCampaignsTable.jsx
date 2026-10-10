@@ -92,6 +92,7 @@ export default function OrgaCampaignsTable({
                                     <td>
                                         <select
                                             className="form-select admin-select-status"
+                                            aria-label={`Estado de ${publicacion.titulo}`}
                                             value={publicacion.estado}
                                             disabled={isSaving}
                                             onChange={(e) =>
@@ -111,11 +112,13 @@ export default function OrgaCampaignsTable({
                                         <div className="admin-row-actions">
                                             <button
                                                 type="button"
-                                                className="admin-icon-button"
+                                                className="admin-secondary-action orga-edit-action"
                                                 title="Editar publicación"
+                                                aria-label={`Editar publicación: ${publicacion.titulo}`}
                                                 onClick={() => onEdit(publicacion)}
                                             >
                                                 <IconEdit className="admin-action-icon" />
+                                                <span>Editar</span>
                                             </button>
                                             {publicacion.estado === 'finalizada' && (
                                                 <button
