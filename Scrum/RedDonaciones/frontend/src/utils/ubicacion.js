@@ -1,5 +1,6 @@
 // Normaliza y valida las coordenadas opcionales de organizaciones y campañas.
 const texto = (value) => String(value ?? '').trim()
+const DECIMAL = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/
 
 export function buildCoordinatesPayload(form) {
     return {
@@ -15,10 +16,10 @@ export function validateCoordinates(form) {
     if (!latitud && !longitud) return errors
     if (!latitud) errors.latitud = 'Ingresa la latitud junto con la longitud'
     if (!longitud) errors.longitud = 'Ingresa la longitud junto con la latitud'
-    if (latitud && (!Number.isFinite(Number(latitud)) || Math.abs(Number(latitud)) > 90)) {
+    if (latitud && (!DECIMAL.test(latitud) || !Number.isFinite(Number(latitud)) || Math.abs(Number(latitud)) > 90)) {
         errors.latitud = 'La latitud debe ser un número entre -90 y 90'
     }
-    if (longitud && (!Number.isFinite(Number(longitud)) || Math.abs(Number(longitud)) > 180)) {
+    if (longitud && (!DECIMAL.test(longitud) || !Number.isFinite(Number(longitud)) || Math.abs(Number(longitud)) > 180)) {
         errors.longitud = 'La longitud debe ser un número entre -180 y 180'
     }
     return errors
@@ -40,8 +41,11 @@ export function validateCampaignLocation(form) {
     const errors = validateCoordinates(form)
     if (!texto(form.departamento)) errors.departamento = 'El departamento es obligatorio'
     if (!texto(form.municipio)) errors.municipio = 'El municipio es obligatorio'
+    if (texto(form.departamento).length > 200) errors.departamento = 'El departamento no puede superar los 200 caracteres'
+    if (texto(form.municipio).length > 200) errors.municipio = 'El municipio no puede superar los 200 caracteres'
     if (!/^\d{1,2}$/.test(texto(form.zona))) errors.zona = 'La zona debe ser un número de uno o dos dígitos'
     if (texto(form.direccion_detalle).length < 8) errors.direccion_detalle = 'Ingresa una dirección de al menos 8 caracteres'
+    if (texto(form.direccion_detalle).length > 300) errors.direccion_detalle = 'La dirección no puede superar los 300 caracteres'
     return errors
 }
 
