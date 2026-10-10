@@ -2,6 +2,7 @@
 import React from 'react'
 import AdminModal from './AdminModal'
 import CoordinatesFields from '../../components/CoordinatesFields'
+import AddressFields from '../../components/AddressFields'
 
 export default function OrgFormModal({
     isEdit,
@@ -66,49 +67,7 @@ export default function OrgFormModal({
                         {orgFormErrors.descripcion && <span className="form-error-text org-field-error-text">{orgFormErrors.descripcion}</span>}
                     </div>
 
-                    <div className="form-field">
-                        <label className="form-label">Direccion</label>
-                        <input
-                            className={`form-input ${orgFormErrors.direccion ? 'form-input-invalid' : ''}`}
-                            name="direccion"
-                            value={orgForm.direccion}
-                            onChange={onChange}
-                        />
-                        {orgFormErrors.direccion && <span className="form-error-text org-field-error-text">{orgFormErrors.direccion}</span>}
-                    </div>
-
-                    <div className="form-field">
-                        <label className="form-label">Departamento</label>
-                        <input
-                            className={`form-input ${orgFormErrors.departamento ? 'form-input-invalid' : ''}`}
-                            name="departamento"
-                            value={orgForm.departamento}
-                            onChange={onChange}
-                        />
-                        {orgFormErrors.departamento && <span className="form-error-text org-field-error-text">{orgFormErrors.departamento}</span>}
-                    </div>
-
-                    <div className="form-field">
-                        <label className="form-label">Municipio</label>
-                        <input
-                            className={`form-input ${orgFormErrors.municipio ? 'form-input-invalid' : ''}`}
-                            name="municipio"
-                            value={orgForm.municipio}
-                            onChange={onChange}
-                        />
-                        {orgFormErrors.municipio && <span className="form-error-text org-field-error-text">{orgFormErrors.municipio}</span>}
-                    </div>
-
-                    <div className="form-field">
-                        <label className="form-label">Zona</label>
-                        <input
-                            className={`form-input ${orgFormErrors.zona ? 'form-input-invalid' : ''}`}
-                            name="zona"
-                            value={orgForm.zona}
-                            onChange={onChange}
-                        />
-                        {orgFormErrors.zona && <span className="form-error-text org-field-error-text">{orgFormErrors.zona}</span>}
-                    </div>
+                    <AddressFields form={orgForm} errors={orgFormErrors} onChange={onChange} disabled={isSubmitting} />
 
                     <CoordinatesFields form={orgForm} errors={orgFormErrors} onChange={onChange} disabled={isSubmitting} />
 

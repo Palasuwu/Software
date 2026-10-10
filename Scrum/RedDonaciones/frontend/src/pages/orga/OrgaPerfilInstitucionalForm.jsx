@@ -7,6 +7,7 @@ import Spinner from '../../components/Spinner'
 import ErrorView from '../../components/ErrorView'
 import { validateImageFile } from '../admin/adminForms'
 import CoordinatesFields from '../../components/CoordinatesFields'
+import AddressFields from '../../components/AddressFields'
 import { buildCoordinatesPayload, validateCoordinates } from '../../utils/ubicacion'
 
 const CAMPOS = [
@@ -179,55 +180,7 @@ export default function OrgaPerfilInstitucionalForm() {
                 <strong>{organizacion?.nombre}</strong>.
             </p>
 
-            <div className="form-field">
-                <label className="form-label" htmlFor="perfil-direccion">Dirección</label>
-                <input
-                    id="perfil-direccion"
-                    className={`form-input ${fieldErrors.direccion ? 'form-input-invalid' : ''}`}
-                    name="direccion"
-                    value={form.direccion}
-                    onChange={handleChange}
-                />
-                {fieldErrors.direccion && <span className="form-error-text">{fieldErrors.direccion}</span>}
-            </div>
-
-            <div className="form-row">
-                <div className="form-field">
-                    <label className="form-label" htmlFor="perfil-departamento">Departamento</label>
-                    <input
-                        id="perfil-departamento"
-                        className={`form-input ${fieldErrors.departamento ? 'form-input-invalid' : ''}`}
-                        name="departamento"
-                        value={form.departamento}
-                        onChange={handleChange}
-                    />
-                    {fieldErrors.departamento && <span className="form-error-text">{fieldErrors.departamento}</span>}
-                </div>
-
-                <div className="form-field">
-                    <label className="form-label" htmlFor="perfil-municipio">Municipio</label>
-                    <input
-                        id="perfil-municipio"
-                        className={`form-input ${fieldErrors.municipio ? 'form-input-invalid' : ''}`}
-                        name="municipio"
-                        value={form.municipio}
-                        onChange={handleChange}
-                    />
-                    {fieldErrors.municipio && <span className="form-error-text">{fieldErrors.municipio}</span>}
-                </div>
-
-                <div className="form-field">
-                    <label className="form-label" htmlFor="perfil-zona">Zona</label>
-                    <input
-                        id="perfil-zona"
-                        className={`form-input ${fieldErrors.zona ? 'form-input-invalid' : ''}`}
-                        name="zona"
-                        value={form.zona}
-                        onChange={handleChange}
-                    />
-                    {fieldErrors.zona && <span className="form-error-text">{fieldErrors.zona}</span>}
-                </div>
-            </div>
+            <AddressFields form={form} errors={fieldErrors} onChange={handleChange} disabled={isSaving} />
 
             <CoordinatesFields form={form} errors={fieldErrors} onChange={handleChange} disabled={isSaving} />
 
