@@ -13,7 +13,8 @@ export default function OrgaDonacionesTable({
     selectedIds,
     onRetry,
     onToggleOne,
-    onToggleAll
+    onToggleAll,
+    disabled = false
 }) {
     if (donacionesError) {
         return <ErrorView message={donacionesError} onRetry={onRetry} />
@@ -39,7 +40,7 @@ export default function OrgaDonacionesTable({
                                 type="checkbox"
                                 checked={allSelected}
                                 onChange={(e) => onToggleAll(e.target.checked)}
-                                disabled={loadingDonaciones}
+                                disabled={loadingDonaciones || disabled}
                                 aria-label="Seleccionar todas las donaciones"
                             />
                         </th>
@@ -59,6 +60,7 @@ export default function OrgaDonacionesTable({
                                 <td>
                                     <input
                                         type="checkbox"
+                                        disabled={disabled}
                                         checked={selectedIds.has(donacion.id_donacion)}
                                         onChange={(e) => onToggleOne(donacion.id_donacion, e.target.checked)}
                                         aria-label={`Seleccionar donación #${donacion.id_donacion}`}

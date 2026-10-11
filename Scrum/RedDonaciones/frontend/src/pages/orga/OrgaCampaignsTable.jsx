@@ -106,6 +106,7 @@ export default function OrgaCampaignsTable({
                                             <option value="finalizada">Finalizada</option>
                                             <option value="cancelada">Cancelada</option>
                                         </select>
+                                        {isSaving && <span role="status" className="admin-table-muted">Guardando estado...</span>}
                                     </td>
 
                                     <td>
@@ -113,6 +114,7 @@ export default function OrgaCampaignsTable({
                                             <button
                                                 type="button"
                                                 className="admin-secondary-action orga-edit-action"
+                                                disabled={isSaving}
                                                 title="Editar publicación"
                                                 aria-label={`Editar publicación: ${publicacion.titulo}`}
                                                 onClick={() => onEdit(publicacion)}
@@ -124,6 +126,7 @@ export default function OrgaCampaignsTable({
                                                 <button
                                                     type="button"
                                                     className="admin-secondary-action"
+                                                    disabled={isSaving}
                                                     onClick={() => onPublishResult(publicacion)}
                                                 >
                                                     Publicar resultados

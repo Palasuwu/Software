@@ -3,7 +3,7 @@
 import React from 'react'
 import AdminModal from './AdminModal'
 
-export default function ConfirmationModal({ isOpen, title, message, onCancel, onConfirm, isSubmitting }) {
+export default function ConfirmationModal({ isOpen, title, message, onCancel, onConfirm, isSubmitting, error }) {
     if (!isOpen) return null;
     return (
         <AdminModal
@@ -21,6 +21,7 @@ export default function ConfirmationModal({ isOpen, title, message, onCancel, on
                 </>
             )}
         >
+            {error && <p className="form-error-text" role="alert">{error}</p>}
             <p className="admin-confirm-text">{message}</p>
         </AdminModal>
     )

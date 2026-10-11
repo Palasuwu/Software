@@ -5,6 +5,7 @@ import React from 'react'
 import { buildCampaignLocationPayload, validateCampaignLocation, campaignLocationForm } from '../utils/ubicacion'
 import { apiGet, apiPut, apiPost, apiUpload } from '../utils/api'
 import { IconCampaigns, IconUsers, IconPlus, IconDonation, IconUser } from '../components/icons'
+import ConfirmationModal from './admin/ConfirmationModal'
 import OrgaCampaignsTable from './orga/OrgaCampaignsTable'
 import OrgaIntermediariosTable from './orga/OrgaIntermediariosTable'
 import OrgaDonacionesTable from './orga/OrgaDonacionesTable'
@@ -36,6 +37,10 @@ const CAMP_INITIAL_FORM = {
 }
 
 export default function OrgaPanel() {
+  const [confirmation, setConfirmation] = React.useState(null)
+  const [actionError, setActionError] = React.useState('')
+  const [confirming, setConfirming] = React.useState(false)
+  const actionLock = React.useRef(false)
   const [activeTab, setActiveTab] = React.useState('campanas')
 
   const [publicaciones, setPublicaciones] = React.useState([])
@@ -187,8 +192,8 @@ export default function OrgaPanel() {
 
     try {
       const resultado = await apiPut('/api/intermediario/donaciones/estado', {
-        ids_donacion: Array.from(selectedDonacionIds),
-        estado: estadoMasivo
+        ids_donacion: confirmation.ids,
+        estado: confirmation.estado
       })
 
       setOmitidasMasivo(resultado.omitidas || [])
@@ -196,7 +201,7 @@ export default function OrgaPanel() {
 
       await loadDonaciones()
     } catch (error) {
-      setDonacionesError(error.message || 'No se pudo actualizar el estado de las donaciones')
+      throw error
     } finally {
       setAplicandoMasivo(false)
     }
@@ -447,10 +452,36 @@ export default function OrgaPanel() {
       setSuccessMessage('Estado actualizado correctamente')
 
     } catch (error) {
-      setCampaignsError(error.message || 'No se pudo actualizar el estado')
+      throw error
 
     } finally {
       setSavingCampaignId(null)
+    }
+  }
+
+  const requestStatusChange = (publicacion, estado) => {
+    if (estado === publicacion.estado || actionLock.current) return
+    setActionError('')
+    setConfirmation({ type: 'campaign', publicacion, estado })
+  }
+
+  const confirmAction = async () => {
+    if (actionLock.current || !confirmation) return
+    actionLock.current = true
+    setConfirming(true)
+    setActionError('')
+    try {
+      if (confirmation.type === 'campaign') {
+        await handleChangeCampaignStatus(confirmation.publicacion, confirmation.estado)
+      } else {
+        await aplicarEstadoMasivo()
+      }
+      setConfirmation(null)
+    } catch (error) {
+      setActionError(error.message || 'No se pudo completar la acción. Intenta de nuevo.')
+    } finally {
+      actionLock.current = false
+      setConfirming(false)
     }
   }
 
@@ -556,7 +587,7 @@ export default function OrgaPanel() {
                 onRetry={loadCampaigns}
                 onEdit={openEditCampaign}
                 onPublishResult={openResultModal}
-                onStatusChange={handleChangeCampaignStatus}
+                onStatusChange={requestStatusChange}
               />
             </>
           )}
@@ -617,7 +648,10 @@ export default function OrgaPanel() {
                   type="button"
                   className="admin-primary-action"
                   disabled={selectedDonacionIds.size === 0 || aplicandoMasivo}
-                  onClick={aplicarEstadoMasivo}
+                  onClick={() => {
+                    setActionError('')
+                    setConfirmation({ type: 'donations', ids: Array.from(selectedDonacionIds), estado: estadoMasivo })
+                  }}
                 >
                   {aplicandoMasivo ? 'Aplicando...' : 'Aplicar a seleccionadas'}
                 </button>
@@ -637,6 +671,7 @@ export default function OrgaPanel() {
                 onRetry={loadDonaciones}
                 onToggleOne={toggleDonacionSelected}
                 onToggleAll={toggleAllDonacionesSelected}
+                disabled={aplicandoMasivo}
               />
             </>
           )}
@@ -660,6 +695,18 @@ export default function OrgaPanel() {
           )}
         </section>
       </div>
+
+      <ConfirmationModal
+        isOpen={!!confirmation}
+        title={confirmation?.type === 'campaign' ? 'Cambiar estado de publicación' : 'Actualizar donaciones seleccionadas'}
+        message={confirmation?.type === 'campaign'
+          ? `¿Cambiar "${confirmation.publicacion.titulo}" a ${confirmation.estado}?`
+          : `¿Cambiar ${confirmation?.ids.length || 0} donaciones a ${donationStatusLabel(confirmation?.estado)}?`}
+        error={actionError}
+        onCancel={() => { if (!actionLock.current) setConfirmation(null) }}
+        onConfirm={confirmAction}
+        isSubmitting={confirming}
+      />
 
       {modal?.type === 'campaignResult' ? (
         <OrgaCampaignResultModal
