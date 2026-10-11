@@ -43,7 +43,7 @@ export function validateCampaignLocation(form) {
     if (!texto(form.municipio)) errors.municipio = 'El municipio es obligatorio'
     if (texto(form.departamento).length > 200) errors.departamento = 'El departamento no puede superar los 200 caracteres'
     if (texto(form.municipio).length > 200) errors.municipio = 'El municipio no puede superar los 200 caracteres'
-    if (!/^\d{1,2}$/.test(texto(form.zona))) errors.zona = 'La zona debe ser un número de uno o dos dígitos'
+    if (texto(form.zona) && !/^\d{1,2}$/.test(texto(form.zona))) errors.zona = 'La zona debe ser un número de uno o dos dígitos'
     if (texto(form.direccion_detalle).length < 8) errors.direccion_detalle = 'Ingresa una dirección de al menos 8 caracteres'
     if (texto(form.direccion_detalle).length > 300) errors.direccion_detalle = 'La dirección no puede superar los 300 caracteres'
     return errors

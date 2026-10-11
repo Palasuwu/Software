@@ -1234,3 +1234,21 @@ a {
     justify-content: center;
   }
 }
+
+/* Evita que nombres largos de ubicación ensanchen el formulario. */
+.address-fields-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+}
+
+.address-fields-row .form-field,
+.address-fields-row .form-select,
+.address-fields-row .form-input {
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .address-fields-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
