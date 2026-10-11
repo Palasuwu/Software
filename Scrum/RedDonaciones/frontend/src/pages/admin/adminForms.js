@@ -143,7 +143,7 @@ export function buildUserPayload(form, includePassword) {
     }
 
     if (form.rol === 'intermediario') {
-        payload.id_organizacion = Number(form.id_organizacion)
+        if (includePassword) payload.id_organizacion = Number(form.id_organizacion)
         payload.cargo = form.cargo.trim()
     }
 
@@ -190,7 +190,7 @@ export function validateUserForm(form, mode) {
 
     if (form.rol === 'intermediario') {
         if (!form.id_organizacion) errors.id_organizacion = 'Selecciona una organización'
-        if (!form.cargo.trim()) errors.cargo = 'El cargo es obligatorio'
+        if (form.cargo.trim().length < 3 || form.cargo.trim().length > 200) errors.cargo = 'El cargo debe tener entre 3 y 200 caracteres'
     }
 
     return errors;
