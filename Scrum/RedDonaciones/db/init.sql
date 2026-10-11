@@ -23,6 +23,13 @@ CREATE TABLE IF NOT EXISTS usuario (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
+-- FOTO DE PERFIL
+CREATE TABLE IF NOT EXISTS usuario_foto (
+    id_usuario INT PRIMARY KEY,
+    imagen MEDIUMBLOB NOT NULL,
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ORGANIZACION
 
 CREATE TABLE IF NOT EXISTS organizacion (

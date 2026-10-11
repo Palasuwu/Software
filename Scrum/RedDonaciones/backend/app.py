@@ -3,6 +3,7 @@ from flask_cors import CORS
 import os
 
 from routes.usuario import usuario_bp
+from routes.foto_perfil import foto_perfil_bp
 from routes.organizacion import organizacion_bp
 from routes.publicacion import publicacion_bp
 from routes.upload import upload_bp
@@ -51,6 +52,7 @@ if not app.config['JWT_SECRET_KEY']:
 
 # Registrar rutas
 app.register_blueprint(usuario_bp)
+app.register_blueprint(foto_perfil_bp)
 app.register_blueprint(organizacion_bp)
 app.register_blueprint(publicacion_bp)
 app.register_blueprint(upload_bp)
