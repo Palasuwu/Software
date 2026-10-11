@@ -183,3 +183,21 @@ def test_admin_crea_campana_con_ubicacion_propia(client, bd, sesion):
 
     assert response.status_code == 201
     assert detalle(client, 1)["latitud"] == 14.64
+
+
+def test_crear_editar_y_recuperar_campana_sin_zona(client, bd, intermediario):
+    datos = {**CAMPANA, **UBICACION_PROPIA, "zona": ""}
+    response = client.post("/intermediario/publicaciones", json=datos, headers=intermediario)
+    assert response.status_code == 201
+    id_publicacion = bd.escrituras_en("publicacion")[0]["id_publicacion"]
+    campana = detalle(client, id_publicacion)
+    assert campana["zona"] == ""
+    assert campana["ubicacion_heredada"] is False
+    assert campana["municipio"] == "Mixco"
+    response = client.put(f"/intermediario/publicaciones/{id_publicacion}",
+                          json={**datos, "municipio": "Villa Nueva"}, headers=intermediario)
+    assert response.status_code == 200
+    campana = detalle(client, id_publicacion)
+    assert campana["zona"] == ""
+    assert campana["municipio"] == "Villa Nueva"
+    assert (campana["latitud"], campana["longitud"]) == (14.64, -90.56)
