@@ -6,6 +6,7 @@ import { apiGet, apiPut } from '../utils/api'
 import { guardarUsuarioSesion } from '../utils/session'
 import { IconUser, IconDonation, IconLocation } from '../components/icons'
 import './PerfilPage.css'
+import PerfilFoto from './PerfilFoto'
 
 function roleLabel(role) {
     if (!role) return 'Sin rol'
@@ -247,9 +248,7 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
                     </div>
 
                     <div className="profile-user-row">
-                        <div className="profile-avatar-figma">
-                            <IconUser className="nav-icon" />
-                        </div>
+                        <PerfilFoto key={perfil?.id_usuario} idUsuario={perfil?.id_usuario} />
 
                         <div className="profile-user-copy">
                             <h3 className="profile-user-name">{perfil?.nombre}</h3>

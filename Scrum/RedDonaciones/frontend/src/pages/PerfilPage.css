@@ -215,3 +215,35 @@
   }
 
 }
+
+.profile-photo {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+    max-width: 300px;
+}
+
+.profile-photo input {
+    width: 100%;
+    font: inherit;
+}
+
+.profile-photo small {
+    color: var(--text-muted);
+}
+
+.profile-photo .profile-avatar-figma {
+    overflow: hidden;
+}
+
+.profile-photo .profile-avatar-figma img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-photo-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
