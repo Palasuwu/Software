@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { guardarTokenSesion, guardarUsuarioSesion } from '../utils/session'
 import logoMark from '../assets/LogoOwnerMark.svg'
@@ -7,8 +7,7 @@ import './AuthPage.css'
 const INITIAL_LOGIN = { correo: '', password: '' }
 const INITIAL_REGISTER = {
     nombre: '', correo: '', telefono: '', password: '', confirmPassword: '',
-    rol: 'donante', departamento: '', municipio: '', zona: '',
-    direccion_detalle: '', id_organizacion: '', cargo: ''
+    departamento: '', municipio: '', zona: '', direccion_detalle: ''
 }
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 const PHONE_REGEX = /^[0-9+\-()\s]{8,20}$/
@@ -48,18 +47,11 @@ function validateRegister(form) {
     else if (!/[A-Za-z]/.test(form.password) || !/\d/.test(form.password)) errors.password = 'Incluye letras y numeros'
     if (!form.confirmPassword) errors.confirmPassword = 'Confirma tu contrasena'
     else if (form.password !== form.confirmPassword) errors.confirmPassword = 'Las contrasenas no coinciden'
-    if (form.rol !== 'donante' && form.rol !== 'intermediario') errors.rol = 'Selecciona un rol valido'
-    if (form.rol === 'donante') {
-        if (!cleanSpaces(form.departamento)) errors.departamento = 'El departamento es obligatorio'
-        if (!cleanSpaces(form.municipio)) errors.municipio = 'El municipio es obligatorio'
-        if (!form.zona.trim()) errors.zona = 'La zona es obligatoria'
-        else if (!/^\d{1,2}$/.test(form.zona.trim())) errors.zona = 'Ingresa una zona valida'
-        if (cleanSpaces(form.direccion_detalle).length < 8) errors.direccion_detalle = 'Ingresa una direccion mas especifica'
-    }
-    if (form.rol === 'intermediario') {
-        if (!form.id_organizacion) errors.id_organizacion = 'Selecciona una organizacion'
-        if (cleanSpaces(form.cargo).length < 3) errors.cargo = 'Ingresa un cargo valido'
-    }
+    if (!cleanSpaces(form.departamento)) errors.departamento = 'El departamento es obligatorio'
+    if (!cleanSpaces(form.municipio)) errors.municipio = 'El municipio es obligatorio'
+    if (!form.zona.trim()) errors.zona = 'La zona es obligatoria'
+    else if (!/^\d{1,2}$/.test(form.zona.trim())) errors.zona = 'Ingresa una zona valida'
+    if (cleanSpaces(form.direccion_detalle).length < 8) errors.direccion_detalle = 'Ingresa una direccion mas especifica'
     return errors
 }
 
@@ -69,12 +61,10 @@ function buildPayload(form) {
         correo: form.correo.trim().toLowerCase(),
         password: form.password,
         telefono: form.telefono.trim(),
-        rol: form.rol
+        // El registro público siempre crea donantes; el alta de intermediarios es administrativa.
+        rol: 'donante'
     }
-    if (form.rol === 'donante') {
-        return { ...base, departamento: cleanSpaces(form.departamento), municipio: cleanSpaces(form.municipio), zona: form.zona.trim(), direccion_detalle: cleanSpaces(form.direccion_detalle) }
-    }
-    return { ...base, id_organizacion: Number(form.id_organizacion), cargo: cleanSpaces(form.cargo) }
+    return { ...base, departamento: cleanSpaces(form.departamento), municipio: cleanSpaces(form.municipio), zona: form.zona.trim(), direccion_detalle: cleanSpaces(form.direccion_detalle) }
 }
 
 function BrandPanel({ isRegister, isTransitioning, onSwitchTo }) {
@@ -213,37 +203,9 @@ function RegisterForm({ onAuthSuccess }) {
     const [apiError, setApiError] = useState('')
     const [successMessage, setSuccessMessage] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [organizaciones, setOrganizaciones] = useState([])
-    const [orgLoading, setOrgLoading] = useState(false)
-    const [orgError, setOrgError] = useState('')
-
-    const isIntermediario = form.rol === 'intermediario'
-
-    useEffect(() => {
-        if (!isIntermediario || organizaciones.length > 0) return
-        setOrgLoading(true)
-        setOrgError('')
-        fetch('/api/organizaciones')
-            .then(async (res) => {
-                const body = await res.json().catch(() => null)
-                if (!res.ok) throw new Error(body?.error || 'No se pudo cargar la organización')
-                if (!Array.isArray(body)) throw new Error('Respuesta invalida del servidor')
-                setOrganizaciones(body)
-            })
-            .catch((err) => setOrgError(err.message || 'No se pudo cargar la organización'))
-            .finally(() => setOrgLoading(false))
-    }, [isIntermediario, organizaciones.length])
-
     const handleChange = (e) => {
         const { name, value } = e.target
-        setForm(prev => {
-            const next = { ...prev, [name]: value }
-            if (name === 'rol') {
-                if (value === 'donante') { next.id_organizacion = ''; next.cargo = '' }
-                else { next.departamento = ''; next.municipio = ''; next.zona = ''; next.direccion_detalle = '' }
-            }
-            return next
-        })
+        setForm(prev => ({ ...prev, [name]: value }))
         setApiError('')
         setSuccessMessage('')
         setErrors(prev => {
@@ -295,8 +257,9 @@ function RegisterForm({ onAuthSuccess }) {
     return (
         <div className="auth-form-section">
             <div className="auth-form-heading">
-                <h2>{isIntermediario ? 'Registro de Intermediario' : 'Crear cuenta'}</h2>
-                <p>Completa tu informacion para empezar</p>
+                <h2>Crear cuenta de donante</h2>
+                <p>Completa tu informacion para empezar a donar.</p>
+                <p className="auth-help-text">¿Quieres ser intermediario? Contacta al administrador de la organización. Él verificará tus datos y creará tu cuenta. Cuando te entregue tus credenciales, podrás iniciar sesión aquí.</p>
             </div>
             <form onSubmit={handleSubmit} noValidate>
                 <div className="auth-row">
@@ -307,17 +270,9 @@ function RegisterForm({ onAuthSuccess }) {
                         <input id="reg-telefono" className={`auth-input ${errors.telefono ? 'auth-input-invalid' : ''}`} name="telefono" placeholder="5555-0000" value={form.telefono} onChange={handleChange} autoComplete="tel" />
                     </Field>
                 </div>
-                <div className="auth-row">
-                    <Field label="Correo electronico" id="reg-correo" error={errors.correo}>
-                        <input id="reg-correo" type="email" className={`auth-input ${errors.correo ? 'auth-input-invalid' : ''}`} name="correo" placeholder="correo@ejemplo.com" value={form.correo} onChange={handleChange} autoComplete="email" />
-                    </Field>
-                    <Field label="Tipo de cuenta" id="reg-rol" error={errors.rol}>
-                        <select id="reg-rol" className={`auth-select ${errors.rol ? 'auth-input-invalid' : ''}`} name="rol" value={form.rol} onChange={handleChange}>
-                            <option value="donante">Donante</option>
-                            <option value="intermediario">Intermediario</option>
-                        </select>
-                    </Field>
-                </div>
+                <Field label="Correo electronico" id="reg-correo" error={errors.correo}>
+                    <input id="reg-correo" type="email" className={`auth-input ${errors.correo ? 'auth-input-invalid' : ''}`} name="correo" placeholder="correo@ejemplo.com" value={form.correo} onChange={handleChange} autoComplete="email" />
+                </Field>
                 <div className="auth-row">
                     <Field label="Contrasena" id="reg-password" error={errors.password}>
                         <input id="reg-password" type="password" className={`auth-input ${errors.password ? 'auth-input-invalid' : ''}`} name="password" placeholder="Minimo 8 caracteres" value={form.password} onChange={handleChange} autoComplete="new-password" />
@@ -327,44 +282,22 @@ function RegisterForm({ onAuthSuccess }) {
                     </Field>
                 </div>
 
-                {form.rol === 'donante' && (
-                    <>
-                        <div className="auth-row">
-                            <Field label="Departamento" id="reg-departamento" error={errors.departamento}>
-                                <input id="reg-departamento" className={`auth-input ${errors.departamento ? 'auth-input-invalid' : ''}`} name="departamento" placeholder="Departamento" value={form.departamento} onChange={handleChange} />
-                            </Field>
-                            <Field label="Municipio" id="reg-municipio" error={errors.municipio}>
-                                <input id="reg-municipio" className={`auth-input ${errors.municipio ? 'auth-input-invalid' : ''}`} name="municipio" placeholder="Municipio" value={form.municipio} onChange={handleChange} />
-                            </Field>
-                        </div>
-                        <div className="auth-row">
-                            <Field label="Zona" id="reg-zona" error={errors.zona}>
-                                <input id="reg-zona" className={`auth-input ${errors.zona ? 'auth-input-invalid' : ''}`} name="zona" placeholder="Zona" value={form.zona} onChange={handleChange} />
-                            </Field>
-                            <Field label="Direccion" id="reg-direccion" error={errors.direccion_detalle}>
-                                <input id="reg-direccion" className={`auth-input ${errors.direccion_detalle ? 'auth-input-invalid' : ''}`} name="direccion_detalle" placeholder="Calle, avenida, referencia" value={form.direccion_detalle} onChange={handleChange} />
-                            </Field>
-                        </div>
-                    </>
-                )}
-
-                {form.rol === 'intermediario' && (
-                    <div className="auth-row">
-                        <Field label="Organizacion" id="reg-org" error={errors.id_organizacion}>
-                            <select id="reg-org" className={`auth-select ${errors.id_organizacion ? 'auth-input-invalid' : ''}`} name="id_organizacion" value={form.id_organizacion} onChange={handleChange} disabled={orgLoading}>
-                                <option value="">Selecciona una organizacion</option>
-                                {organizaciones.map(org => (
-                                    <option key={org.id_organizacion} value={org.id_organizacion}>{org.nombre}</option>
-                                ))}
-                            </select>
-                            {orgLoading && <span className="auth-help-text">Cargando organización...</span>}
-                            {orgError && <span className="auth-error-text">{orgError}</span>}
-                        </Field>
-                        <Field label="Cargo" id="reg-cargo" error={errors.cargo}>
-                            <input id="reg-cargo" className={`auth-input ${errors.cargo ? 'auth-input-invalid' : ''}`} name="cargo" placeholder="Ej: Coordinador" value={form.cargo} onChange={handleChange} />
-                        </Field>
-                    </div>
-                )}
+                <div className="auth-row">
+                    <Field label="Departamento" id="reg-departamento" error={errors.departamento}>
+                        <input id="reg-departamento" className={`auth-input ${errors.departamento ? 'auth-input-invalid' : ''}`} name="departamento" placeholder="Departamento" value={form.departamento} onChange={handleChange} />
+                    </Field>
+                    <Field label="Municipio" id="reg-municipio" error={errors.municipio}>
+                        <input id="reg-municipio" className={`auth-input ${errors.municipio ? 'auth-input-invalid' : ''}`} name="municipio" placeholder="Municipio" value={form.municipio} onChange={handleChange} />
+                    </Field>
+                </div>
+                <div className="auth-row">
+                    <Field label="Zona" id="reg-zona" error={errors.zona}>
+                        <input id="reg-zona" className={`auth-input ${errors.zona ? 'auth-input-invalid' : ''}`} name="zona" placeholder="Zona" value={form.zona} onChange={handleChange} />
+                    </Field>
+                    <Field label="Direccion" id="reg-direccion" error={errors.direccion_detalle}>
+                        <input id="reg-direccion" className={`auth-input ${errors.direccion_detalle ? 'auth-input-invalid' : ''}`} name="direccion_detalle" placeholder="Calle, avenida, referencia" value={form.direccion_detalle} onChange={handleChange} />
+                    </Field>
+                </div>
 
                 {apiError && <div className="auth-api-error">{apiError}</div>}
                 {successMessage && <div className="auth-success-msg">{successMessage}</div>}
