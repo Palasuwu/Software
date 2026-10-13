@@ -114,3 +114,29 @@ jobs:
           name: reportes-pruebas-${{ github.run_number }}
           path: Scrum/RedDonaciones/backend/reportes/
           retention-days: 30
+
+  frontend:
+    name: Frontend (Vitest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    defaults:
+      run:
+        working-directory: Scrum/RedDonaciones/frontend
+
+    steps:
+      - name: Obtener el código
+        uses: actions/checkout@v4
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: Scrum/RedDonaciones/frontend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar Vitest
+        run: npm run test:run
