@@ -1,6 +1,6 @@
 import pytest
 from auth_utils import generate_token
-from test_usuarios import crear_conexion_mock
+from tests.helpers import crear_conexion_mock
 
 DATOS = {"nombre": "Ana Perez", "correo": "ana@example.com", "telefono": "22223333", "password": "clave1234", "rol": "intermediario", "id_organizacion": 1, "cargo": "Coordinadora"}
 SECRET = "test-secret-key-with-at-least-32-bytes"

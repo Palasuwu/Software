@@ -1,7 +1,7 @@
 import os
 
 from auth_utils import generate_token
-from test_usuarios import crear_conexion_mock
+from tests.helpers import crear_conexion_mock
 
 SECRET = "test-secret-key-with-at-least-32-bytes"
 
@@ -76,5 +76,4 @@ def test_listar_organizaciones_admin_activo_es_200(client, monkeypatch):
     )
 
     assert response.status_code == 200
-
 
