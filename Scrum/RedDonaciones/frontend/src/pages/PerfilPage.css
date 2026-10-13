@@ -271,3 +271,13 @@
   .profile-main-title { font-size: 1.8rem; }
   .profile-photo { max-width: 100%; width: 100%; }
 }
+
+.profile-edit-help { margin: 0; color: var(--text-soft); line-height: 1.5; }
+.profile-edit-section { display: grid; gap: 16px; border: 0; padding: 16px 0 0; margin: 0; min-width: 0; }
+.profile-edit-section legend { padding: 0; font-weight: 700; color: var(--text); }
+.profile-edit-section .form-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.profile-edit-section .form-field { min-width: 0; }
+.profile-edit-actions { padding-top: 20px; border-top: 1px solid var(--outline); }
+@media (max-width: 540px) {
+  .profile-edit-section .form-row { grid-template-columns: 1fr; }
+}

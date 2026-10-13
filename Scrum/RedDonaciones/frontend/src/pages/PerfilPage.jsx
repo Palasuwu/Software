@@ -1,7 +1,7 @@
 // Pagina de perfil del usuario autenticado: ver y editar datos, con campos
 // condicionados por rol (donante/intermediario/administrador).
 import React from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { apiGet, apiPut } from '../utils/api'
 import { guardarUsuarioSesion } from '../utils/session'
 import { IconUser, IconDonation, IconLocation } from '../components/icons'
@@ -94,7 +94,8 @@ function buildProfilePayload(form, rol) {
 }
 
 export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
-    const location = useLocation()
+    const formRef = React.useRef(null)
+    const savingRef = React.useRef(false)
     const [perfil, setPerfil] = React.useState(null)
     const [resumen, setResumen] = React.useState({ total: 0, organizaciones: 0 })
     const [loading, setLoading] = React.useState(true)
@@ -166,6 +167,7 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
 
     const handleSaveProfile = async (event) => {
         event.preventDefault()
+        if (savingRef.current) return
 
         const nextErrors = validateProfileForm(form, perfil?.rol)
         setFormErrors(nextErrors)
@@ -173,9 +175,12 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
         setSaveSuccess('')
 
         if (Object.keys(nextErrors).length > 0) {
+            const firstField = Object.keys(nextErrors)[0]
+            formRef.current?.elements.namedItem(firstField)?.focus()
             return
         }
 
+        savingRef.current = true
         setIsSaving(true)
 
         try {
@@ -205,6 +210,7 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
         } catch (fetchError) {
             setSaveError(fetchError.message || 'No se pudo actualizar tu perfil')
         } finally {
+            savingRef.current = false
             setIsSaving(false)
         }
     }
@@ -234,8 +240,8 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
                 <p className="profile-main-subtitle">Información personal y datos de tu cuenta</p>
             </header>
 
-            {saveSuccess && <div className="loading-box">{saveSuccess}</div>}
-            {saveError && <div className="error-box">{saveError}</div>}
+            {saveSuccess && <div className="loading-box" role="status">{saveSuccess}</div>}
+            {saveError && <div className="error-box" role="alert">{saveError}</div>}
 
             <div className="profile-grid-figma">
                 <section className="profile-card-figma profile-info-card-figma">
@@ -258,48 +264,59 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
                     </div>
 
                     {isEditing ? (
-                        <form className="profile-edit-form form-grid" onSubmit={handleSaveProfile} noValidate>
-                            <div className="form-row">
-                                <div className="form-field">
-                                    <label className="form-label" htmlFor="profile-nombre">Nombre completo</label>
-                                    <input
-                                        id="profile-nombre"
-                                        className={`form-input ${formErrors.nombre ? 'form-input-invalid' : ''}`}
-                                        name="nombre"
-                                        value={form.nombre}
-                                        onChange={handleFormChange}
-                                    />
-                                    {formErrors.nombre && <span className="form-error-text">{formErrors.nombre}</span>}
+                        <form ref={formRef} className="profile-edit-form form-grid" onSubmit={handleSaveProfile} noValidate aria-busy={isSaving}>
+                            <p className="profile-edit-help">Actualiza tus datos y guarda los cambios al terminar. Los campos son obligatorios.</p>
+                            <fieldset className="profile-edit-section" disabled={isSaving}>
+                                <legend>Datos de contacto</legend>
+                                <div className="form-row">
+                                    <div className="form-field">
+                                        <label className="form-label" htmlFor="profile-nombre">Nombre completo</label>
+                                        <input
+                                            id="profile-nombre"
+                                            className={`form-input ${formErrors.nombre ? 'form-input-invalid' : ''}`}
+                                            autoComplete="name" name="nombre"
+                                            aria-invalid={!!formErrors.nombre}
+                                            aria-describedby={formErrors.nombre ? 'profile-nombre-error' : undefined}
+                                            value={form.nombre}
+                                            onChange={handleFormChange}
+                                        />
+                                        {formErrors.nombre && <span id="profile-nombre-error" className="form-error-text">{formErrors.nombre}</span>}
+                                    </div>
+
+                                    <div className="form-field">
+                                        <label className="form-label" htmlFor="profile-telefono">Telefono</label>
+                                        <input
+                                            id="profile-telefono"
+                                            className={`form-input ${formErrors.telefono ? 'form-input-invalid' : ''}`}
+                                            type="tel" autoComplete="tel" name="telefono"
+                                            aria-invalid={!!formErrors.telefono}
+                                            aria-describedby={formErrors.telefono ? 'profile-telefono-error' : undefined}
+                                            value={form.telefono}
+                                            onChange={handleFormChange}
+                                        />
+                                        {formErrors.telefono && <span id="profile-telefono-error" className="form-error-text">{formErrors.telefono}</span>}
+                                    </div>
                                 </div>
 
                                 <div className="form-field">
-                                    <label className="form-label" htmlFor="profile-telefono">Telefono</label>
+                                    <label className="form-label" htmlFor="profile-correo">Correo</label>
                                     <input
-                                        id="profile-telefono"
-                                        className={`form-input ${formErrors.telefono ? 'form-input-invalid' : ''}`}
-                                        name="telefono"
-                                        value={form.telefono}
+                                        id="profile-correo"
+                                        type="email"
+                                        className={`form-input ${formErrors.correo ? 'form-input-invalid' : ''}`}
+                                        autoComplete="email" name="correo"
+                                        aria-invalid={!!formErrors.correo}
+                                        aria-describedby={formErrors.correo ? 'profile-correo-error' : undefined}
+                                        value={form.correo}
                                         onChange={handleFormChange}
                                     />
-                                    {formErrors.telefono && <span className="form-error-text">{formErrors.telefono}</span>}
+                                    {formErrors.correo && <span id="profile-correo-error" className="form-error-text">{formErrors.correo}</span>}
                                 </div>
-                            </div>
 
-                            <div className="form-field">
-                                <label className="form-label" htmlFor="profile-correo">Correo</label>
-                                <input
-                                    id="profile-correo"
-                                    type="email"
-                                    className={`form-input ${formErrors.correo ? 'form-input-invalid' : ''}`}
-                                    name="correo"
-                                    value={form.correo}
-                                    onChange={handleFormChange}
-                                />
-                                {formErrors.correo && <span className="form-error-text">{formErrors.correo}</span>}
-                            </div>
-
+                            </fieldset>
                             {perfil?.rol === 'donante' && (
-                                <>
+                                <fieldset className="profile-edit-section" disabled={isSaving}>
+                                    <legend>Dirección</legend>
                                     <div className="form-row">
                                         <div className="form-field">
                                             <label className="form-label" htmlFor="profile-departamento">Departamento</label>
@@ -307,10 +324,12 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
                                                 id="profile-departamento"
                                                 className={`form-input ${formErrors.departamento ? 'form-input-invalid' : ''}`}
                                                 name="departamento"
+                                                aria-invalid={!!formErrors.departamento}
+                                                aria-describedby={formErrors.departamento ? 'profile-departamento-error' : undefined}
                                                 value={form.departamento}
                                                 onChange={handleFormChange}
                                             />
-                                            {formErrors.departamento && <span className="form-error-text">{formErrors.departamento}</span>}
+                                            {formErrors.departamento && <span id="profile-departamento-error" className="form-error-text">{formErrors.departamento}</span>}
                                         </div>
 
                                         <div className="form-field">
@@ -319,10 +338,12 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
                                                 id="profile-municipio"
                                                 className={`form-input ${formErrors.municipio ? 'form-input-invalid' : ''}`}
                                                 name="municipio"
+                                                aria-invalid={!!formErrors.municipio}
+                                                aria-describedby={formErrors.municipio ? 'profile-municipio-error' : undefined}
                                                 value={form.municipio}
                                                 onChange={handleFormChange}
                                             />
-                                            {formErrors.municipio && <span className="form-error-text">{formErrors.municipio}</span>}
+                                            {formErrors.municipio && <span id="profile-municipio-error" className="form-error-text">{formErrors.municipio}</span>}
                                         </div>
                                     </div>
 
@@ -333,10 +354,12 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
                                                 id="profile-zona"
                                                 className={`form-input ${formErrors.zona ? 'form-input-invalid' : ''}`}
                                                 name="zona"
+                                                aria-invalid={!!formErrors.zona}
+                                                aria-describedby={formErrors.zona ? 'profile-zona-error' : undefined}
                                                 value={form.zona}
                                                 onChange={handleFormChange}
                                             />
-                                            {formErrors.zona && <span className="form-error-text">{formErrors.zona}</span>}
+                                            {formErrors.zona && <span id="profile-zona-error" className="form-error-text">{formErrors.zona}</span>}
                                         </div>
 
                                         <div className="form-field">
@@ -345,41 +368,48 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
                                                 id="profile-direccion"
                                                 className={`form-input ${formErrors.direccion_detalle ? 'form-input-invalid' : ''}`}
                                                 name="direccion_detalle"
+                                                aria-invalid={!!formErrors.direccion_detalle}
+                                                aria-describedby={formErrors.direccion_detalle ? 'profile-direccion_detalle-error' : undefined}
                                                 value={form.direccion_detalle}
                                                 onChange={handleFormChange}
                                             />
                                             {formErrors.direccion_detalle && (
-                                                <span className="form-error-text">{formErrors.direccion_detalle}</span>
+                                                <span id="profile-direccion_detalle-error" className="form-error-text">{formErrors.direccion_detalle}</span>
                                             )}
                                         </div>
                                     </div>
-                                </>
+                                </fieldset>
                             )}
 
                             {perfil?.rol === 'intermediario' && (
-                                <div className="form-row">
-                                    <div className="form-field">
-                                        <label className="form-label" htmlFor="profile-organizacion">Organización</label>
-                                        <input
-                                            id="profile-organizacion"
-                                            className="form-input"
-                                            value={perfil?.perfil?.organizacion_nombre || 'No asignada'}
-                                            readOnly
-                                        />
-                                    </div>
+                                <fieldset className="profile-edit-section" disabled={isSaving}>
+                                    <legend>Datos de la organización</legend>
+                                    <div className="form-row">
+                                        <div className="form-field">
+                                            <label className="form-label" htmlFor="profile-organizacion">Organización</label>
+                                            <input
+                                                id="profile-organizacion"
+                                                className="form-input"
+                                                value={perfil?.perfil?.organizacion_nombre || 'No asignada'}
+                                                readOnly
+                                            />
+                                        </div>
 
-                                    <div className="form-field">
-                                        <label className="form-label" htmlFor="profile-cargo">Cargo</label>
-                                        <input
-                                            id="profile-cargo"
-                                            className={`form-input ${formErrors.cargo ? 'form-input-invalid' : ''}`}
-                                            name="cargo"
-                                            value={form.cargo}
-                                            onChange={handleFormChange}
-                                        />
-                                        {formErrors.cargo && <span className="form-error-text">{formErrors.cargo}</span>}
+                                        <div className="form-field">
+                                            <label className="form-label" htmlFor="profile-cargo">Cargo</label>
+                                            <input
+                                                id="profile-cargo"
+                                                className={`form-input ${formErrors.cargo ? 'form-input-invalid' : ''}`}
+                                                name="cargo"
+                                                aria-invalid={!!formErrors.cargo}
+                                                aria-describedby={formErrors.cargo ? 'profile-cargo-error' : undefined}
+                                                value={form.cargo}
+                                                onChange={handleFormChange}
+                                            />
+                                            {formErrors.cargo && <span id="profile-cargo-error" className="form-error-text">{formErrors.cargo}</span>}
+                                        </div>
                                     </div>
-                                </div>
+                                </fieldset>
                             )}
 
                             <div className="profile-edit-actions">
