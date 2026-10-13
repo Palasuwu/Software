@@ -31,7 +31,7 @@ export default function OrgaCampaignsTable({
 
     return (
         <div className="admin-table-wrap">
-            <table className="admin-table admin-table-campaigns">
+            <table className="admin-table admin-table-campaigns orga-campaigns-table">
                 <thead>
                     <tr>
                         <th>Campaña</th>
@@ -49,6 +49,13 @@ export default function OrgaCampaignsTable({
                         : publicaciones.map((publicacion) => {
                             const progress = getProgress(publicacion)
                             const isSaving = savingCampaignId === publicacion.id_publicacion
+                            const statusClass = publicacion.estado === 'activa'
+                                ? 'status-active'
+                                : publicacion.estado === 'finalizada'
+                                    ? 'status-finished'
+                                    : publicacion.estado === 'cancelada'
+                                        ? 'status-canceled'
+                                        : ''
 
                             return (
                                 <tr key={publicacion.id_publicacion}>
@@ -91,7 +98,7 @@ export default function OrgaCampaignsTable({
 
                                     <td>
                                         <select
-                                            className="form-select admin-select-status"
+                                            className={`form-select admin-select-status campaign-select-status ${statusClass}`}
                                             aria-label={`Estado de ${publicacion.titulo}`}
                                             value={publicacion.estado}
                                             disabled={isSaving}
@@ -113,20 +120,20 @@ export default function OrgaCampaignsTable({
                                         <div className="admin-row-actions">
                                             <button
                                                 type="button"
-                                                className="admin-secondary-action orga-edit-action"
+                                                className="admin-icon-button orga-edit-action"
                                                 disabled={isSaving}
                                                 title="Editar publicación"
                                                 aria-label={`Editar publicación: ${publicacion.titulo}`}
                                                 onClick={() => onEdit(publicacion)}
                                             >
                                                 <IconEdit className="admin-action-icon" />
-                                                <span>Editar</span>
                                             </button>
                                             {publicacion.estado === 'finalizada' && (
                                                 <button
                                                     type="button"
-                                                    className="admin-secondary-action"
+                                                    className="admin-primary-action orga-publish-result-action"
                                                     disabled={isSaving}
+                                                    aria-label={`Publicar resultados de ${publicacion.titulo}`}
                                                     onClick={() => onPublishResult(publicacion)}
                                                 >
                                                     Publicar resultados
