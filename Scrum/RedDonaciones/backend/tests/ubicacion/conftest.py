@@ -215,9 +215,18 @@ class BaseDatosFalsa:
             campanas = [p for p in campanas if p["id_publicacion"] == params[0]]
         elif "WHERE p.id_organizacion = %s" in sql:
             campanas = [p for p in campanas if p["id_organizacion"] == params[0]]
-        return [self._fila_campana(p, resolver="COALESCE(p.latitud" in sql) for p in campanas]
+        return [
+            self._fila_campana(
+                p,
+                resolver="COALESCE(p.latitud" in sql,
+                incluir_autorizacion=(
+                    "p.id_organizacion, o.estado_verificacion" in sql
+                ),
+            )
+            for p in campanas
+        ]
 
-    def _fila_campana(self, p, resolver):
+    def _fila_campana(self, p, resolver, incluir_autorizacion=False):
         o = self.organizaciones[p["id_organizacion"]]
 
         def valor(propio, heredado):
@@ -225,7 +234,7 @@ class BaseDatosFalsa:
                 return p[propio]
             return o[heredado]
 
-        return {
+        fila = {
             "id_publicacion": p["id_publicacion"],
             "id_articulo": p["id_articulo"],
             "titulo": p["titulo"],
@@ -251,6 +260,10 @@ class BaseDatosFalsa:
             "resultado_imagen_url": None,
             "resultado_fecha_publicacion": None,
         }
+        if incluir_autorizacion:
+            fila["id_organizacion"] = p["id_organizacion"]
+            fila["estado_verificacion"] = o["estado_verificacion"]
+        return fila
 
 
 @pytest.fixture
