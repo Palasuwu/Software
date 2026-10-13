@@ -2,7 +2,7 @@ import React from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import AuthPage from '../pages/AuthPage'
+import AuthPage from '../../pages/AuthPage'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 beforeEach(() => { localStorage.clear(); vi.stubGlobal('fetch', vi.fn()) })

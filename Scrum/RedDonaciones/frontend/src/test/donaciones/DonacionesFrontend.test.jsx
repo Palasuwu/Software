@@ -2,21 +2,21 @@ import React from 'react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import DonationHistoryDetailPage from '../pages/DonationHistoryDetailPage'
-import MisDonacionesPage from '../pages/MisDonacionesPage'
-import OrgaDonacionesTable from '../pages/orga/OrgaDonacionesTable'
-import AdminDonacionesTable from '../pages/admin/AdminDonacionesTable'
-import { apiGet } from '../utils/api'
-import { obtenerUsuarioSesion } from '../utils/session'
-import { donationStatusLabel } from '../pages/admin/adminHelpers'
+import DonationHistoryDetailPage from '../../pages/DonationHistoryDetailPage'
+import MisDonacionesPage from '../../pages/MisDonacionesPage'
+import OrgaDonacionesTable from '../../pages/orga/OrgaDonacionesTable'
+import AdminDonacionesTable from '../../pages/admin/AdminDonacionesTable'
+import { apiGet } from '../../utils/api'
+import { obtenerUsuarioSesion } from '../../utils/session'
+import { donationStatusLabel } from '../../pages/admin/adminHelpers'
 
-vi.mock('../utils/api', () => ({
+vi.mock('../../utils/api', () => ({
     apiGet: vi.fn(),
     apiPost: vi.fn(),
     apiPut: vi.fn()
 }))
 
-vi.mock('../utils/session', () => ({
+vi.mock('../../utils/session', () => ({
     obtenerUsuarioSesion: vi.fn()
 }))
 

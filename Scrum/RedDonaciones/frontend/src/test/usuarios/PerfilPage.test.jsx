@@ -2,11 +2,11 @@ import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { vi, beforeEach, test, expect } from 'vitest'
-import PerfilPage from '../pages/PerfilPage'
-import { apiGet, apiPut } from '../utils/api'
-vi.mock('../utils/api', () => ({ apiGet: vi.fn(), apiPut: vi.fn() }))
-vi.mock('../pages/PerfilFoto', () => ({ default: () => <div>Foto</div> }))
-vi.mock('../utils/session', () => ({ guardarUsuarioSesion: vi.fn() }))
+import PerfilPage from '../../pages/PerfilPage'
+import { apiGet, apiPut } from '../../utils/api'
+vi.mock('../../utils/api', () => ({ apiGet: vi.fn(), apiPut: vi.fn() }))
+vi.mock('../../pages/PerfilFoto', () => ({ default: () => <div>Foto</div> }))
+vi.mock('../../utils/session', () => ({ guardarUsuarioSesion: vi.fn() }))
 const usuario = { id_usuario: 9, nombre: 'Ana Perez', correo: 'ana@example.com', telefono: '12345678', rol: 'donante', perfil: { departamento: 'Guatemala', municipio: 'Mixco', zona: '4', direccion_detalle: 'Calle principal' } }
 beforeEach(() => { vi.clearAllMocks(); apiGet.mockImplementation(path => Promise.resolve(path.includes('donaciones') ? [] : usuario)) })
 async function editar() {

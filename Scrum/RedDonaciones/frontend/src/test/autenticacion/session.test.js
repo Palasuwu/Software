@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { guardarTokenSesion, obtenerTokenSesion, limpiarTokenSesion } from '../utils/session'
+import { guardarTokenSesion, obtenerTokenSesion, limpiarTokenSesion } from '../../utils/session'
 
 describe('session utils', () => {
   beforeEach(() => {

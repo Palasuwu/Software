@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import CauseContext, { mensajeDeConcientizacion } from '../components/CauseContext'
+import CauseContext, { mensajeDeConcientizacion } from '../../components/CauseContext'
 
 
 describe('CauseContext', () => {

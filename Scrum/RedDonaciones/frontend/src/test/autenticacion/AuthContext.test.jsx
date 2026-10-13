@@ -2,7 +2,7 @@ import React from 'react'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { AuthProvider, useAuth } from '../context/AuthContext'
+import { AuthProvider, useAuth } from '../../context/AuthContext'
 
 function Estado() {
   const { usuarioSesion, isAuthenticated, authNotice, logout } = useAuth()

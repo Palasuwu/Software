@@ -2,11 +2,11 @@ import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import DetailPage from '../pages/DetailPage'
-import { apiGet } from '../utils/api'
+import DetailPage from '../../pages/DetailPage'
+import { apiGet } from '../../utils/api'
 
-vi.mock('../utils/api', () => ({ apiGet: vi.fn(), apiPost: vi.fn() }))
-vi.mock('../utils/session', () => ({ obtenerUsuarioSesion: vi.fn(() => null) }))
+vi.mock('../../utils/api', () => ({ apiGet: vi.fn(), apiPost: vi.fn() }))
+vi.mock('../../utils/session', () => ({ obtenerUsuarioSesion: vi.fn(() => null) }))
 
 const finalizada = [{
   id_publicacion: 10,

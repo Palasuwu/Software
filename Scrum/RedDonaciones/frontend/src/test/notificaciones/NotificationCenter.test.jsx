@@ -2,11 +2,11 @@ import React from 'react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import NotificationCenter from '../components/NotificationCenter'
-import { apiGet, apiPatch } from '../utils/api'
+import NotificationCenter from '../../components/NotificationCenter'
+import { apiGet, apiPatch } from '../../utils/api'
 
 
-vi.mock('../utils/api', () => ({
+vi.mock('../../utils/api', () => ({
   apiGet: vi.fn(),
   apiPatch: vi.fn()
 }))

@@ -1,7 +1,7 @@
 import { afterEach, expect, it, vi } from 'vitest'
-import { apiUploadProfilePhoto } from '../utils/api'
+import { apiUploadProfilePhoto } from '../../utils/api'
 
-vi.mock('../utils/session', () => ({
+vi.mock('../../utils/session', () => ({
     obtenerHeadersSesion: () => ({ Authorization: 'Bearer prueba' }),
     limpiarTokenSesion: vi.fn(), limpiarUsuarioSesion: vi.fn()
 }))

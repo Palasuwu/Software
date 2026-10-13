@@ -2,9 +2,9 @@ import React from 'react'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
-import NavBar from '../components/NavBar'
+import NavBar from '../../components/NavBar'
 
-vi.mock('../components/NotificationCenter', () => ({ default: () => <span>Notificaciones</span> }))
+vi.mock('../../components/NotificationCenter', () => ({ default: () => <span>Notificaciones</span> }))
 
 function renderNav(props, ruta = '/home') {
   render(

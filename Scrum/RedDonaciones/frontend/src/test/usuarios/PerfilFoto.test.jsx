@@ -1,10 +1,10 @@
 import React from 'react'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import PerfilFoto from '../pages/PerfilFoto'
-import { apiGet, apiUploadProfilePhoto } from '../utils/api'
+import PerfilFoto from '../../pages/PerfilFoto'
+import { apiGet, apiUploadProfilePhoto } from '../../utils/api'
 
-vi.mock('../utils/api', () => ({ apiGet: vi.fn(), apiUploadProfilePhoto: vi.fn() }))
+vi.mock('../../utils/api', () => ({ apiGet: vi.fn(), apiUploadProfilePhoto: vi.fn() }))
 const foto = 'data:image/jpeg;base64,dGVzdA=='
 const nueva = new File(['foto'], 'foto.png', { type: 'image/png' })
 beforeEach(() => {

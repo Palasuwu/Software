@@ -1,12 +1,12 @@
 import React from 'react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import GaleriaImpacto from '../components/GaleriaImpacto'
-import { apiGet } from '../utils/api'
+import GaleriaImpacto from '../../components/GaleriaImpacto'
+import { apiGet } from '../../utils/api'
 
 const vista = vi.hoisted(() => ({ enVista: true, reducir: false }))
 
-vi.mock('../utils/api', () => ({ apiGet: vi.fn() }))
+vi.mock('../../utils/api', () => ({ apiGet: vi.fn() }))
 vi.mock('framer-motion', async (importOriginal) => ({
   ...(await importOriginal()),
   useInView: () => vista.enVista,

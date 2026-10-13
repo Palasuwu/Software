@@ -2,12 +2,12 @@
 import React from 'react'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import OrgaPanel from '../pages/OrgaPanel'
-import AdminPanel from '../pages/AdminPanel'
-import { apiGet, apiPost, apiPut } from '../utils/api'
-import { buildCampaignLocationPayload, campaignLocationForm, validateCampaignLocation } from '../utils/ubicacion'
+import OrgaPanel from '../../pages/OrgaPanel'
+import AdminPanel from '../../pages/AdminPanel'
+import { apiGet, apiPost, apiPut } from '../../utils/api'
+import { buildCampaignLocationPayload, campaignLocationForm, validateCampaignLocation } from '../../utils/ubicacion'
 
-vi.mock('../utils/api', () => ({
+vi.mock('../../utils/api', () => ({
     apiGet: vi.fn(), apiPost: vi.fn(), apiPut: vi.fn(), apiDelete: vi.fn(), apiUpload: vi.fn()
 }))
 

@@ -1,10 +1,10 @@
 import React from 'react'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import OrgaPanel from '../pages/OrgaPanel'
-import { apiGet, apiPut } from '../utils/api'
+import OrgaPanel from '../../pages/OrgaPanel'
+import { apiGet, apiPut } from '../../utils/api'
 
-vi.mock('../utils/api', () => ({ apiGet: vi.fn(), apiPut: vi.fn(), apiPost: vi.fn(), apiUpload: vi.fn() }))
+vi.mock('../../utils/api', () => ({ apiGet: vi.fn(), apiPut: vi.fn(), apiPost: vi.fn(), apiUpload: vi.fn() }))
 afterEach(cleanup)
 beforeEach(() => {
     vi.resetAllMocks()

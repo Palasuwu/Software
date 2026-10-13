@@ -2,12 +2,12 @@
 import React from 'react'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import OrgaPerfilInstitucionalForm from '../pages/orga/OrgaPerfilInstitucionalForm'
-import AdminPanel from '../pages/AdminPanel'
-import { buildOrgPayload, validateOrgForm } from '../pages/admin/adminForms'
-import { apiGet, apiPut } from '../utils/api'
+import OrgaPerfilInstitucionalForm from '../../pages/orga/OrgaPerfilInstitucionalForm'
+import AdminPanel from '../../pages/AdminPanel'
+import { buildOrgPayload, validateOrgForm } from '../../pages/admin/adminForms'
+import { apiGet, apiPut } from '../../utils/api'
 
-vi.mock('../utils/api', () => ({
+vi.mock('../../utils/api', () => ({
     apiGet: vi.fn(), apiPut: vi.fn(), apiPost: vi.fn(), apiDelete: vi.fn(), apiUpload: vi.fn()
 }))
 

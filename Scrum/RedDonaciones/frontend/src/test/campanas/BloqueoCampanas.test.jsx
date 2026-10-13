@@ -2,17 +2,17 @@ import React from 'react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import DetailPage from '../pages/DetailPage'
-import HomePage from '../pages/HomePage'
-import { apiGet, apiPost } from '../utils/api'
-import { obtenerUsuarioSesion } from '../utils/session'
+import DetailPage from '../../pages/DetailPage'
+import HomePage from '../../pages/HomePage'
+import { apiGet, apiPost } from '../../utils/api'
+import { obtenerUsuarioSesion } from '../../utils/session'
 
-vi.mock('../utils/api', () => ({
+vi.mock('../../utils/api', () => ({
   apiGet: vi.fn(),
   apiPost: vi.fn()
 }))
 
-vi.mock('../utils/session', () => ({
+vi.mock('../../utils/session', () => ({
   obtenerUsuarioSesion: vi.fn()
 }))
 

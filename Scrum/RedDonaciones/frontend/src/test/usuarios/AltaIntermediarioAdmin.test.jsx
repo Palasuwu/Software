@@ -1,8 +1,8 @@
 import React from 'react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render, screen } from '@testing-library/react'
-import UserFormFields from '../pages/admin/UserFormFields'
-import { buildUserPayload, validateUserForm } from '../pages/admin/adminForms'
+import UserFormFields from '../../pages/admin/UserFormFields'
+import { buildUserPayload, validateUserForm } from '../../pages/admin/adminForms'
 afterEach(cleanup)
 const form = { nombre: 'Ana Perez', correo: 'ana@example.com', telefono: '22223333', password: 'clave1234', rol: 'intermediario', id_organizacion: '1', cargo: 'Coordinadora' }
 describe('Alta administrativa de intermediarios', () => {

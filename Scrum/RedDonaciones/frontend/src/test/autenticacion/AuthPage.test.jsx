@@ -22,7 +22,7 @@ import {
     Routes
 } from "react-router-dom";
 
-import AuthPage from "../pages/AuthPage";
+import AuthPage from "../../pages/AuthPage";
 
 
 describe("AuthPage - LoginForm", () => {

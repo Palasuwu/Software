@@ -2,7 +2,7 @@ import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { afterEach, describe, expect, it } from 'vitest'
-import ProtectedRoute from '../components/ProtectedRoute'
+import ProtectedRoute from '../../components/ProtectedRoute'
 
 // Muestra a dónde llegó la redirección y el state que se pasó
 function Destino({ nombre }) {
