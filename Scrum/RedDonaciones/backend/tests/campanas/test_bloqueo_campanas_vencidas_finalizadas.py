@@ -366,11 +366,12 @@ def test_donacion_permitida_campana_sin_fecha_limite(client, monkeypatch):
 
 
 # 9. Consulta pública calcula estado 'cancelada' si la fecha límite ya expiró
-def test_consulta_publicacion_calcula_cancelada_si_vencida(client, monkeypatch):
+def test_consulta_publicacion_vencida_no_es_publica(client, monkeypatch):
     pub = {
         "id_publicacion": 9,
         "id_intermediario": 2,
         "id_organizacion": 1,
+        "estado_verificacion": "verificada",
         "titulo": "Campaña Vencida para Detalle",
         "descripcion": "Descripción",
         "cantidad_necesaria": 100,
@@ -387,8 +388,5 @@ def test_consulta_publicacion_calcula_cancelada_si_vencida(client, monkeypatch):
     monkeypatch.setattr("routes.publicacion.get_db_connection", lambda: conn)
 
     response = client.get("/publicaciones/9")
-    assert response.status_code == 200
-    data = response.get_json()
-    assert isinstance(data, list)
-    assert len(data) > 0
-    assert data[0]["estado"] == "cancelada"
+    assert response.status_code == 404
+    assert response.get_json()["error"] == "Publicación no encontrada"
