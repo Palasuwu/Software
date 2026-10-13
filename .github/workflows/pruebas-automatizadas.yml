@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "Scrum/RedDonaciones/backend/**"
+      - "Scrum/RedDonaciones/frontend/**"
       - "Scrum/RedDonaciones/db/**"
       - ".github/workflows/pruebas-automatizadas.yml"
   pull_request:
