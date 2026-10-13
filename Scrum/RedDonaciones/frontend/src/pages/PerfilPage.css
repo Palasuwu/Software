@@ -247,3 +247,27 @@
     flex-wrap: wrap;
     gap: 8px;
 }
+
+.profile-page-figma { max-width: 1120px; margin-inline: auto; width: 100%; }
+.profile-grid-figma { align-items: start; }
+.profile-user-row { padding-bottom: 24px; border-bottom: 1px solid var(--outline); }
+.profile-user-copy .profile-user-name { font-size: 1.4rem; overflow-wrap: anywhere; }
+.profile-user-role { display: inline-block; padding: 5px 12px; border-radius: 999px; background: var(--primary-soft); color: var(--primary-strong); }
+.profile-info-item > div:last-child { min-width: 0; }
+.profile-info-value { overflow-wrap: anywhere; }
+.profile-address-detail { display: block; margin-top: 6px; color: var(--text-soft); }
+.profile-achievements-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.profile-achievements-grid .achievement-box { padding: 18px; border-radius: 14px; background: var(--primary-soft); }
+.profile-stat-value { margin: 8px 0 0; font-size: 2rem; font-weight: 700; color: var(--primary-strong); }
+.profile-history-link { grid-column: 1 / -1; color: var(--primary-strong); font-weight: 600; }
+.profile-page-figma button:focus-visible, .profile-history-link:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
+@media (min-width: 1000px) {
+  .profile-grid-figma:has(.profile-achievements-card-figma) { grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); }
+  .profile-achievements-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 540px) {
+  .profile-info-card-figma, .profile-achievements-card-figma { padding: 20px 16px; }
+  .profile-user-row { flex-direction: column; }
+  .profile-main-title { font-size: 1.8rem; }
+  .profile-photo { max-width: 100%; width: 100%; }
+}

@@ -12,6 +12,7 @@ function roleLabel(role) {
     if (!role) return 'Sin rol'
     if (role === 'donante') return 'Donante'
     if (role === 'intermediario') return 'Intermediario'
+    if (role === 'administrador') return 'Administrador'
     return role
 }
 
@@ -230,7 +231,7 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
         <div className="fade-in profile-page-figma">
             <header className="profile-header-figma">
                 <h1 className="profile-main-title">Mi Perfil</h1>
-                <p className="profile-main-subtitle">Informacion personal y datos de tu cuenta</p>
+                <p className="profile-main-subtitle">Información personal y datos de tu cuenta</p>
             </header>
 
             {saveSuccess && <div className="loading-box">{saveSuccess}</div>}
@@ -239,7 +240,7 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
             <div className="profile-grid-figma">
                 <section className="profile-card-figma profile-info-card-figma">
                     <div className="profile-title-row">
-                        <h2 className="profile-section-title">Informacion Personal</h2>
+                        <h2 className="profile-section-title">Información personal</h2>
                         {!isEditing && (
                             <button type="button" className="profile-edit-button" onClick={handleEdit}>
                                 Editar perfil
@@ -252,7 +253,7 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
 
                         <div className="profile-user-copy">
                             <h3 className="profile-user-name">{perfil?.nombre}</h3>
-                            <p className="profile-user-role">Rol: {roleLabel(perfil?.rol)}</p>
+                            <p className="profile-user-role">{roleLabel(perfil?.rol)}</p>
                         </div>
                     </div>
 
@@ -398,7 +399,7 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
                                 </div>
                                 <div>
                                     <p className="profile-info-label">Correo</p>
-                                    <p className="profile-info-value">{perfil?.correo}</p>
+                                    <p className="profile-info-value">{perfil?.correo || 'Sin correo registrado'}</p>
                                 </div>
                             </div>
 
@@ -408,7 +409,7 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
                                 </div>
                                 <div>
                                     <p className="profile-info-label">Telefono</p>
-                                    <p className="profile-info-value">{perfil?.telefono}</p>
+                                    <p className="profile-info-value">{perfil?.telefono || 'Sin teléfono registrado'}</p>
                                 </div>
                             </div>
 
@@ -420,7 +421,10 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
                                     <div>
                                         <p className="profile-info-label">Ubicacion</p>
                                         <p className="profile-info-value">
-                                            {perfil?.perfil?.municipio || 'Sin municipio'}, {perfil?.perfil?.departamento || 'Sin departamento'}
+                                            {[perfil?.perfil?.municipio, perfil?.perfil?.departamento].filter(Boolean).join(', ') || 'Sin ubicación registrada'}
+                                            <span className="profile-address-detail">
+                                                {[perfil?.perfil?.zona && `Zona ${perfil.perfil.zona}`, perfil?.perfil?.direccion_detalle].filter(Boolean).join(' · ')}
+                                            </span>
                                         </p>
                                     </div>
                                 </div>
@@ -447,18 +451,15 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
                         <div className="profile-achievements-grid">
                             <div className="achievement-box">
                                 <p className="achievement-label">Total de donaciones</p>
-                                <p className="profile-user-name">{resumen.total}</p>
+                                <p className="profile-stat-value">{resumen.total}</p>
                             </div>
 
                             <div className="achievement-box">
-                                <p className="achievement-label">Organización apoyada</p>
-                                <p className="profile-user-name">{resumen.organizaciones}</p>
+                                <p className="achievement-label">Organizaciones apoyadas</p>
+                                <p className="profile-stat-value">{resumen.organizaciones}</p>
                             </div>
 
-                            <div className="achievement-box">
-                                <p className="achievement-label">Tipo de cuenta</p>
-                                <p className="profile-user-name">{roleLabel(perfil?.rol)}</p>
-                            </div>
+                            <Link className="profile-history-link" to="/donaciones">Ver mis donaciones</Link>
                         </div>
                     </section>
                 )}
@@ -466,3 +467,4 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
         </div>
     )
 }
+
