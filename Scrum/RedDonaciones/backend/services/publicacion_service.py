@@ -143,7 +143,7 @@ def validar_publicacion_payload(
             errors.append("Falta el campo obligatorio: departamento")
         if not payload["municipio"]:
             errors.append("Falta el campo obligatorio: municipio")
-        if not payload["zona"].isdigit() or len(payload["zona"]) > 2:
+        if payload["zona"] and (not payload["zona"].isdigit() or len(payload["zona"]) > 2):
             errors.append("zona debe ser un numero valido")
         if len(payload["direccion_detalle"]) < 8:
             errors.append("direccion_detalle debe ser mas especifica")

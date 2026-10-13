@@ -1,0 +1,503 @@
+/* Estilos de ComoFunciona.jsx. Consume tokens.css.
+   El marco sigue el lenguaje editorial del landing (plano, reglas de 1px);
+   las mini vistas, en cambio, imitan la app real: radios, borde y sombra. */
+
+.cf-seccion {
+  background: var(--surface);
+}
+
+.cf-pasos {
+  list-style: none;
+  margin: 56px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--outline);
+}
+
+.cf-paso {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+  padding: 48px 0;
+  border-bottom: 1px solid var(--outline);
+}
+
+/* Pasos pares: la maqueta pasa a la izquierda para romper la monotonia. */
+.cf-paso:nth-child(even) .cf-paso-texto {
+  order: 2;
+}
+
+.cf-paso-num {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+}
+
+.cf-paso-titulo {
+  margin: 14px 0 12px;
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--text);
+}
+
+.cf-paso-desc {
+  margin: 0;
+  max-width: 44ch;
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--text-soft);
+}
+
+.cf-paso-vista {
+  display: flex;
+  justify-content: center;
+}
+
+/* ── Marco comun de las mini vistas ──────────────────────────────────────── */
+.cf-ui {
+  position: relative;
+  width: 330px;
+  max-width: 100%;
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  /* Las maquetas son decorativas: no deben capturar el cursor ni el foco. */
+  user-select: none;
+}
+
+.cf-icono {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.cf-barra {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-tinted);
+  overflow: hidden;
+}
+
+.cf-barra-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--primary);
+}
+
+/* ── Paso 2: agendar entrega ─────────────────────────────────────────────── */
+.cf-ui-agenda {
+  padding: 18px 18px 20px;
+}
+
+.cf-agenda-titulo {
+  margin: 0 0 16px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cf-campo-label {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.cf-qty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.cf-qty-btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+  color: var(--text-soft);
+  font-weight: 700;
+}
+
+.cf-qty-valor {
+  flex: 1;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.cf-agenda-fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.cf-input {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+  font-size: 0.8rem;
+  color: var(--text-soft);
+}
+
+.cf-compromiso {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  border: 1px solid var(--primary-muted);
+  border-radius: var(--radius-sm);
+  background: var(--primary-soft);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.cf-check {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.cf-check svg {
+  width: 11px;
+  height: 11px;
+}
+
+.cf-boton-falso {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* ── Paso 3: seguimiento del estado ──────────────────────────────────────── */
+.cf-ui-seguimiento {
+  padding: 18px;
+}
+
+.cf-seg-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.cf-seg-titulo {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cf-seg-badge {
+  flex-shrink: 0;
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--outline);
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Mismos tokens de estado que usan los badges de donacion en la app. */
+.cf-seg-badge--pendiente {
+  background: var(--badge-donation-pending-bg);
+  color: var(--badge-donation-pending-text);
+  border-color: var(--badge-donation-pending-border);
+}
+
+.cf-seg-badge--recibida {
+  background: var(--badge-donation-received-bg);
+  color: var(--badge-donation-received-text);
+  border-color: var(--badge-donation-received-border);
+}
+
+.cf-seg-badge--en_proceso {
+  background: var(--badge-donation-inprogress-bg);
+  color: var(--badge-donation-inprogress-text);
+  border-color: var(--badge-donation-inprogress-border);
+}
+
+.cf-seg-badge--entregada {
+  background: var(--badge-donation-delivered-bg);
+  color: var(--badge-donation-delivered-text);
+  border-color: var(--badge-donation-delivered-border);
+}
+
+.cf-seg-fecha {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 18px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.cf-seg-riel {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--surface-tinted);
+  overflow: hidden;
+}
+
+.cf-seg-riel-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--primary);
+}
+
+.cf-seg-pasos {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin-top: 9px;
+}
+
+.cf-seg-paso {
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
+}
+
+.cf-seg-paso--hecho {
+  color: var(--primary);
+}
+
+/* ── CTA final de la seccion ─────────────────────────────────────────────── */
+.cf-cta {
+  margin-top: 44px;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 860px) {
+  .cf-paso {
+    grid-template-columns: 1fr;
+    gap: 26px;
+    padding: 36px 0;
+  }
+
+  /* En una columna el texto siempre va primero. */
+  .cf-paso:nth-child(even) .cf-paso-texto {
+    order: 0;
+  }
+
+  .cf-paso-vista {
+    justify-content: flex-start;
+  }
+
+  .cf-pasos {
+    margin-top: 36px;
+  }
+
+  .cf-cta .ld-btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ── Cursor simulado que recorre las maquetas ────────────────────────────── */
+.cf-cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 19px;
+  height: 19px;
+  pointer-events: none;
+  z-index: 3;
+  filter: drop-shadow(0 2px 4px rgba(11, 46, 86, 0.3));
+}
+
+.cf-cursor svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Onda que confirma el clic */
+.cf-cursor-onda {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 17px;
+  height: 17px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+/* ── Paso 1: lista de campañas donde se elige una ────────────────────────── */
+.cf-ui-elegir {
+  padding: 14px;
+}
+
+.cf-mini-head {
+  margin: 0 0 11px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.cf-fila-campana {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px;
+  margin-bottom: 7px;
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.cf-fila-campana:last-of-type {
+  margin-bottom: 0;
+}
+
+.cf-fila-campana--activa {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  box-shadow: 0 4px 14px rgba(28, 95, 191, 0.16);
+}
+
+.cf-fila-img {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 8px;
+}
+
+.cf-fila-img--0 { background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%); }
+.cf-fila-img--1 { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); }
+.cf-fila-img--2 { background: linear-gradient(135deg, var(--gold) 0%, var(--accent) 100%); }
+
+.cf-fila-datos {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.cf-fila-titulo {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cf-fila-org {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.cf-barra--mini {
+  display: block;
+  height: 4px;
+  margin-top: 2px;
+}
+
+.cf-fila-check {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.cf-fila-check svg {
+  width: 11px;
+  height: 11px;
+}
+
+/* ── Extras del paso 2 ───────────────────────────────────────────────────── */
+.cf-input-ph {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+.cf-qty-valor > span {
+  display: inline-block;
+}
+
+.cf-boton-falso--listo {
+  background: var(--success);
+}
+
+.cf-boton-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.cf-boton-ok svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* ── Extras del paso 3 ───────────────────────────────────────────────────── */
+.cf-seg-paso {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.cf-seg-punto {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  display: block;
+}

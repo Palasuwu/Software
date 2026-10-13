@@ -27,6 +27,9 @@ describe('Validación de coordenadas en formularios', () => {
         ['0', '-180.1', 'longitud'],
         ['Infinity', '0', 'latitud'],
         ['abc', '0', 'latitud'],
+        ['0x10', '0', 'latitud'],
+        ['1e1', '0', 'latitud'],
+        ['14,64', '-90.56', 'latitud'],
         ['14.64', '', 'longitud'],
         ['', '-90.56', 'latitud']
     ])('rechaza latitud %s y longitud %s', (latitud, longitud, campo) => {
@@ -59,6 +62,11 @@ describe('Ubicación propia o heredada de la campaña', () => {
         ['municipio', '  ']
     ])('rechaza %s con valor %s', (campo, valor) => {
         expect(validateCampaignLocation({ ...propia, [campo]: valor })).toHaveProperty(campo)
+    })
+
+    it.each(['departamento', 'municipio', 'direccion_detalle'])('bloquea %s cuando supera el límite del servidor', (campo) => {
+        const limite = campo === 'direccion_detalle' ? 300 : 200
+        expect(validateCampaignLocation({ ...propia, [campo]: 'a'.repeat(limite + 1) })).toHaveProperty(campo)
     })
 
     it('carga una campaña heredada en modo organización aunque el servidor ya resolvió la dirección', () => {

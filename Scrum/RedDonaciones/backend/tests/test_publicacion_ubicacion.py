@@ -56,7 +56,6 @@ def test_ubicacion_propia_parcial_es_invalido():
 
     assert valido is False
     assert any("municipio" in e for e in errores)
-    assert any("zona" in e for e in errores)
     assert any("direccion_detalle" in e for e in errores)
 
 
@@ -105,3 +104,15 @@ def test_zona_invalida_con_ubicacion_propia():
 
     assert valido is False
     assert any("zona" in e for e in errores)
+
+
+def test_ubicacion_propia_sin_zona_conserva_la_direccion():
+    valido, errores, payload = validar_publicacion_payload(_payload_base(
+        departamento="Sololá", municipio="Panajachel", zona="",
+        direccion_detalle="Centro de acopio principal",
+    ))
+    assert valido is True
+    assert errores is None
+    assert payload["zona"] == ""
+    assert payload["departamento"] == "Sololá"
+    assert payload["direccion_detalle"] == "Centro de acopio principal"

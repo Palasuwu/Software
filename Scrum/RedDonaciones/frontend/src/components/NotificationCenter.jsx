@@ -16,7 +16,7 @@ function formatearFecha(fecha) {
 }
 
 
-export default function NotificationCenter({ isExpanded }) {
+export default function NotificationCenter() {
   const navigate = useNavigate()
   const containerRef = React.useRef(null)
   const [abierto, setAbierto] = React.useState(false)
@@ -114,7 +114,7 @@ export default function NotificationCenter({ isExpanded }) {
             </span>
           )}
         </span>
-        {isExpanded && <span className="nb-label notification-label">Notificaciones</span>}
+        <span className="nb-label notification-label">Notificaciones</span>
       </button>
 
       {abierto && (

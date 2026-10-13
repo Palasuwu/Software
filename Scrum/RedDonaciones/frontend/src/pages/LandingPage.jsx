@@ -7,6 +7,7 @@ import scholarSvg   from '../assets/scholar.svg'
 import celebrationSvg from '../assets/celebration.svg'
 import logoMark     from '../assets/LogoOwnerMark.svg'
 import instagramSvg from '../assets/instagram.svg'
+import ComoFunciona from '../components/ComoFunciona'
 import { obtenerUsuarioSesion } from '../utils/session'
 import { apiGet } from '../utils/api'
 import './LandingPage.css'
@@ -207,19 +208,15 @@ function HorizontalCarousel() {
 
         {/* ── Left: editorial copy (dark panel) ── */}
         <aside className="ld-scroll-copy">
-          <p className="ld-scroll-label">01 — Cómo funciona</p>
+          <p className="ld-scroll-label">Nuestro trabajo en campo</p>
           <h2 className="ld-scroll-heading">
             Cada donación<br />llega a quien<br />más lo necesita.
           </h2>
           <p className="ld-scroll-desc">
-            La organización publica sus necesidades reales.
-            Los donantes aportan artículos. Los intermediarios
-            verificados coordinan la entrega. Transparencia total,
-            impacto medible en cada etapa del proceso.
+            Estas fotografías son de entregas reales: jornadas comunitarias,
+            familias acompañadas y jóvenes que llevaron los artículos hasta
+            donde hacían falta.
           </p>
-          <Link to="/home" className="ld-scroll-cta" tabIndex={0}>
-            Ver campañas activas →
-          </Link>
         </aside>
 
         {/* ── Right: autoplay carousel ── */}
@@ -430,6 +427,7 @@ export default function LandingPage() {
       />
       <About />
       <Pillars />
+      <ComoFunciona />
       <HorizontalCarousel />
       <SectionDivider
         left={[celebrationSvg]}

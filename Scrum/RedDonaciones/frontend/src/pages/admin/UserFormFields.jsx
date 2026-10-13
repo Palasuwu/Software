@@ -167,11 +167,18 @@ export default function UserFormFields({ form, errors, mode, organizaciones, org
                             id="admin-user-cargo"
                             className={`form-input ${errors.cargo ? 'form-input-invalid' : ''}`}
                             name="cargo"
+                            maxLength={200}
                             value={form.cargo}
                             onChange={onChange}
                         />
                         {errors.cargo && <span className="form-error-text">{errors.cargo}</span>}
                     </div>
+                </div>
+            )}
+
+            {isIntermediario && mode === 'create' && (
+                <div className="admin-inline-note">
+                    Verifica la identidad y los datos de contacto antes de guardar. Al crear esta cuenta autorizas su acceso al panel de la organización verificada.
                 </div>
             )}
 

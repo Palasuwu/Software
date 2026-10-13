@@ -9,6 +9,7 @@ export default function CoordinatesFields({ form, errors = {}, onChange, disable
             <p className="admin-table-muted" id={`${id}-help`}>
                 Coordenadas opcionales. Ingresa ambas con punto decimal o deja las dos vacías.
                 Puedes copiarlas desde Google Maps haciendo clic derecho sobre el lugar.
+                {' '}Latitud primero, longitud después. No ingreses enlaces ni símbolos de grados.
             </p>
             <div className="form-row">
                 {[

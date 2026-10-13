@@ -79,6 +79,10 @@ def validar_datos_donante(data):
 
 # Validación de password para registro
 def validar_password_registro(password):
+    if not isinstance(password, str):
+        return "El password debe ser texto"
+    if len(password.encode("utf-8")) > 72:
+        return "El password no puede superar los 72 bytes"
     if len(password) < 8:
         return "El password debe tener al menos 8 caracteres"
     if not re.search(r"[A-Za-z]", password) or not re.search(r"\d", password):
@@ -172,6 +176,8 @@ def actualizar_usuario(id_usuario):
             return jsonify({"error": "Usuario no encontrado"}), 404
 
         rol = usuario_actual["rol"]
+        if "rol" in data and data["rol"] != rol:
+            return jsonify({"error": "El rol no puede modificarse desde el perfil"}), 400
         if rol == "intermediario" and "id_organizacion" in data:
             return jsonify({
                 "error": "La organización no puede modificarse desde el perfil"
@@ -338,9 +344,11 @@ def crear_usuario():
     cursor = None
     try:
         data = request.get_json()
-        if not data:
+        if not isinstance(data, dict) or not data:
             return jsonify({"error": "No se enviaron datos"}), 400
 
+        if any(not isinstance(data.get(campo), str) for campo in ("nombre", "correo", "telefono", "rol")):
+            return jsonify({"error": "Nombre, correo, teléfono y rol deben ser texto"}), 400
         nombre = limpiar_espacios(data.get("nombre"))
         correo = (data.get("correo") or "").strip().lower()
         password = data.get("password")
@@ -384,20 +392,40 @@ def crear_usuario():
                 return jsonify({"error": error_donante}), 400
 
         if rol == "intermediario":
-            id_organizacion = data.get("id_organizacion") or obtener_id_organizacion_principal()
+            id_organizacion = data.get("id_organizacion")
+            if id_organizacion is None or id_organizacion == "":
+                id_organizacion = obtener_id_organizacion_principal()
+            if not isinstance(data.get("cargo"), str):
+                return jsonify({"error": "Datos invalidos", "campos": {"cargo": "El cargo debe ser texto"}}), 400
             cargo = limpiar_espacios(data.get("cargo"))
             if not id_organizacion or not cargo:
                 return jsonify({"error": "Faltan datos obligatorios para intermediario"}), 400
-            if len(cargo) < 3:
-                return jsonify({"error": "El cargo debe tener al menos 3 caracteres"}), 400
+            if not 3 <= len(cargo) <= 200:
+                return jsonify({"error": "Datos invalidos", "campos": {"cargo": "El cargo debe tener entre 3 y 200 caracteres"}}), 400
 
+            if isinstance(id_organizacion, bool) or not isinstance(id_organizacion, (int, str)):
+                return jsonify({"error": "id_organizacion debe ser un entero positivo"}), 400
             try:
                 id_organizacion = int(id_organizacion)
             except (TypeError, ValueError):
                 return jsonify({"error": "id_organizacion debe ser un entero valido"}), 400
 
+            if id_organizacion <= 0:
+                return jsonify({"error": "id_organizacion debe ser un entero positivo"}), 400
+
         conn = get_db_connection()
         cursor = conn.cursor()
+        # Comprobar antes de escribir; conservar la verificación hasta el commit.
+        if rol == "intermediario":
+            cursor.execute(
+                "SELECT id_organizacion FROM organizacion "
+                "WHERE id_organizacion = %s AND estado_verificacion = 'verificada' FOR SHARE",
+                (id_organizacion,)
+            )
+            if not cursor.fetchone():
+                conn.rollback()
+                return jsonify({"error": "La organizacion seleccionada no esta verificada o no existe"}), 400
+
         hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
         sql = """
@@ -422,19 +450,6 @@ def crear_usuario():
             ))
 
         if rol == "intermediario":
-            cursor.execute(
-                """
-                SELECT id_organizacion
-                FROM organizacion
-                WHERE id_organizacion = %s AND estado_verificacion = 'verificada'
-                """,
-                (id_organizacion,)
-            )
-            organizacion = cursor.fetchone()
-            if not organizacion:
-                conn.rollback()
-                return jsonify({"error": "La organizacion seleccionada no esta verificada o no existe"}), 400
-
             sql_intermediario = """
             INSERT INTO intermediario (id_usuario, id_organizacion, cargo)
             VALUES (%s, %s, %s)
