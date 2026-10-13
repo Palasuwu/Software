@@ -86,7 +86,8 @@ export default function PerfilFoto({ idUsuario }) {
                     : <IconUser className="nav-icon" />}
             </div>
             <label className="form-label" htmlFor={inputId}>Cambiar foto de perfil</label>
-            <input ref={inputRef} id={inputId} type="file" accept="image/jpeg,image/png,image/gif,image/webp"
+            <input ref={inputRef} id={inputId} type="file" className="form-file-input"
+                accept="image/jpeg,image/png,image/gif,image/webp"
                 onChange={seleccionar} disabled={saving || loading} aria-describedby={`${inputId}-help`} />
             <small id={`${inputId}-help`}>JPG, PNG, GIF o WEBP. Máximo 5 MB.</small>
             {loading && <span role="status">Cargando foto...</span>}

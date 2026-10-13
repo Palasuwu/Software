@@ -9,6 +9,7 @@ class MockResultadoCursor:
             "id_publicacion": 10,
             "id_organizacion": 1,
             "id_intermediario": 2,
+            "estado_verificacion": "verificada",
             "titulo": "Útiles escolares",
             "descripcion": "Campaña de útiles",
             "cantidad_necesaria": 50,
@@ -335,6 +336,7 @@ def test_detalle_publicacion_incluye_resultado_e_imagen(client, monkeypatch):
         "id_publicacion": 10,
         "id_organizacion": 1,
         "id_intermediario": 2,
+        "estado_verificacion": "verificada",
         "titulo": "Campaña Útiles Concluida",
         "descripcion": "Descripción",
         "cantidad_necesaria": 50,
@@ -361,3 +363,49 @@ def test_detalle_publicacion_incluye_resultado_e_imagen(client, monkeypatch):
     assert item["resultado_personas_beneficiadas"] == 60
     assert item["resultado_imagen_url"] == "https://ejemplo.com/evidencia_final.jpg"
     assert item["resultado_fecha_publicacion"] == "2026-09-08"
+
+
+@pytest.mark.parametrize(
+    ("id_usuario", "rol", "org_intermediario", "status"),
+    [
+        (None, None, 1, 404),
+        (3, "donante", 1, 404),
+        (1, "administrador", 1, 200),
+        (2, "intermediario", 1, 200),
+        (2, "intermediario", 2, 404),
+    ],
+)
+def test_detalle_publicacion_cancelada_restringido_a_admin_y_organizacion_actual(
+    client, monkeypatch, id_usuario, rol, org_intermediario, status
+):
+    pub = {
+        "id_publicacion": 11,
+        "id_organizacion": 1,
+        "id_intermediario": 2,
+        "estado_verificacion": "verificada",
+        "titulo": "Campaña cancelada",
+        "descripcion": "Descripción",
+        "cantidad_necesaria": 50,
+        "cantidad_recibida": 10,
+        "estado": "cancelada",
+        "fecha_publicacion": "2026-08-01",
+        "fecha_limite": "2026-09-01",
+        "organizacion": "Org Educativa",
+        "direccion": "Ciudad",
+        "categoria": "Educación",
+    }
+    cursor = MockResultadoCursor(
+        publicacion=pub,
+        org_intermediario=org_intermediario,
+    )
+    conn = MockResultadoConexion(cursor)
+    monkeypatch.setattr("routes.publicacion.get_db_connection", lambda: conn)
+
+    headers = (
+        auth_headers(id_usuario=id_usuario, rol=rol, id_organizacion=1)
+        if id_usuario is not None
+        else None
+    )
+    response = client.get("/publicaciones/11", headers=headers)
+
+    assert response.status_code == status
