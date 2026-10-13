@@ -30,8 +30,11 @@ export function AuthProvider({ children }) {
     React.useEffect(() => {
         const handleUnauthorized = () => {
             setUsuarioSesion(null)
-            setAuthNotice('Tu sesión expiró. Inicia sesión nuevamente.')
-            navigate('/login', { replace: true, state: { from: location.pathname } })
+            // El aviso va en el state para que no lo borre el efecto de location.state
+            navigate('/login', {
+                replace: true,
+                state: { from: location.pathname, flash: 'Tu sesión expiró. Inicia sesión nuevamente.' }
+            })
         }
 
         const handleForbidden = () => {
