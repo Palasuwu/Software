@@ -81,6 +81,14 @@ jobs:
           --junitxml=reportes/regresion.xml
           --html=reportes/regresion.html --self-contained-html
 
+      - name: Pruebas generales del backend
+        run: >-
+          pytest tests -v
+          --ignore=tests/automatizadas
+          --ignore=tests/rendimiento
+          --junitxml=reportes/backend-general.xml
+          --html=reportes/backend-general.html --self-contained-html
+
       - name: Resumen de resultados
         if: always()
         run: |
