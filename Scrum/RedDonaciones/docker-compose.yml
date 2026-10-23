@@ -1,7 +1,16 @@
 services:
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      # Vite necesita estas variables al compilar, no al ejecutar.
+      # Se leen del .env de la raiz; si faltan, el boton de Google no aparece
+      # y el resto del ingreso sigue funcionando.
+      args:
+        VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY:-}
+        VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN:-}
+        VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID:-}
+        VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID:-}
     ports:
       - "3000:80"
     depends_on:
@@ -24,11 +33,16 @@ services:
       - "5001:5000"
     env_file:
       - .env
+    environment:
+      # La credencial se monta como archivo, no viaja en .env: ese archivo
+      # si esta versionado en el repo.
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/firebase.json
     depends_on:
       db:
         condition: service_healthy
     volumes:
       - uploads_data:/app/uploads
+      - ./backend/secrets/firebase.json:/run/secrets/firebase.json:ro
 
   db:
     image: mysql:8

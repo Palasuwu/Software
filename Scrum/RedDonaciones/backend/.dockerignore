@@ -9,3 +9,6 @@ __pycache__/
 venv/
 .git/
 *.log
+
+# Credenciales: se montan en tiempo de ejecucion, nunca se hornean en la imagen
+secrets/

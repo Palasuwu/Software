@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { guardarTokenSesion, guardarUsuarioSesion } from '../utils/session'
 import logoMark from '../assets/LogoOwnerMark.svg'
+import BotonGoogle from '../components/BotonGoogle'
+import RegistroGoogle from '../components/RegistroGoogle'
 import './AuthPage.css'
 
 const INITIAL_LOGIN = { correo: '', password: '' }
@@ -110,7 +112,7 @@ function Field({ label, id, error, children }) {
     )
 }
 
-function LoginForm({ onAuthSuccess }) {
+function LoginForm({ onAuthSuccess, onRequiereRegistro }) {
     const navigate = useNavigate()
     const [form, setForm] = useState(INITIAL_LOGIN)
     const [errors, setErrors] = useState({})
@@ -192,6 +194,8 @@ function LoginForm({ onAuthSuccess }) {
                     {isSubmitting ? 'Ingresando...' : 'Iniciar sesion'}
                 </button>
             </form>
+
+            <BotonGoogle onAuthSuccess={onAuthSuccess} onRequiereRegistro={onRequiereRegistro} />
         </div>
     )
 }
@@ -312,6 +316,9 @@ function RegisterForm({ onAuthSuccess }) {
 
 export default function AuthPage({ onAuthSuccess, defaultMode = 'login' }) {
     const [isRegister, setIsRegister] = useState(defaultMode === 'register')
+    // Datos que devuelve Google cuando el correo todavia no existe en la BD:
+    // mientras esten presentes se muestra el alta en lugar de login/registro.
+    const [datosGoogle, setDatosGoogle] = useState(null)
     // animClass: '' | 'anim-exit-left' | 'anim-exit-right' | 'anim-enter-right' | 'anim-enter-left'
     const [animClass, setAnimClass] = useState('')
     const [brandFading, setBrandFading] = useState(false)
@@ -343,9 +350,17 @@ export default function AuthPage({ onAuthSuccess, defaultMode = 'login' }) {
                 />
                 <div className="auth-form-area">
                     <div className={`auth-form-content ${animClass}`}>
-                        {isRegister
-                            ? <RegisterForm onAuthSuccess={onAuthSuccess} />
-                            : <LoginForm onAuthSuccess={onAuthSuccess} />
+                        {datosGoogle
+                            ? (
+                                <RegistroGoogle
+                                    datos={datosGoogle}
+                                    onAuthSuccess={onAuthSuccess}
+                                    onCancelar={() => setDatosGoogle(null)}
+                                />
+                            )
+                            : isRegister
+                                ? <RegisterForm onAuthSuccess={onAuthSuccess} />
+                                : <LoginForm onAuthSuccess={onAuthSuccess} onRequiereRegistro={setDatosGoogle} />
                         }
                     </div>
                 </div>
