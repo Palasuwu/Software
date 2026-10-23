@@ -1,7 +1,11 @@
 # Rutas relacionadas con publicaciones
 import logging
 from flask import Blueprint, jsonify, request
-from auth_utils import admin_required, validar_admin_request
+from auth_utils import (
+    _autenticar_request,
+    admin_required,
+    validar_admin_request,
+)
 from db.connection import get_db_connection, db_cursor
 from db.resultado_campana_schema import asegurar_tabla_resultado_campana
 from db.ubicaciones_schema import asegurar_columnas_ubicacion
@@ -308,6 +312,8 @@ def obtener_publicacion(id_publicacion):
             publicacion_sql = """
                 SELECT
                     p.id_publicacion,
+                    p.id_organizacion,
+                    o.estado_verificacion,
                     p.id_articulo,
                     p.titulo,
                     p.descripcion,
@@ -364,6 +370,49 @@ def obtener_publicacion(id_publicacion):
                 return jsonify({
                     "error": "Publicación no encontrada"
                 }), 404
+
+            es_publica = (
+                (
+                    publicacion["estado_verificacion"] == "verificada"
+                    and publicacion["estado"] in ("activa", "finalizada")
+                )
+                or (
+                    publicacion["estado_verificacion"] == "archivada"
+                    and publicacion["estado"] == "finalizada"
+                )
+            )
+            if not es_publica:
+                no_encontrada = (
+                    jsonify({"error": "Publicación no encontrada"}),
+                    404,
+                )
+                if not request.headers.get("Authorization"):
+                    return no_encontrada
+
+                _, error_autenticacion = _autenticar_request()
+                if error_autenticacion:
+                    return error_autenticacion
+
+                if request.usuario_rol == "intermediario":
+                    cursor.execute(
+                        """
+                        SELECT 1
+                        FROM intermediario i
+                        INNER JOIN organizacion o
+                            ON o.id_organizacion = i.id_organizacion
+                        WHERE i.id_usuario = %s
+                          AND i.id_organizacion = %s
+                          AND o.estado_verificacion = 'verificada'
+                        """,
+                        (
+                            request.usuario_id,
+                            publicacion["id_organizacion"],
+                        ),
+                    )
+                    if not cursor.fetchone():
+                        return no_encontrada
+                elif request.usuario_rol != "administrador":
+                    return no_encontrada
 
             # Obtener los artículos relacionados con la publicación.
             articulos_sql = """

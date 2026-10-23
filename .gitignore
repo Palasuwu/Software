@@ -37,3 +37,6 @@ Thumbs.db
 .env.*
 !.env.ejemplo
 !.env.example
+
+# Reportes generados por las pruebas automatizadas
+Scrum/RedDonaciones/backend/reportes/

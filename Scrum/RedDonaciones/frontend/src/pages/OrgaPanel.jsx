@@ -7,6 +7,8 @@ import { apiGet, apiPut, apiPost, apiUpload } from '../utils/api'
 import { IconCampaigns, IconUsers, IconPlus, IconDonation, IconUser } from '../components/icons'
 import ConfirmationModal from './admin/ConfirmationModal'
 import OrgaCampaignsTable from './orga/OrgaCampaignsTable'
+import CampaignFiltersBar from './admin/CampaignFiltersBar'
+import { FILTROS_CAMPANA_VACIOS, filtrarCampanas } from './admin/campaignFilters'
 import OrgaIntermediariosTable from './orga/OrgaIntermediariosTable'
 import OrgaDonacionesTable from './orga/OrgaDonacionesTable'
 import OrgaPerfilInstitucionalForm from './orga/OrgaPerfilInstitucionalForm'
@@ -53,6 +55,11 @@ export default function OrgaPanel() {
   const [intermediariosError, setIntermediariosError] = React.useState('')
 
   const [savingCampaignId, setSavingCampaignId] = React.useState(null)
+  const [filtrosCampana, setFiltrosCampana] = React.useState(FILTROS_CAMPANA_VACIOS)
+  const campanasFiltradas = React.useMemo(
+    () => filtrarCampanas(publicaciones, filtrosCampana),
+    [publicaciones, filtrosCampana]
+  )
   const [successMessage, setSuccessMessage] = React.useState('')
 
   const [modal, setModal] = React.useState(null)
@@ -579,16 +586,28 @@ export default function OrgaPanel() {
                 </button>
               </div>
 
-              <OrgaCampaignsTable
-                publicaciones={publicaciones}
-                loadingCampaigns={loadingCampaigns}
-                campaignsError={campaignsError}
-                savingCampaignId={savingCampaignId}
-                onRetry={loadCampaigns}
-                onEdit={openEditCampaign}
-                onPublishResult={openResultModal}
-                onStatusChange={requestStatusChange}
-              />
+              {!campaignsError && publicaciones.length > 0 && (
+                <CampaignFiltersBar
+                  publicaciones={publicaciones}
+                  visibles={campanasFiltradas.length}
+                  filtros={filtrosCampana}
+                  onChange={setFiltrosCampana}
+                  onClear={() => setFiltrosCampana(FILTROS_CAMPANA_VACIOS)}
+                />
+              )}
+
+              {(campanasFiltradas.length > 0 || publicaciones.length === 0 || campaignsError) && (
+                <OrgaCampaignsTable
+                  publicaciones={campanasFiltradas}
+                  loadingCampaigns={loadingCampaigns}
+                  campaignsError={campaignsError}
+                  savingCampaignId={savingCampaignId}
+                  onRetry={loadCampaigns}
+                  onEdit={openEditCampaign}
+                  onPublishResult={openResultModal}
+                  onStatusChange={requestStatusChange}
+                />
+              )}
             </>
           )}
 
