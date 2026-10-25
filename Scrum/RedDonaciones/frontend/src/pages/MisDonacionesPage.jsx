@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { obtenerUsuarioSesion } from '../utils/session'
 import { apiGet } from '../utils/api'
@@ -58,8 +58,15 @@ export default function MisDonacionesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [filtro, setFiltro] = useState('todas')
+  const [pagina, setPagina] = useState(1)
+  const [reintento, setReintento] = useState(0)
+  const [paginacion, setPaginacion] = useState({ page: 1, total: 0, total_pages: 0 })
+  const [resumen, setResumen] = useState({ total: 0, activas: 0, finalizadas: 0 })
 
-  const cargarDonaciones = useCallback(() => {
+  const cargarDonaciones = useCallback(() => setReintento((valor) => valor + 1), [])
+
+  useEffect(() => {
+    const controller = new AbortController()
     setLoading(true)
     setError('')
 
@@ -76,42 +83,41 @@ export default function MisDonacionesPage() {
       return
     }
 
-    apiGet(`/api/donaciones?id_donante=${usuario.id_usuario}`)
+    const parametros = new URLSearchParams({
+      id_donante: usuario.id_usuario, page: pagina, per_page: 10
+    })
+    if (filtro !== 'todas') {
+      parametros.set('estado_publicacion', filtro === 'activas' ? 'activa' : 'finalizada')
+    }
+
+    apiGet(`/api/donaciones?${parametros}`, { signal: controller.signal })
       .then((data) => {
-        if (!Array.isArray(data)) throw new Error('Respuesta invalida del servidor')
-        setDonaciones(data)
+        if (controller.signal.aborted) return
+        if (!data || !Array.isArray(data.donaciones) || !data.resumen ||
+            !Number.isInteger(data.page) || data.page < 1 ||
+            !Number.isInteger(data.total) || data.total < 0 ||
+            !Number.isInteger(data.total_pages) || data.total_pages < 0) {
+          throw new Error('Respuesta inválida del servidor')
+        }
+        setDonaciones(data.donaciones)
+        setResumen(data.resumen)
+        setPaginacion({ page: data.page, total: data.total, total_pages: data.total_pages })
       })
       .catch((err) => {
+        if (controller.signal.aborted) return
         setError(err.message || 'No fue posible obtener tus donaciones')
       })
-      .finally(() => setLoading(false))
-  }, [])
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false)
+      })
 
-  useEffect(() => { cargarDonaciones() }, [cargarDonaciones])
+    return () => controller.abort()
+  }, [pagina, filtro, reintento])
 
-  const resumen = useMemo(() => {
-    const total = donaciones.length
-    const activas = donaciones.filter((item) => item.publicacion_estado === 'activa').length
-    const finalizadas = donaciones.filter((item) => item.publicacion_estado === 'finalizada').length
-
-    return {
-      total,
-      activas,
-      finalizadas
-    }
-  }, [donaciones])
-
-  const donacionesFiltradas = useMemo(() => {
-    if (filtro === 'activas') {
-      return donaciones.filter((item) => item.publicacion_estado === 'activa')
-    }
-
-    if (filtro === 'finalizadas') {
-      return donaciones.filter((item) => item.publicacion_estado === 'finalizada')
-    }
-
-    return donaciones
-  }, [donaciones, filtro])
+  function cambiarFiltro(nuevoFiltro) {
+    setPagina(1)
+    setFiltro(nuevoFiltro)
+  }
 
   return (
     <section className="donations-page fade-in donations-page-figma">
@@ -148,7 +154,8 @@ export default function MisDonacionesPage() {
             <button
               type="button"
               className={`donations-tab-figma ${filtro === 'todas' ? 'active' : ''}`}
-              onClick={() => setFiltro('todas')}
+              onClick={() => cambiarFiltro('todas')}
+              aria-pressed={filtro === 'todas'}
             >
               Todas
             </button>
@@ -156,7 +163,8 @@ export default function MisDonacionesPage() {
             <button
               type="button"
               className={`donations-tab-figma ${filtro === 'activas' ? 'active' : ''}`}
-              onClick={() => setFiltro('activas')}
+              onClick={() => cambiarFiltro('activas')}
+              aria-pressed={filtro === 'activas'}
             >
               Activas
             </button>
@@ -164,14 +172,15 @@ export default function MisDonacionesPage() {
             <button
               type="button"
               className={`donations-tab-figma ${filtro === 'finalizadas' ? 'active' : ''}`}
-              onClick={() => setFiltro('finalizadas')}
+              onClick={() => cambiarFiltro('finalizadas')}
+              aria-pressed={filtro === 'finalizadas'}
             >
               Finalizadas
             </button>
           </div>
 
-          {donacionesFiltradas.length === 0 ? (
-            donaciones.length === 0 ? (
+          {donaciones.length === 0 ? (
+            resumen.total === 0 ? (
               <div className="empty-box">
                 <p>Todavía no registraste ninguna donación.</p>
                 <button className="campaign-button" style={{ marginTop: '12px' }} onClick={() => navigate('/home')}>
@@ -183,7 +192,7 @@ export default function MisDonacionesPage() {
             )
           ) : (
             <div className="donations-list-figma">
-              {donacionesFiltradas.map((donacion) => {
+              {donaciones.map((donacion) => {
                 const estado = donacion.publicacion_estado || 'activa'
                 const estadoDonacion = donacion.donacion_estado || 'pendiente'
                 const progreso = calcularProgreso(
@@ -262,6 +271,29 @@ export default function MisDonacionesPage() {
                 )
               })}
             </div>
+          )}
+          {paginacion.total > 0 && (
+            <nav className="donations-pagination" aria-label="Paginación del historial de donaciones">
+              <button
+                type="button"
+                className="campaign-button"
+                disabled={paginacion.page <= 1}
+                onClick={() => setPagina(paginacion.page - 1)}
+              >
+                Anterior
+              </button>
+              <p role="status">
+                Página {paginacion.page} de {paginacion.total_pages} · {paginacion.total} donaciones
+              </p>
+              <button
+                type="button"
+                className="campaign-button"
+                disabled={paginacion.page >= paginacion.total_pages}
+                onClick={() => setPagina(paginacion.page + 1)}
+              >
+                Siguiente
+              </button>
+            </nav>
           )}
         </section>
       )}
