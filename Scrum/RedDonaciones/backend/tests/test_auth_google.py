@@ -8,7 +8,7 @@ import os
 
 import pytest
 
-from test_usuarios import crear_conexion_mock
+from tests.helpers import crear_conexion_mock
 
 SECRET = "test-secret-key-with-at-least-32-bytes"
 
