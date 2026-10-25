@@ -13,13 +13,14 @@ from routes.notificacion import notificacion_bp
 from routes.landing import landing_bp
 from routes.resultado_campana import resultado_campana_bp
 from routes.auth_google import auth_google_bp
+from routes.password_reset import password_reset_bp
 from routes.reporte import reporte_bp
 
 app = Flask(__name__)
 CORS(
     app,
     resources={
-        r"/(login|auth|usuarios|organizaciones|articulos|publicaciones|donaciones|intermediario|notificaciones|upload|uploads|carrusel|reportes)(/.*)?$": {
+        r"/(login|auth|usuarios|organizaciones|articulos|publicaciones|donaciones|intermediario|notificaciones|upload|uploads|carrusel|reportes|password)(/.*)?$": {
             "origins": [
                 "http://localhost:3000",
                 "http://20.97.176.27",
@@ -63,6 +64,7 @@ app.register_blueprint(notificacion_bp)
 app.register_blueprint(landing_bp)
 app.register_blueprint(resultado_campana_bp)
 app.register_blueprint(auth_google_bp)
+app.register_blueprint(password_reset_bp)
 app.register_blueprint(reporte_bp)
 
 

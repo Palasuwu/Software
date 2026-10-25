@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { guardarTokenSesion, guardarUsuarioSesion } from '../utils/session'
 import logoMark from '../assets/LogoOwnerMark.svg'
 import BotonGoogle from '../components/BotonGoogle'
@@ -114,6 +114,10 @@ function Field({ label, id, error, children }) {
 
 function LoginForm({ onAuthSuccess, onRequiereRegistro }) {
     const navigate = useNavigate()
+    const location = useLocation()
+    // Aviso que dejan otras pantallas al volver aqui (p. ej. tras
+    // restablecer la contrasena).
+    const flash = location.state?.flash
     const [form, setForm] = useState(INITIAL_LOGIN)
     const [errors, setErrors] = useState({})
     const [apiError, setApiError] = useState('')
@@ -164,6 +168,7 @@ function LoginForm({ onAuthSuccess, onRequiereRegistro }) {
                 <h2>Bienvenido de vuelta</h2>
                 <p>Ingresa tus datos para continuar</p>
             </div>
+            {flash && <div className="auth-success-msg">{flash}</div>}
             <form onSubmit={handleSubmit} noValidate>
                 <Field label="Correo electronico" id="login-correo" error={errors.correo}>
                     <input
@@ -189,6 +194,11 @@ function LoginForm({ onAuthSuccess, onRequiereRegistro }) {
                         autoComplete="current-password"
                     />
                 </Field>
+                <p className="auth-forgot">
+                    <Link to="/olvide-password" className="auth-link">
+                        Olvidaste tu contrasena?
+                    </Link>
+                </p>
                 {apiError && <div className="auth-api-error">{apiError}</div>}
                 <button type="submit" className="auth-submit-btn" disabled={isSubmitting}>
                     {isSubmitting ? 'Ingresando...' : 'Iniciar sesion'}
