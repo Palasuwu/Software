@@ -15,6 +15,7 @@ from services.publicacion_service import (
     actualizar_estado_publicacion_db,
     crear_publicacion_db,
     editar_publicacion_db,
+    obtener_cantidad_recibida,
     organizacion_verificada,
     publicacion_pertenece_a_organizacion,
     validar_estado_publicacion,
@@ -332,6 +333,16 @@ def editar_publicacion_intermediario(id_publicacion):
             ):
                 return jsonify({
                     "error": "El articulo seleccionado no existe"
+                }), 400
+
+            # La meta no puede quedar por debajo de lo que ya se recibio
+            cantidad_recibida_actual = obtener_cantidad_recibida(cursor, id_publicacion)
+            if payload["cantidad_necesaria"] < cantidad_recibida_actual:
+                return jsonify({
+                    "error": (
+                        "cantidad_necesaria no puede ser menor a lo ya recibido "
+                        f"({cantidad_recibida_actual})"
+                    )
                 }), 400
 
             editar_publicacion_db(cursor, id_publicacion, payload)

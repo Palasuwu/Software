@@ -270,6 +270,19 @@ def obtener_publicacion_por_id_y_organizacion(
     )
     return cursor.fetchone()
 
+#Cantidad ya recibida de una publicacion (para validar que la meta no quede por debajo)
+def obtener_cantidad_recibida(cursor, id_publicacion):
+    cursor.execute(
+        """
+        SELECT cantidad_recibida
+        FROM publicacion
+        WHERE id_publicacion = %s
+        """,
+        (id_publicacion,)
+    )
+    fila = cursor.fetchone()
+    return fila["cantidad_recibida"] if fila else 0
+
 def publicacion_pertenece_a_organizacion(
     cursor,
     id_publicacion,
