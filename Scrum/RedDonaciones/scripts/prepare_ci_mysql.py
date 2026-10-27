@@ -46,7 +46,9 @@ def main():
     schema = Path(__file__).resolve().parents[1] / "db/init.sql"
     token = secrets.token_hex(32)
     identity = prepare(sql, schema, os.environ["TEST_DB_NAME"], token)
-    # No registrar el token en stdout ni incluirlo en artefactos.
+    # El runner oculta el comando y el valor en el entorno de pasos posteriores.
+    print("::add-mask::" + token, flush=True)
+    # No incluir el token en artefactos.
     with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as target:
         for key, value in dict(TEST_MYSQL_SERVER_UUID=identity, TEST_MYSQL_TOKEN=token,
                                TEST_SCHEMA_FILE=str(schema)).items():

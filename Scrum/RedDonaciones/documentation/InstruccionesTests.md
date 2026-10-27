@@ -96,14 +96,88 @@ efímero, los reportes, artefactos y el job frontend. Usa `TEST_DB_*` explícito
 Desde `backend`, el paso `python ../scripts/prepare_ci_mysql.py` prepara únicamente
 ese contenedor de servicio y reutiliza la misma importación, inventario vacío y
 marca del runner. Exige CI/GitHub Actions y el ID completo del contenedor; fuera
-de ese contexto rechaza la preparación. Guarda UUID/token en `GITHUB_ENV`, sin
-imprimir el token ni incluirlo en artefactos. Cada comando pytest usa `--mysql`.
+de ese contexto rechaza la preparación. Registra el token mediante el comando
+de enmascaramiento de Actions antes de guardar UUID/token en `GITHUB_ENV`, para
+ocultarlo también en el entorno mostrado por pasos posteriores; no lo incluye
+en artefactos. Cada comando pytest usa `--mysql`.
 
 Si todos los pasos llegan a ejecutarse, integración, regresión y generales
 seleccionan respectivamente 5, 4 y 454 casos, sin solaparse: la selección general excluye automatizadas y rendimiento.
 Los 28 casos de rendimiento siguen fuera del workflow habitual, como antes;
 se ejecutan con el comando local explícito. **No se ejecutó GitHub Actions con
 estos cambios locales sin commit.** La comprobación remota queda pendiente.
+
+### Corrección del bloqueo de CI y ensayo local (2026-10-27)
+
+La raíz Git es `/home/mache/SW/Software`; el único workflow versionado está en
+`.github/workflows/pruebas-automatizadas.yml` bajo esa raíz. No existe otro en
+`Scrum/RedDonaciones/.github`. En `HEAD` y la referencia local `origin/main`,
+commit `86dfa7a`, el workflow aún usa `DB_*` y ejecuta pytest sin `--mysql`,
+exactamente como los comandos del log comunicado. La adaptación del workflow
+quedó sin commit, mientras que el runner y los scripts sí están versionados.
+Esto explica el rechazo de configuración previo a las pruebas (código 4).
+No se consultó el SHA de la ejecución real: no se facilitó su URL/ID y no hay
+cliente `gh` disponible. La referencia remota local no confirma el SHA del run.
+
+El diff pendiente configura `TEST_DB_*`, habilita intermediarios, pasa el ID
+`${{ job.services.mysql.id }}` a `prepare_ci_mysql.py` y añade `--mysql` a las
+tres selecciones. Reutiliza el servicio existente y la preparación compartida,
+sin seed y conservando los controles de UUID/token. No incorpora otro servicio
+MySQL, fallback a desarrollo ni `continue-on-error`. El frontend es idéntico
+al de `HEAD`; no se cambiaron versiones de actions ni Ubuntu.
+
+Se ensayó **localmente**, en otro servidor y contenedor desechables, el script
+real `prepare_ci_mysql.py` y los tres comandos pytest leídos del YAML:
+
+```bash
+# working-directory: Scrum/RedDonaciones/backend
+python ../scripts/prepare_ci_mysql.py
+pytest --mysql -m integracion tests/automatizadas -v --junitxml=reportes/integracion.xml --html=reportes/integracion.html --self-contained-html
+pytest --mysql -m regresion tests/automatizadas -v --junitxml=reportes/regresion.xml --html=reportes/regresion.html --self-contained-html
+pytest --mysql tests -v --ignore=tests/automatizadas --ignore=tests/rendimiento --junitxml=reportes/backend-general.xml --html=reportes/backend-general.html --self-contained-html
+```
+
+El ensayo proporcionó explícitamente el ID de su propio contenedor y un archivo
+temporal equivalente a `GITHUB_ENV`; no utilizó la base de desarrollo. Las
+credenciales fueron independientes, sin puertos publicados y con datos en tmpfs.
+Para ejecutar pytest dentro del contenedor, `TEST_DB_HOST` fue el alias `mysql`;
+en Actions se conserva `127.0.0.1` porque pytest corre en el host del job.
+Se instaló `pytest-html` únicamente dentro del contenedor desechable, igual que
+en el paso de dependencias de CI. Se usaron `PYTEST_ADDOPTS` para desactivar la
+caché y los tracebacks, evitando exponer cabeceras JWT si fallaba un caso; no se
+alteraron selecciones, aserciones ni códigos de salida.
+
+| Selección local del workflow | Aprobadas | Fallidas | Omitidas | Deseleccionadas | Código |
+|---|---:|---:|---:|---:|---:|
+| Integración | 5 | 0 | 0 | 4 | 0 |
+| Regresión | 4 | 0 | 0 | 5 | 0 |
+| Generales | 454 | 0 | 0 | 0 | 0 |
+
+Los JUnit confirmaron **463 casos únicos sin solapamientos** (397 unitarios y
+66 MySQL funcionales); intermediarios ejecutó sus dos casos condicionales.
+Los únicos 28 casos fuera de esta selección habitual son los de rendimiento,
+ya excluidos expresamente. Las deselecciones de integración/regresión se cubren
+mutuamente. La preparación terminó con código 0: 13 tablas con cero filas,
+UUID `dbe24535-d227-11f1-b0c7-42b0bf12ba36` y registro de enmascaramiento del token
+verificado sin mostrarlo. Hubo dos advertencias SQL 1681 conocidas del DDL y
+30 advertencias de longitud JWT en generales; ningún error de importación.
+Esto no resuelve ni identifica la causa de los 401 intermitentes históricos.
+
+Se verificaron tres XML JUnit y tres HTML en `backend/reportes/`. Los comandos
+y el resumen usan rutas relativas al working-directory del backend;
+`upload-artifact` usa `Scrum/RedDonaciones/backend/reportes/`, relativa a la raíz
+del checkout, y apunta al mismo directorio. Los reportes del ensayo permanecieron
+en tmpfs y se eliminaron con su contenedor, junto con el servidor, su red y el
+archivo temporal de entorno. El primer intento se detuvo antes de crear recursos
+porque ya no existía `mysql_db`; se usó la imagen local `mysql:8`, ID
+`b3b90af2a655`, MySQL 8.4.11, para el ensayo completado.
+
+Validaciones estáticas aprobadas: parseo YAML con PyYAML, `bash -n` en cada paso
+run, AST de los scripts, rutas de preparación/reportes y `git diff --check`.
+`actionlint` no está disponible. **No se ejecutó ni consultó GitHub Actions**
+con el diff final. Quedan pendientes confirmar el SHA del run remoto, el paso
+de preparación, las tres selecciones y la publicación del resumen/artefactos
+en una ejecución real que incluya este workflow. No se hizo commit ni push.
 
 ## Validación local de la parte 2 (27 de octubre de 2026)
 
