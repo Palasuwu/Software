@@ -278,6 +278,8 @@ VALUES
     (12, 'Uniformes escolares', 'Prendas escolares de diario.', 1);
 
 -- PUBLICACIONES
+-- El contador incluye todas las donaciones registradas, sin filtrar por estado.
+-- Demo: 1 cancelada por vencimiento con 45 prendas; 2 cerrada con 35 de 90.
 -- Nota: id_organizacion=1 para ambas porque la plataforma opera con una unica
 -- organizacion principal (ver ID_ORGANIZACION_PRINCIPAL).
 INSERT IGNORE INTO publicacion (
@@ -299,9 +301,9 @@ INSERT IGNORE INTO publicacion (
     direccion_detalle
 )
 VALUES
-    (1, 2, 1, 1, 'Ropa de invierno para abril', 'Recoleccion de chaquetas, buzos y pantalones.', 120, 70, '2026-04-01', '2026-04-20', 'activa',
+    (1, 2, 1, 1, 'Ropa de invierno para abril', 'Campaña de abril vencida con 45 prendas registradas; aportes pendientes y en gestión.', 120, 45, '2026-04-01', '2026-04-20', 'cancelada',
      NULL, 'Guatemala', 'Ciudad de Guatemala', '1', 'Centro de acopio'),
-    (2, 2, 1, 1, 'Jornada de ropa infantil', 'Donaciones de ropa para ninos.', 90, 90, '2026-03-15', '2026-03-30', 'finalizada',
+    (2, 2, 1, 1, 'Jornada de ropa infantil', 'Campaña cerrada con 35 prendas registradas de una meta de 90; entregas y gestión en curso.', 90, 35, '2026-03-15', '2026-03-30', 'finalizada',
      NULL, 'Guatemala', 'Ciudad de Guatemala', '1', 'Bodega de donaciones');
 
 -- DONACIONES
@@ -313,6 +315,48 @@ VALUES
     (3, 4, 1, 'Entregue chaquetas y bufandas.', 'Donante Video', '3000000004', '08:30:00', 'Material en 2 cajas.', 25, '2026-04-10', 'en_proceso' ),
     (4, 4, 2, 'Entregue ropa para ninos.', 'Donante Video', '3000000004', '11:00:00', 'Solicito apoyo para descarga.', 15, '2026-03-25', 'recibida');
 
+
+-- CARRUSEL LANDING
+INSERT IGNORE INTO landing_carousel (id_imagen, url_imagen, alt_text, orden)
+VALUES
+    (1, '/carousel/carr1.jpeg', 'Voluntario entregando una donación a una niña junto a su familia', 1),
+    (2, '/carousel/carr2.jpeg', 'Grupo de voluntarios y jóvenes de la comunidad sonriendo juntos', 2),
+    (3, '/carousel/carr3.jpeg', 'Voluntario entregando ropa y una manta a una niña', 3),
+    (4, '/carousel/carr4.jpeg', 'Voluntario compartiendo un libro con niñas de la comunidad', 4);
+
+-- Campañas demo: 3-7 cerradas sin aportes, con resultados de cero beneficiarios.
+-- La finalización puede ser manual sin alcanzar la meta; 4-7 son cierres anticipados.
+-- La 11 está cancelada por vencimiento sin aportes; 8-10 y 12-14 siguen vigentes.
+INSERT IGNORE INTO publicacion (
+    id_publicacion,
+    id_intermediario,
+    id_organizacion,
+    id_articulo,
+    titulo,
+    descripcion,
+    cantidad_necesaria,
+    cantidad_recibida,
+    fecha_publicacion,
+    fecha_limite,
+    estado,
+    imagen_url,
+    departamento,
+    municipio,
+    zona,
+    direccion_detalle
+) VALUES
+(3, 2, 1, 4, 'Útiles escolares para niños de escasos recursos', 'Recolección de cuadernos, lápices y materiales para el regreso a clases de 80 niños en situación vulnerable.', 200, 0, '2024-08-01', '2026-09-30', 'finalizada', 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Sede Central'),
+(4, 2, 1, 5, 'Juguetes para niños en navidad', 'Campaña navideña para niños del albergue, cerrada anticipadamente sin donaciones registradas.', 150, 0, '2024-11-01', '2026-12-24', 'finalizada', 'https://images.unsplash.com/photo-1558981285-6f0c68e7cc0a?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Albergue Infantil'),
+(5, 2, 1, 6, 'Canastas de alimentos para familias necesitadas', 'Campaña para reunir canastas básicas para 60 familias, cerrada anticipadamente sin donaciones registradas.', 60, 0, '2024-06-01', '2027-07-15', 'finalizada', 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Comedor Comunitario'),
+(6, 2, 1, 7, 'Medicamentos para adultos mayores del asilo', 'Recolección de medicamentos para residentes del asilo, cerrada anticipadamente sin donaciones registradas.', 300, 0, '2024-04-01', '2027-05-31', 'finalizada', 'https://images.unsplash.com/photo-1584515933487-779824d29309?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Área Médica'),
+(7, 2, 1, 8, 'Libros de texto para escuelas rurales', 'Campaña para reunir libros para tres escuelas rurales, cerrada anticipadamente sin donaciones registradas.', 400, 0, '2024-02-01', '2027-03-31', 'finalizada', 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Biblioteca Comunitaria'),
+(8, 2, 1, 9, 'Mochilas escolares para comunidades rurales', 'Ayudanos a llevar mochilas equipadas con útiles a niños de comunidades que no tienen acceso a transporte escolar.', 100, 0, '2025-01-15', '2027-06-30', 'activa', 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Bodega de Donaciones'),
+(9, 2, 1, 2, 'Cobijas para albergue temporal', 'El albergue temporal necesita cobijas y sábanas para las familias que llegan sin nada. Cada donación cuenta.', 80, 0, '2025-02-01', '2027-07-31', 'activa', 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Albergue Temporal'),
+(10, 2, 1, 1, 'Ropa deportiva para jóvenes del programa', 'Recolección de ropa deportiva en buen estado para jóvenes que participan en el programa de integración comunitaria.', 120, 0, '2025-03-01', '2027-08-31', 'activa', 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Cancha Comunitaria'),
+(11, 2, 1, 10, 'Pañales y ropa para bebés del hogar', 'Campaña de pañales y ropa para bebés, cancelada por vencimiento sin donaciones registradas.', 250, 0, '2025-04-01', '2026-09-30', 'cancelada', 'https://images.unsplash.com/photo-1503676382389-4809596d5290?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Hogar de Niños'),
+(12, 2, 1, 11, 'Zapatos para niños de primaria', 'Muchos niños asisten a la escuela sin calzado adecuado. Donaciones de zapatos talla 24 a 36 en buen estado.', 90, 0, '2025-03-15', '2027-08-15', 'activa', 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Centro de Acopio'),
+(13, 2, 1, 2, 'Abrigos para adultos en situación de calle', 'Con la llegada del frío, el refugio nocturno necesita abrigos de talla adulto para las personas que atiende cada noche.', 70, 0, '2025-05-01', '2027-10-31', 'activa', 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Refugio Nocturno'),
+(14, 2, 1, 12, 'Uniformes para niños de kínder', 'El kínder comunitario necesita uniformes para que sus estudiantes puedan asistir con dignidad. Tallas 2T a 6T.', 60, 0, '2025-05-10', '2027-11-30', 'activa', 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Kínder Comunitario');
 
 -- Relacionar publicaciones con articulos a traves de la tabla publicacion_articulo
 INSERT IGNORE INTO publicacion_articulo (
@@ -341,46 +385,6 @@ VALUES
     (13, 2, 'Abrigos y chaquetas para adulto', 70),
     (14, 12, 'Uniformes escolares tallas 2T a 6T', 60);
 
--- CARRUSEL LANDING
-INSERT IGNORE INTO landing_carousel (id_imagen, url_imagen, alt_text, orden)
-VALUES
-    (1, '/carousel/carr1.jpeg', 'Voluntario entregando una donación a una niña junto a su familia', 1),
-    (2, '/carousel/carr2.jpeg', 'Grupo de voluntarios y jóvenes de la comunidad sonriendo juntos', 2),
-    (3, '/carousel/carr3.jpeg', 'Voluntario entregando ropa y una manta a una niña', 3),
-    (4, '/carousel/carr4.jpeg', 'Voluntario compartiendo un libro con niñas de la comunidad', 4);
-
--- Estos son campañas/posts de ejemplo 
-INSERT IGNORE INTO publicacion (
-    id_publicacion,
-    id_intermediario,
-    id_organizacion,
-    id_articulo,
-    titulo,
-    descripcion,
-    cantidad_necesaria,
-    cantidad_recibida,
-    fecha_publicacion,
-    fecha_limite,
-    estado,
-    imagen_url,
-    departamento,
-    municipio,
-    zona,
-    direccion_detalle
-) VALUES
-(3, 2, 1, 4, 'Útiles escolares para niños de escasos recursos', 'Recolección de cuadernos, lápices y materiales para el regreso a clases de 80 niños en situación vulnerable.', 200, 200, '2024-08-01', '2026-09-30', 'finalizada', 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Sede Central'),
-(4, 2, 1, 5, 'Juguetes para niños en navidad', 'Campaña navideña para llevar alegría a niños del albergue. Se recolectaron juguetes nuevos y en buen estado.', 150, 162, '2024-11-01', '2026-12-24', 'finalizada', 'https://images.unsplash.com/photo-1558981285-6f0c68e7cc0a?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Albergue Infantil'),
-(5, 2, 1, 6, 'Canastas de alimentos para familias necesitadas', 'Distribución de canastas básicas para 60 familias en situación de inseguridad alimentaria durante la temporada de lluvias.', 60, 60, '2024-06-01', '2027-07-15', 'finalizada', 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Comedor Comunitario'),
-(6, 2, 1, 7, 'Medicamentos para adultos mayores del asilo', 'Recolección de medicamentos de uso común para los residentes del asilo. Meta alcanzada gracias a la comunidad.', 300, 347, '2024-04-01', '2027-05-31', 'finalizada', 'https://images.unsplash.com/photo-1584515933487-779824d29309?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Área Médica'),
-(7, 2, 1, 8, 'Libros de texto para escuelas rurales', 'Donación de libros de primaria y secundaria para tres escuelas rurales sin acceso a materiales educativos.', 400, 412, '2024-02-01', '2027-03-31', 'finalizada', 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Biblioteca Comunitaria'),
-(8, 2, 1, 9, 'Mochilas escolares para comunidades rurales', 'Ayudanos a llevar mochilas equipadas con útiles a niños de comunidades que no tienen acceso a transporte escolar.', 100, 34, '2025-01-15', '2027-06-30', 'activa', 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Bodega de Donaciones'),
-(9, 2, 1, 2, 'Cobijas para albergue temporal', 'El albergue temporal necesita cobijas y sábanas para las familias que llegan sin nada. Cada donación cuenta.', 80, 22, '2025-02-01', '2027-07-31', 'activa', 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Albergue Temporal'),
-(10, 2, 1, 1, 'Ropa deportiva para jóvenes del programa', 'Recolección de ropa deportiva en buen estado para jóvenes que participan en el programa de integración comunitaria.', 120, 55, '2025-03-01', '2027-08-31', 'activa', 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Cancha Comunitaria'),
-(11, 2, 1, 10, 'Pañales y ropa para bebés del hogar', 'El hogar de niños recibe bebés de 0 a 2 años. Necesitamos pañales, bodys y ropa de temporada urgentemente.', 250, 89, '2025-04-01', '2026-09-30', 'activa', 'https://images.unsplash.com/photo-1503676382389-4809596d5290?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Hogar de Niños'),
-(12, 2, 1, 11, 'Zapatos para niños de primaria', 'Muchos niños asisten a la escuela sin calzado adecuado. Donaciones de zapatos talla 24 a 36 en buen estado.', 90, 41, '2025-03-15', '2027-08-15', 'activa', 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Centro de Acopio'),
-(13, 2, 1, 2, 'Abrigos para adultos en situación de calle', 'Con la llegada del frío, el refugio nocturno necesita abrigos de talla adulto para las personas que atiende cada noche.', 70, 18, '2025-05-01', '2026-10-31', 'activa', 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Refugio Nocturno'),
-(14, 2, 1, 12, 'Uniformes para niños de kínder', 'El kínder comunitario necesita uniformes para que sus estudiantes puedan asistir con dignidad. Tallas 2T a 6T.', 60, 7, '2025-05-10', '2026-11-30', 'activa', 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800', 'Guatemala', 'Ciudad de Guatemala', '1', 'Kínder Comunitario');
-
 -- RESULTADOS DE CAMPAÑAS FINALIZADAS
 INSERT IGNORE INTO resultado_campana (
     id_resultado,
@@ -390,8 +394,8 @@ INSERT IGNORE INTO resultado_campana (
     personas_beneficiadas,
     imagen_url
 ) VALUES
-(1, 3, 2, 'Se entregaron kits de útiles escolares completos a 80 niños para el inicio del ciclo lectivo.', 80, 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800'),
-(2, 4, 2, 'Jornada navideña exitosa con entrega de juguetes y refrigerio para más de 160 niños.', 162, 'https://images.unsplash.com/photo-1512909006721-3d6018887383?w=800'),
-(3, 5, 2, 'Distribución de víveres y canastas de alimentos no perecederos para 60 familias.', 60, 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=800'),
-(4, 6, 2, 'Abastecimiento de medicamentos básicos para el botiquín del asilo de ancianos.', 347, 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=800'),
-(5, 7, 2, 'Dotación de libros y material de lectura para tres escuelas rurales comunitarias.', 412, 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=800');
+(1, 3, 2, 'Campaña de útiles escolares cerrada sin donaciones registradas. No se realizaron entregas ni se reportan personas beneficiadas.', 0, NULL),
+(2, 4, 2, 'Campaña de juguetes cerrada anticipadamente sin donaciones registradas. No se realizaron entregas ni se reportan personas beneficiadas.', 0, NULL),
+(3, 5, 2, 'Campaña de canastas básicas cerrada anticipadamente sin donaciones registradas. No se realizaron entregas ni se reportan personas beneficiadas.', 0, NULL),
+(4, 6, 2, 'Campaña de medicamentos cerrada anticipadamente sin donaciones registradas. No se realizaron entregas ni se reportan personas beneficiadas.', 0, NULL),
+(5, 7, 2, 'Campaña de libros cerrada anticipadamente sin donaciones registradas. No se realizaron entregas ni se reportan personas beneficiadas.', 0, NULL);
