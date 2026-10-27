@@ -68,10 +68,12 @@ class NotificacionesMockCursor:
             self._current_donacion = self.donaciones.get(params[0])
 
         elif sql_norm.startswith("UPDATE donacion SET estado"):
-            estado, id_donacion = params
-            if id_donacion in self.donaciones:
+            estado, id_donacion, estado_esperado = params
+            if id_donacion in self.donaciones and self.donaciones[id_donacion]["estado"] == estado_esperado:
                 self.donaciones[id_donacion]["estado"] = estado
                 self.rowcount = 1
+            else:
+                self.rowcount = 0
 
         elif sql_norm.startswith("UPDATE notificacion SET leida = 1"):
             id_notif, id_user = params

@@ -104,6 +104,7 @@ def obtener_donacion_estado(cursor, id_donacion ):
             d.id_donante,
             d.id_publicacion,
             d.estado,
+            d.cantidad_donada,
             p.id_organizacion,
             p.titulo AS publicacion_titulo
         FROM donacion d
@@ -116,19 +117,43 @@ def obtener_donacion_estado(cursor, id_donacion ):
 
     return cursor.fetchone()
 
-# Actualiza el estado de una donaci+on
-def actualizar_estado_donacion_db(cursor, id_donacion, nuevo_estado ):
+# Aplica el cambio de estado de forma atomica (solo si el estado no cambio desde la lectura)
+# y, si la donacion se rechaza, descuenta el contador de la campaña y la reabre si corresponde.
+# Retorna False si otra solicitud ya habia cambiado el estado (conflicto de concurrencia).
+def _aplicar_cambio_estado(cursor, donacion, nuevo_estado):
     cursor.execute(
         """
         UPDATE donacion
         SET estado = %s
-        WHERE id_donacion = %s
+        WHERE id_donacion = %s AND estado = %s
         """,
-        (
-            nuevo_estado,
-            id_donacion
-        )
+        (nuevo_estado, donacion["id_donacion"], donacion["estado"])
     )
+    if cursor.rowcount != 1:
+        return False
+
+    if nuevo_estado == "rechazada":
+        cursor.execute(
+            """
+            UPDATE publicacion
+            SET
+                cantidad_recibida = cantidad_recibida - %s,
+                estado = CASE
+                    WHEN estado = 'finalizada' AND (cantidad_recibida - %s) < cantidad_necesaria
+                    THEN 'activa'
+                    ELSE estado
+                END
+            WHERE id_publicacion = %s AND cantidad_recibida >= %s
+            """,
+            (
+                donacion["cantidad_donada"],
+                donacion["cantidad_donada"],
+                donacion["id_publicacion"],
+                donacion["cantidad_donada"]
+            )
+        )
+
+    return True
 
 
 def crear_notificacion_cambio_estado(
@@ -192,7 +217,13 @@ def cambiar_estado_donacion(cursor,id_donacion,nuevo_estado ):
             400
         )
 
-    actualizar_estado_donacion_db(cursor, id_donacion, nuevo_estado)
+    if not _aplicar_cambio_estado(cursor, donacion, nuevo_estado):
+        return (
+            None,
+            "La donación ya fue actualizada por otra solicitud; recarga e intenta de nuevo",
+            409
+        )
+
     crear_notificacion_cambio_estado(
         cursor,
         donacion,
@@ -257,7 +288,13 @@ def cambiar_estado_donaciones_masivo(
             })
             continue
 
-        actualizar_estado_donacion_db(cursor, id_donacion, nuevo_estado)
+        if not _aplicar_cambio_estado(cursor, donacion, nuevo_estado):
+            omitidas.append({
+                "id_donacion": id_donacion,
+                "motivo": "La donación cambió de estado durante el procesamiento"
+            })
+            continue
+
         crear_notificacion_cambio_estado(
             cursor,
             donacion,
