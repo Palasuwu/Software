@@ -2,8 +2,8 @@
 """Runner Docker local: no lee .env ni hereda la conexión de desarrollo."""
 import argparse
 import json
+import os
 from pathlib import Path
-import re
 import secrets
 import signal
 import subprocess
@@ -11,10 +11,12 @@ import sys
 import time
 import uuid
 
+sys.dont_write_bytecode = True
+from mysql_test_support import inventory, prepare
+
 
 ROOT = Path(__file__).resolve().parents[1]
 LABEL = "reddonaciones.test-run"
-DEFAULT_TESTS = ["tests/automatizadas", "tests/concurrencia"]
 
 
 def docker(*args, data=None, check=True, timeout=120):
@@ -41,6 +43,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--unit", action="store_true", help="Unitarias sin MySQL ni red")
+    mode.add_argument("--full", action="store_true", help="Suite habitual completa, sin rendimiento")
+    mode.add_argument("--performance", action="store_true", help="Rendimiento con RENDIMIENTO=1")
     mode.add_argument("--check-development", action="store_true", help="Validar esquema + demo desechables")
     parser.add_argument("--mysql-image", help="Imagen local MySQL 8; por defecto la de mysql_db")
     parser.add_argument("--backend-image", help="Imagen local con requirements.txt instalado")
@@ -73,19 +77,6 @@ def main(argv=None):
         if check and result.returncode:
             raise RuntimeError(f"SQL falló con código {result.returncode}")
         return result
-
-    def inventory(database, expected):
-        result = sql("SELECT TABLE_NAME FROM information_schema.TABLES "
-                     f"WHERE TABLE_SCHEMA='{database}' AND TABLE_TYPE='BASE TABLE' ORDER BY TABLE_NAME;")
-        tables = result.stdout.decode().splitlines()
-        canonical = sorted(re.findall(r"CREATE TABLE IF NOT EXISTS\s+(\w+)",
-                                     (ROOT / "db/init.sql").read_text(), re.I))
-        if tables != canonical or len(tables) != 13:
-            raise RuntimeError("El conjunto de tablas difiere del DDL canónico")
-        for table in tables:
-            result = sql(f"SELECT '{table}', COUNT(*) FROM `{table}`;", database)
-            if result.stdout.decode().strip() != f"{table}\t{expected.get(table, 0)}":
-                raise RuntimeError(f"Cantidad de filas inesperada en {table}")
 
     def interrupt(signum, frame):
         raise KeyboardInterrupt
@@ -143,24 +134,25 @@ def main(argv=None):
                 counts = dict(usuario=5, organizacion=1, donante=2, intermediario=2,
                               categoria_articulo=4, articulo=12, publicacion=14, donacion=4,
                               publicacion_articulo=16, landing_carousel=4, resultado_campana=5)
-                inventory("donaciones", counts)
+                inventory(sql, ROOT / "db/init.sql", "donaciones", counts)
                 # Probar también los dos comandos manuales, capturando cada advertencia.
                 sql("CREATE DATABASE manual_development CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;")
                 for file in ("init.sql", "datos.sql"):
                     print("Importación manual con --show-warnings:", file, flush=True)
                     sql((ROOT / "db" / file).read_text(), "manual_development")
-                inventory("manual_development", counts)
+                inventory(sql, ROOT / "db/init.sql", "manual_development", counts)
                 code = 0
             else:
-                print("Importación del DDL sin seed, con --show-warnings", flush=True)
-                sql((ROOT / "db/init.sql").read_text(), "donaciones")
-                inventory("donaciones", {})
-                sql("CREATE DATABASE test_isolation; CREATE TABLE test_isolation.run_guard "
-                    "(id INT PRIMARY KEY, token CHAR(64) NOT NULL); "
-                    f"INSERT INTO test_isolation.run_guard VALUES (1, '{token}');")
+                identity = prepare(sql, ROOT / "db/init.sql", "donaciones", token)
                 environment.update(TEST_DB_HOST="mysql", TEST_DB_PORT="3306", TEST_DB_USER="root",
                                    TEST_DB_PASSWORD=password, TEST_DB_NAME="donaciones",
-                                   TEST_MYSQL_SERVER_UUID=identity, TEST_MYSQL_TOKEN=token)
+                                   TEST_MYSQL_SERVER_UUID=identity, TEST_MYSQL_TOKEN=token,
+                                   SPRINT9_MYSQL_INTEGRATION="1")
+                if args.performance:
+                    environment["RENDIMIENTO"] = "1"
+                    for key in ("RENDIMIENTO_ESCALA", "RENDIMIENTO_LIMITE_MS"):
+                        if key in os.environ:
+                            environment[key] = os.environ[key]
         if not args.check_development:
             command = ["run", "--name", tester, "--label", f"{LABEL}={run_id}",
                        "--network", "none" if args.unit else network,
@@ -175,7 +167,15 @@ def main(argv=None):
             command += [backend_image, "python", "-B", "-m", "pytest", "-p", "no:cacheprovider"]
             if not args.unit:
                 command += ["--mysql"]
-            command += pytest_args or (["-q"] if args.unit else [*DEFAULT_TESTS, "-q"])
+            if args.unit:
+                defaults = ["-q"]
+            elif args.full:
+                defaults = ["tests", "--ignore=tests/rendimiento", "-q"]
+            elif args.performance:
+                defaults = ["tests/rendimiento", "-q"]
+            else:
+                defaults = ["tests", "--ignore=tests/rendimiento", "-m", "mysql", "-q"]
+            command += pytest_args or defaults
             containers.append(tester)
             # Salida en vivo, sin capturar ni transformar el código de pytest.
             result = subprocess.run(["docker", *command])

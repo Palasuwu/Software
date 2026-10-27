@@ -24,7 +24,7 @@ def _insertar(cursor, sql, params=()):
 
 
 @pytest.fixture
-def crear_campana(base_aislada):
+def crear_campana(base_aislada, monkeypatch):
     with db.connection.db_cursor(dictionary=False) as (conn, cursor):
         id_categoria = _insertar(cursor, "INSERT INTO categoria_articulo (nombre, descripcion) VALUES ('Ropa', 'Ropa')")
         id_articulo = _insertar(cursor, "INSERT INTO articulo (nombre, descripcion, id_categoria) VALUES ('Abrigos', 'Abrigos', %s)", (id_categoria,))
@@ -37,6 +37,7 @@ def crear_campana(base_aislada):
                     '11110000', 'org@concurrencia.test', 'verificada')
             """,
         )
+        monkeypatch.setenv("ID_ORGANIZACION_PRINCIPAL", str(id_organizacion))
         id_intermediario = _insertar(
             cursor,
             "INSERT INTO usuario (nombre, correo, password, telefono, rol) "

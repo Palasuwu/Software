@@ -1,119 +1,335 @@
-# Pruebas locales
+# Pruebas locales y CI
 
-## Backend: requisitos
+## Requisitos
 
-Docker y Python 3 en el host. No se lee `.env` ni se necesita instalar las
-dependencias Python en el host. El runner usa una imagen backend local con
-`backend/requirements.txt` instalado: primero la del contenedor
-`reddonaciones-backend-1`, o `reddonaciones-backend`. Si no existe:
+Ejecutar desde la raíz de RedDonaciones. Se necesita Docker y Python 3 en el host.
+El runner usa la imagen local exacta del contenedor `mysql_db` (incluso detenido),
+o `mysql:8` local, y la imagen del contenedor `reddonaciones-backend-1`, o
+`reddonaciones-backend`. No inicia los servicios del proyecto ni instala paquetes
+en el host. Si falta la imagen backend, prepararla explícitamente:
 
 ```bash
 docker build -t reddonaciones-backend backend
 ```
 
-Para MySQL usa la imagen local exacta del contenedor `mysql_db`, incluso si está
-detenido; si no existe ese contenedor, busca `mysql:8` local. No descarga imágenes
-implícitamente. Se puede elegir con `--mysql-image` y `--backend-image`.
+`--mysql-image` y `--backend-image` permiten seleccionar imágenes locales.
+No se lee `.env`, no se montan secretos ni datos de desarrollo y no hay fallback
+a `DB_*`. Los montajes de código y del único DDL (`db/init.sql`) son de solo lectura.
+El seed `db/datos.sql` no se monta en las ejecuciones de pruebas.
 
-Ejecutar los comandos siguientes desde la raíz de RedDonaciones.
-
-## Unitarias, sin MySQL
+## Comandos actuales
 
 ```bash
+# Unitarias, sin red ni MySQL.
 python3 scripts/test_mysql.py --unit
-python3 scripts/test_mysql.py --unit -- tests/autenticacion -q
-```
 
-El contenedor no tiene red. Las pruebas reales se identifican por sus fixtures
-y el marcador `mysql`, y se excluyen explícitamente de la selección unitaria
-(`deselected`, no `skipped`). Cualquier conexión real no simulada queda bloqueada
-antes de invocar el conector. Los mocks existentes siguen parcheando al consumidor.
-
-También puede usarse `cd backend` y `python -m pytest` si ya se dispone de las
-dependencias y permisos locales necesarios para la carpeta de uploads. La
-configuración unitaria se establece antes de recolectar e importar la aplicación.
-
-## MySQL real: integración, regresión y concurrencia autocontenidas
-
-```bash
+# Todas las MySQL funcionales: marcador mysql, sin rendimiento.
 python3 scripts/test_mysql.py
-python3 scripts/test_mysql.py -- tests/automatizadas -m integracion -v
-python3 scripts/test_mysql.py -- tests/automatizadas -m regresion -v
-python3 scripts/test_mysql.py -- tests/concurrencia -v
+
+# Suite habitual: unitarias + MySQL, sin rendimiento.
+python3 scripts/test_mysql.py --full
+
+# Prueba condicional de intermediarios, habilitada por el runner.
+python3 scripts/test_mysql.py -- tests/usuarios/test_registro_intermediario_mysql.py -q
+
+# Rendimiento: habilita RENDIMIENTO=1 y conserva escala y umbral del proyecto.
+python3 scripts/test_mysql.py --performance
+
+# Opciones existentes de rendimiento, explícitas (estos son los valores por defecto).
+RENDIMIENTO_ESCALA=1 RENDIMIENTO_LIMITE_MS=2000 python3 scripts/test_mysql.py --performance
+
+# Selección específica: los argumentos después de -- reemplazan la selección por defecto.
+python3 scripts/test_mysql.py -- tests/reportes -m mysql -v
+
+# Orden alternativo de todos los grupos MySQL funcionales.
+python3 scripts/test_mysql.py -- tests/ubicacion/test_ubicacion_tipos.py tests/usuarios/test_registro_intermediario_mysql.py tests/reportes tests/base_datos/test_mysql_isolation.py tests/concurrencia tests/automatizadas -m mysql -q
 ```
 
-Sin argumentos ejecuta `tests/automatizadas` y `tests/concurrencia`. Todo lo que
-sigue a `--` se pasa a pytest; se conserva su código de salida, incluidos fallos,
-errores de uso y selección vacía. Para reportes, usar rutas del contenedor como
-`/tmp/resultados.xml`; los montajes de código son de solo lectura y los archivos
-del contenedor se eliminan al terminar.
+El runner pasa los argumentos a pytest y conserva su código de salida. Cada modo
+MySQL habilita `SPRINT9_MYSQL_INTEGRATION=1`; fuera del runner esa condición sigue
+siendo explícita. Rendimiento se habilita solo con `--performance`, que pasa
+`RENDIMIENTO=1` y únicamente las opciones `RENDIMIENTO_ESCALA` y
+`RENDIMIENTO_LIMITE_MS` del host si se proporcionaron. No se modificaron umbrales.
 
-El runner crea nombres aleatorios para una red Docker nueva `--internal`, un
-MySQL y un contenedor pytest. No publica puertos, monta datos del proyecto ni
-reutiliza redes/volúmenes. MySQL guarda sus datos en un `tmpfs` exclusivo.
-Espera una consulta autenticada TCP en el servidor definitivo, hasta 120 segundos
-(`--timeout` cambia el límite). Carga solo `db/init.sql` y comprueba exactamente
-13 tablas con cero filas antes de pytest. Cada importación manual usa
-`--show-warnings`, por sentencia; los errores y el código SQL se comprueban.
+## Preparación, aislamiento y limpieza
 
-La aplicación bajo pytest exige `TEST_DB_HOST`, `TEST_DB_PORT`, `TEST_DB_USER`,
-`TEST_DB_PASSWORD`, `TEST_DB_NAME`, `TEST_MYSQL_SERVER_UUID` y `TEST_MYSQL_TOKEN`.
-El runner los genera sin fallback a `DB_*`. Cada conexión comprueba UUID y token
-contra una marca creada solo en ese servidor. No basta con un nombre `_test`.
-No se deben copiar valores de desarrollo para intentar satisfacer esta guardia.
-Una configuración incompleta con `--mysql` falla antes de importar la app o abrir
-conexiones. Los fixtures que abren MySQL directamente pasan por la misma guardia.
+Cada ejecución MySQL crea un servidor, una red Docker nueva `--internal` y un
+contenedor pytest exclusivos, sin puertos publicados. Los datos MySQL y uploads
+usan tmpfs nuevos. Se espera una consulta TCP autenticada en el servidor definitivo
+hasta 120 segundos (`--timeout`). `scripts/mysql_test_support.py` carga únicamente
+el DDL, muestra advertencias por sentencia con `--show-warnings`, comprueba las
+13 tablas con cero filas y crea una marca aleatoria de la ejecución.
 
-Integración, concurrencia y rendimiento clonan el esquema sin filas dentro de ese
-servidor, siguiendo el orden del DDL canónico y sin desactivar FK. La limpieza
-por prueba incluye la preparación; el runner elimina finalmente su servidor,
-contenedor pytest y red, también ante fallo de preparación, pytest, SIGINT o
-SIGTERM. SIGKILL o la pérdida del daemon no permiten garantizar ejecución de
-`finally`: los nombres y la etiqueta `reddonaciones.test-run` identifican los
-recursos de la ejecución para revisión. No usar limpieza general.
+Antes de importar la app y recolectar pruebas, pytest exige `--mysql` y todas las
+variables `TEST_DB_HOST`, `TEST_DB_PORT`, `TEST_DB_USER`, `TEST_DB_PASSWORD`,
+`TEST_DB_NAME`, `TEST_MYSQL_SERVER_UUID`, `TEST_MYSQL_TOKEN`. Si falta configuración,
+falla antes de conectar. Cada conexión verifica UUID y token del servidor; el
+nombre de la base no es la garantía de aislamiento. En modo unitario, una conexión
+real no simulada se rechaza antes de invocar el conector.
 
-## Comprobar la inicialización de desarrollo sin tocar desarrollo
+Los fixtures reales clonan las tablas sin filas siguiendo el DDL canónico, sin
+desactivar FK. Reportes, intermediarios y coordenadas crean sus propias entidades
+y relaciones usando los IDs devueltos por cada inserción. Configuran y restauran
+`ID_ORGANIZACION_PRINCIPAL` y la clave JWT de pruebas por ámbito. Las peticiones
+de reportes ahora leen datos confirmados
+mediante conexiones reales; no se confía en un rollback externo para deshacer
+commits de endpoints o DDL. La eliminación de la base por prueba abarca también
+los fallos de preparación anteriores al yield. Dos regresiones nuevas verifican
+la limpieza con y sin datos confirmados y la restauración de configuración.
+
+Notificaciones sigue siendo unitario: su mock de autenticación está en
+`auth_utils.get_db_connection`; JWT, rol, usuario activo y decoradores se conservan.
+
+Un `finally` elimina únicamente los contenedores y la red etiquetados con el ID
+de esa ejecución, también ante fallos y SIGINT/SIGTERM. Se comprueba su ausencia.
+SIGKILL o la pérdida del daemon no permiten garantizar ejecución del finally;
+los nombres `rdtest-*` y la etiqueta `reddonaciones.test-run` permiten identificar
+los recursos propios para revisión. No usar limpieza general.
+
+## CI: workflow real del repositorio padre
+
+El workflow es `.github/workflows/pruebas-automatizadas.yml` en la raíz real del
+repositorio, dos niveles por encima de RedDonaciones. Conserva el servicio MySQL
+efímero, los reportes, artefactos y el job frontend. Usa `TEST_DB_*` explícitos,
+`SPRINT9_MYSQL_INTEGRATION=1` y el ID `${{ job.services.mysql.id }}`.
+
+Desde `backend`, el paso `python ../scripts/prepare_ci_mysql.py` prepara únicamente
+ese contenedor de servicio y reutiliza la misma importación, inventario vacío y
+marca del runner. Exige CI/GitHub Actions y el ID completo del contenedor; fuera
+de ese contexto rechaza la preparación. Guarda UUID/token en `GITHUB_ENV`, sin
+imprimir el token ni incluirlo en artefactos. Cada comando pytest usa `--mysql`.
+
+Si todos los pasos llegan a ejecutarse, integración, regresión y generales
+seleccionan respectivamente 5, 4 y 454 casos, sin solaparse: la selección general excluye automatizadas y rendimiento.
+Los 28 casos de rendimiento siguen fuera del workflow habitual, como antes;
+se ejecutan con el comando local explícito. **No se ejecutó GitHub Actions con
+estos cambios locales sin commit.** La comprobación remota queda pendiente.
+
+## Validación local de la parte 2 (27 de octubre de 2026)
+
+| Ejecución | Aprobadas | Fallidas | Omitidas | Deseleccionadas |
+|---|---:|---:|---:|---:|
+| Primera `--full` de la versión final | 463 | 0 | 0 | 0 |
+| Segunda `--full` de la misma versión final, en otro entorno | 462 | 1 | 0 | 0 |
+| `--unit` | 397 | 0 | 0 | 94 |
+| Comando MySQL por defecto | 66 | 0 | 0 | 397 |
+| Grupos MySQL en orden alternativo (comando de arriba) | 66 | 0 | 0 | 53 |
+| Intermediarios explícitos | 2 | 0 | 0 | 0 |
+| Última `--performance`, escala 1 y umbral 2000 ms | 28 | 0 | 0 | 0 |
+
+La segunda corrida final falló en
+`test_filtra_por_fecha_de_inicio_de_fin_o_ambas[filtros3-0]`: el resumen respondió
+200 y la petición siguiente de detalle respondió 401 con «Token inválido o
+expirado». El rechazo ocurre en la verificación JWT, antes de consultar los datos.
+El fixture ya fija y restaura también la clave JWT de pruebas; eso no eliminó
+el fallo intermitente y no se afirma que la clave heredada fuera su causa.
+
+En validaciones preliminares también hubo una repetición con 462 aprobadas y
+un 401 en `test_intermediario_solo_ve_su_organizacion`, y una corrida de rendimiento
+con 27 aprobadas y un 401 en `test_resumen_de_reportes_completo[alto]`. Esos fallos
+no se borran del historial porque otras ejecuciones hayan pasado. No se determinó
+su causa ni que todos compartan el mismo origen. No se modificaron autenticación,
+reglas, aserciones ni umbrales para aprobar. **La reproducibilidad completa aún
+no queda cerrada.**
+
+Los volúmenes fueron los originales: 50 campañas/2000 donaciones y
+500 campañas/20000 donaciones. En la última corrida las medianas
+medidas estuvieron entre 18,9 y 180,1 ms, por debajo del límite. La exportación
+completa se estima a partir de páginas; no se midió una descarga completa. Los
+401 anteriores no fueron agotamiento de recursos ni excesos del umbral. Un primer intento de rendimiento no llegó a pytest por un import
+faltante del runner; se corrigió y se verificó su limpieza antes de repetirlo.
+
+Todas las preparaciones verificaron 13 tablas vacías, con dos advertencias 1681
+por `TINYINT(1)` y sin seed. Las dos suites finales se ejecutaron
+secuencialmente y usaron UUID distintos `48f8aea2-d1da-11f1-9b47-da5078665f07` y
+`b262525b-d1da-11f1-897a-6acf005db19f`. Una repetición preliminar y el orden
+alternativo se lanzaron simultáneamente y tuvieron servidores, redes y
+credenciales independientes.
+La limpieza funcionó también en las ejecuciones con fallos.
+
+La preparación CI se ensayó **localmente** en otro contenedor sin red ni puertos:
+13 tablas vacías e identidad/token válidos en un archivo de entorno temporal,
+eliminado al finalizar. El YAML y los scripts bash se revisaron con PyYAML y
+`bash -n`; los scripts Python con el parser AST. Esto no equivale a una ejecución
+de CI ni a una validación con actionlint, que no está instalado.
+
+## Investigación dirigida del 401 JWT (sin causa reproducida)
+
+Se revisaron `generate_token`, `verify_token`, fixtures y restauración del entorno.
+El generador usa UTC, `iat` con el instante de emisión y `exp` siete días después;
+no emite `nbf`. La validación instalada es PyJWT 2.15.1, HS256 y leeway cero.
+Generación y validación leen `JWT_SECRET_KEY` del entorno; `app.config` conserva
+una copia inicial que esos métodos no consultan.
+
+Se usó instrumentación temporal que delegaba a la implementación original de
+PyJWT, conservaba excepciones y solo registraba su clase, comparaciones booleanas
+de clave y datos temporales numéricos. No se imprimieron claves ni tokens ni se
+alteraron decisiones de autenticación. Se retiró al terminar.
+
+| Comprobación dirigida | Aprobadas | Fallidas | Omitidas | Deseleccionadas |
+|---|---:|---:|---:|---:|
+| Dos casos originales de cálculos de reportes | 2 | 0 | 0 | 0 |
+| Prueba temporal: 50 pares de peticiones, parada ante el primer error | 1 | 0 | 0 | 0 |
+| Resumen de rendimiento, solo parámetro alto | 1 | 0 | 0 | 0 |
+| Login para comprobar restauración del entorno | 1 | 0 | 0 | 0 |
+| Login seguido de cálculos de reportes | 25 | 0 | 0 | 0 |
+| Una suite habitual completa con diagnóstico | 463 | 0 | 0 | 0 |
+
+Además, una comprobación aislada de 50.000 generaciones/validaciones PyJWT con
+claims equivalentes no produjo excepciones ni detectó retrocesos de reloj en
+esa ventana. Eso no excluye un problema temporal fuera de la ventana observada.
+
+Se confirmó que `test_login_exitoso` deja la clave del entorno alterada tras su
+teardown y distinta de la copia de `app.config`. La suite diagnóstica también
+observó otros cambios de entorno no restaurados. No se demostró que sean la
+causa del 401: los fixtures MySQL fijan y restauran su propia clave, y la secuencia
+login → reportes pasó con la validación real activa. No se observaron cambios en
+la clave de `app.config` después de su importación.
+
+La suite diagnóstica registró 418 emisiones y 374 validaciones. La única excepción
+fue `InvalidSignatureError` en
+`test_token_firmado_con_otro_secreto_se_rechaza`, que cambia la clave expresamente
+y espera ese rechazo. No identifica la excepción del 401 intermitente anterior.
+No se observaron `ExpiredSignatureError` ni `ImmatureSignatureError` en las
+reproducciones de reportes o rendimiento.
+
+**No se reprodujo el 401 ni se declara resuelta su causa.** No se modificaron
+autenticación, permisos, expiración, fixtures ni workflow para intentar obtener
+un resultado verde; no se añadieron reintentos, sleeps o skips. Al no existir una
+corrección sustentada en evidencia, no se realizaron dos suites posteriores a
+una corrección. El único cambio permanente de esta investigación es este registro.
+Se eliminaron la prueba y la instrumentación temporales y todos sus recursos
+Docker. Los comandos instrumentados fueron de diagnóstico temporal, no nuevos
+comandos permanentes del runner. La colección no cambia y los resultados de esta
+sección se solapan entre sí y con las ejecuciones anteriores.
+
+## Corrección acotada del entorno de login (2026-10-27)
+
+**Contaminación del entorno corregida:** `test_login_exitoso` usa ahora
+`monkeypatch.setenv` en lugar de asignar directamente al entorno. La fixture
+restaura automáticamente el valor anterior de `JWT_SECRET_KEY` al terminar,
+también si falla la prueba. Se conservan los mocks y todas las aserciones.
+El cambio se limita a esa prueba; no corrige otras asignaciones observadas.
+
+Se intentaron estos comandos con el código final, sin instrumentación temporal:
 
 ```bash
-python3 scripts/test_mysql.py --check-development
+python3 scripts/test_mysql.py --unit -- tests/autenticacion/test_login.py -q --tb=no
+python3 scripts/test_mysql.py -- tests/autenticacion/test_login.py tests/reportes/test_reportes_calculos.py -q --tb=no
+python3 scripts/test_mysql.py --full -- tests --ignore=tests/rendimiento -q --tb=no
 ```
 
-Crea otro entorno desechable. Prueba los montajes reales, en orden:
-`10-schema.sql` (`db/init.sql`) y `20-demo.sql` (`db/datos.sql`). Comprueba las
-cantidades del seed. En ese mismo servidor exclusivo también prueba los dos
-comandos manuales en una segunda base vacía, mostrando advertencias por sentencia.
-No modifica ni inicia los contenedores del proyecto.
+Los tres terminaron con código 1 antes de iniciar pytest: Docker no está
+disponible en esta distribución WSL, confirmado mediante `docker version`.
+El intento unitario inicial dentro del sandbox y su repetición con permisos
+ampliados tuvieron el mismo impedimento. No se crearon contenedores ni redes.
+No hay conteos de aprobadas, fallidas, omitidas o deseleccionadas para estos
+intentos: las pruebas no llegaron a ejecutarse. Quedan pendientes las tres
+validaciones cuando Docker esté disponible; los resultados históricos anteriores
+no validan este cambio. `git diff --check` terminó con código 0.
 
-## Alcance pendiente: parte 2
+**401 intermitente:** no se reprodujo en la investigación anterior y su causa
+sigue pendiente. Esta restauración del entorno no se presenta como solución
+del 401. No se modificaron autenticación de producción ni workflow, ni se
+añadieron reintentos, sleeps, skips o instrumentación.
 
-No se adaptaron `tests/reportes/test_reporte_service.py`, los casos que usan
-`dataset_reportes` en `tests/reportes/test_reporte_endpoints.py`, ni
-`tests/usuarios/test_registro_intermediario_mysql.py`: aún dependen del seed.
-Se clasifican como `mysql_seed`; una selección MySQL que los incluya se rechaza
-explícitamente, no se omite para simular éxito.
+## Investigación acotada del 401 en foto de perfil (2026-10-27)
 
-Los dos casos de `tests/ubicacion/test_ubicacion_tipos.py` siguen clasificados
-como MySQL: consultan la base real y su preparación con datos propios queda para
-la parte 2. No se convirtieron en mocks.
+La salida aportada de `--full` registra 462 aprobadas y una fallida:
+`test_donante_guarda_foto_y_la_recupera`, cuyo PUT devolvió 401. Esa salida no
+contiene el cuerpo del 401 ni la excepción JWT; no permite identificar su causa.
 
-Los dos casos de `tests/notificaciones/test_notificaciones.py` son unitarios:
-ya simulaban la conexión de la ruta y ahora completan la de autenticación en
-`auth_utils.get_db_connection`. Devuelven un usuario válido y activo; se conserva
-la validación real del JWT, el rol y los decoradores. Cada prueba comprueba que
-la consulta de autenticación se realizó para el usuario del token. Se retiró su
-clasificación MySQL por archivo, sin debilitar las aserciones existentes.
+Se revisó la cadena real `gestionar_foto` → `token_required` →
+`_autenticar_request` → `verify_token`. `foto_db` parchea correctamente
+`auth_utils._obtener_usuario_actual`, que es donde la autenticación busca al
+usuario, y devuelve ID, rol donante y activo=1. La conexión del endpoint se
+parchea en `routes.foto_perfil`. No se desactivan autenticación ni permisos.
+La fixture establece la clave mediante `monkeypatch.setenv` antes de generar
+el token y la restaura al terminar. Emisión y validación consultan el mismo
+`JWT_SECRET_KEY` del entorno; no usan la copia inicial de `app.config`.
 
-Los demás datasets reales de reportes (`datos_reportes`) deben revisarse en la
-parte 2 para su aislamiento por prueba. Sus casos de validación simulados siguen
-dentro de las unitarias.
+Comandos ejecutados, en este orden:
 
-Rendimiento conserva su condición existente `RENDIMIENTO=1`; esta primera parte
-cambia su conexión y plantilla, pero no ejecuta esa cobertura ni habilita el flag
-en el contenedor. Su habilitación explícita y validación quedan pendientes.
-El workflow del repositorio padre sigue pendiente de adaptación: no modificarlo
-ni asumir que sus comandos antiguos verifican el nuevo aislamiento.
+```bash
+python3 scripts/test_mysql.py --unit -- tests/fotos_perfil/test_foto_perfil.py::test_donante_guarda_foto_y_la_recupera -q --tb=no
+python3 scripts/test_mysql.py --unit -- tests/fotos_perfil/test_foto_perfil.py -q --tb=no
+# Diagnóstico temporal, retirado al terminar; este plugin ya no está disponible.
+python3 scripts/test_mysql.py -- tests/autenticacion tests/campanas tests/concurrencia tests/configuracion tests/donaciones tests/fotos_perfil -p tests.foto_jwt_diagnostic -s -q --tb=no
+```
 
-## Validación de la primera parte (27 de octubre de 2026)
+| Selección | Aprobadas | Fallidas | Omitidas | Deseleccionadas |
+|---|---:|---:|---:|---:|
+| Caso aislado, sin instrumentación | 1 | 0 | 0 | 0 |
+| Archivo completo, sin instrumentación | 11 | 0 | 0 | 0 |
+| Grupos anteriores relevantes y fotos, con diagnóstico temporal | 121 | 0 | 0 | 0 |
+
+Los resultados se solapan; no son 133 pruebas únicas. El intento inicial del
+caso aislado dentro del sandbox no pudo acceder al socket Docker; la ejecución
+autorizada posterior sí terminó con código 0, igual que las otras dos selecciones.
+
+La colección de la selección confirmó como cuatro casos inmediatamente
+anteriores a fotos los de cantidad inválida, formatos de fecha/hora inválidos,
+campos faltantes y donante/publicación inexistente de
+`test_regresion_donaciones.py`. Se conservaron en ese orden. No se repitió
+indiscriminadamente toda la suite ni se incluyeron reportes o rendimiento.
+
+El diagnóstico temporal delegó las operaciones originales y restauró sus
+envoltorios en `finally`. No imprimió tokens ni claves. En el caso señalado,
+PUT y GET completaron dos validaciones JWT y dos consultas al mock de usuario
+válido. La clave usada para validar coincidió con el entorno al iniciar el caso;
+el entorno y `app.config` no cambiaron durante sus peticiones. No se capturó
+ninguna excepción JWT en fotos. Los únicos cuerpos 401 capturados fueron
+`{"error": "Token no proporcionado o malformado"}`, ambos esperados en
+`test_foto_requiere_sesion`; no corresponden al fallo original.
+
+Se observaron cambios de clave no restaurados al terminar casos de intentos
+de login, recuperación de contraseña, campañas, concurrencia simulada y
+donaciones. `test_login_exitoso` y las pruebas de fotos no mostraron esa fuga
+en esta selección. No se demostró relación causal con el 401: la fixture de
+fotos fija su configuración y sus once casos pasaron después de esos grupos.
+Las advertencias de longitud de clave también aparecen en las ejecuciones
+aprobadas; no se consideran explicación del fallo.
+
+**El 401 no se reprodujo y su causa sigue pendiente.** No se aplicó una
+corrección especulativa ni se modificaron pruebas funcionales, autenticación,
+permisos, imágenes o workflow. Solo se añadió este registro; se eliminó el
+plugin temporal. Por no haber corrección de código no se ejecutó otro `--full`.
+Los contenedores y la red temporales se eliminaron correctamente.
+`git diff --check` terminó con código 0.
+
+## Colección completa y solapamientos
+
+La colección contiene 491 casos: 397 unitarios, 66 MySQL funcionales y 28 de
+rendimiento. Los dos casos añadidos respecto de los 489 de la parte 1 verifican
+limpieza ante fallo de preparación. Las 94 deselecciones del modo unitario son
+66 MySQL más 28 de rendimiento; no son aprobaciones ni skips.
+
+`--full` cubre los mismos 397 + 66 = 463 casos en cada repetición. La selección
+MySQL por defecto y el orden alternativo seleccionan los mismos 66 casos. Los dos
+intermediarios son un subconjunto de esos 66. Los 31 del runner anterior eran
+27 MySQL y 4 simulados: ya están incluidos en los grupos actuales, no se suman.
+Rendimiento aporta los otros 28 casos distintos. Se ejecutaron los 491 al menos
+una vez. No se presenta una ejecución única de 491 aprobadas ni se oculta la
+repetición funcional fallida. Las repeticiones y comandos
+solapados no aumentan ese total único.
+
+Para cerrar faltan: investigar el 401 intermitente sin ampliar esta tarea de
+forma automática; obtener dos corridas habituales reproducibles sin alterar verificaciones
+(los 28 de rendimiento pasaron en la última ejecución); ejecutar/consultar el workflow real
+cuando los cambios estén disponibles en CI.
+
+## Inicialización de desarrollo
+
+Se conserva `python3 scripts/test_mysql.py --check-development` para verificar
+en otro entorno desechable la carga ordenada de `init.sql` y `datos.sql` tanto
+por Docker como manualmente. No se repitió esa comprobación en esta parte porque
+no cambiaron el DDL, el seed ni los montajes de desarrollo. Los hashes demo
+trasladados en la parte 1 ya estaban versionados y no son secretos nuevos.
+
+## Historial de la parte 1 (comandos y conteos anteriores a la parte 2)
+
+Los pendientes de fixtures descritos en esta sección son históricos: la parte 2
+los adaptó. Sus comandos y resultados conservan el significado de aquella versión.
 
 Se utilizó MySQL 8.4.11, desde la imagen local exacta del proyecto, y una imagen
 backend local con dependencias ya instaladas. No se instalaron dependencias en

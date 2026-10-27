@@ -44,7 +44,7 @@ def _insertar(cursor, sql, params=()):
 
 
 @pytest.fixture
-def escenario(base_aislada):
+def escenario(base_aislada, monkeypatch):
     """Organización verificada con ubicación, su intermediario, un donante y un creador de campañas."""
     with db.connection.db_cursor(dictionary=False) as (conn, cursor):
 
@@ -63,6 +63,7 @@ def escenario(base_aislada):
                     'Ciudad de Guatemala', '1', 14.6349000, -90.5069000, '22220000', 'hogar@prueba.test', 'verificada')
             """,
         )
+        monkeypatch.setenv("ID_ORGANIZACION_PRINCIPAL", str(id_organizacion))
         id_intermediario = _insertar(
             cursor,
             "INSERT INTO usuario (nombre, correo, password, telefono, rol) "

@@ -27,20 +27,14 @@ def pytest_configure(config):
 
 @pytest.hookimpl(tryfirst=True)
 def pytest_collection_modifyitems(config, items):
-    mysql_fixtures = {"base_aislada", "datos_reportes", "dataset_reportes", "dataset_conocido", "volumen"}
+    mysql_fixtures = {"base_aislada", "mysql_case", "datos_reportes", "dataset_reportes", "dataset_conocido", "volumen"}
     selected, deselected = [], []
     explicit = [Path(arg.split("::")[0]).resolve() for arg in config.args if not arg.startswith("-")]
     for item in items:
         path = str(item.path).replace("\\", "/")
-        seed = path.endswith(("/test_registro_intermediario_mysql.py", "/test_ubicacion_tipos.py")) or (
-            path.endswith(("/test_reporte_service.py", "/test_reporte_endpoints.py"))
-            and bool(mysql_fixtures.intersection(item.fixturenames))
-        )
-        real = seed or bool(mysql_fixtures.intersection(item.fixturenames)) or bool(item.get_closest_marker("mysql"))
+        real = bool(mysql_fixtures.intersection(item.fixturenames)) or bool(item.get_closest_marker("mysql"))
         if real:
             item.add_marker(pytest.mark.mysql)
-        if seed:
-            item.add_marker(pytest.mark.mysql_seed)
         if real and not config.getoption("--mysql"):
             if any(p == Path(item.path).resolve() or (
                 p != Path(__file__).parent.resolve() and p in Path(item.path).resolve().parents
@@ -54,14 +48,17 @@ def pytest_collection_modifyitems(config, items):
         config.hook.pytest_deselected(items=deselected)
 
 
-def pytest_collection_finish(session):
-    if session.config.getoption("--mysql") and any(
-        item.get_closest_marker("mysql_seed") for item in session.items
-    ):
-        raise pytest.UsageError(
-            "Selección dependiente del seed (mysql_seed), pendiente de la parte 2. "
-            "Seleccionar tests/automatizadas y tests/concurrencia."
-        )
+@pytest.fixture
+def mysql_case(monkeypatch):
+    from db.connection import db_cursor
+    from tests.mysql_support import temporary_database
+    from tests.mysql_data import MySQLData
+
+    with monkeypatch.context() as settings:
+        settings.setenv("JWT_SECRET_KEY", "test-secret-key-with-at-least-32-bytes")
+        with temporary_database(settings, "case"):
+            with db_cursor() as (conn, cursor):
+                yield MySQLData(conn, cursor, settings)
 
 
 @pytest.fixture

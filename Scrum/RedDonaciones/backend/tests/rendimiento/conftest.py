@@ -20,6 +20,7 @@ def volumen(request):
                 conn.commit()
                 cursor.execute("ANALYZE TABLE publicacion, donacion")
                 cursor.fetchall()
+                mp.setenv("ID_ORGANIZACION_PRINCIPAL", str(datos["organizacion"]))
                 mp.setenv("JWT_SECRET_KEY", SECRET)
                 datos["nombre"] = request.param
                 datos["base"] = nombre
