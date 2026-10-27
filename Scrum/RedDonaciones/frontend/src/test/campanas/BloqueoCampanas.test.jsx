@@ -212,7 +212,7 @@ describe('Bloqueo de donaciones en campañas finalizadas y vencidas', () => {
       {
         id_publicacion: 40,
         titulo: 'Campaña Vencida en Home',
-        descripcion: 'Expiró',
+        descripcion: 'Venció',
         estado: 'activa',
         fecha_limite: '2020-01-01',
         cantidad_necesaria: 100,

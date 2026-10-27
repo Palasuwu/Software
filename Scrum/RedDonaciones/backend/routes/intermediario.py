@@ -242,7 +242,7 @@ def crear_publicacion_intermediario():
                 request.id_organizacion
             ):
                 return jsonify({
-                    "error": "La organizacion debe estar verificada"
+                    "error": "La organización debe estar verificada"
                 }), 400
 
             # El artículo seleccionado debe existir
@@ -251,7 +251,7 @@ def crear_publicacion_intermediario():
                 payload["id_articulo"]
             ):
                 return jsonify({
-                    "error": "El articulo seleccionado no existe"
+                    "error": "El artículo seleccionado no existe"
                 }), 400
 
             crear_publicacion_db(cursor, payload, request.usuario_id)
@@ -331,7 +331,7 @@ def editar_publicacion_intermediario(id_publicacion):
                 payload["id_articulo"]
             ):
                 return jsonify({
-                    "error": "El articulo seleccionado no existe"
+                    "error": "El artículo seleccionado no existe"
                 }), 400
 
             editar_publicacion_db(cursor, id_publicacion, payload)
@@ -608,13 +608,13 @@ def actualizar_perfil_institucional():
 
         errores = {}
         if direccion and len(direccion) < 8:
-            errores["direccion"] = "La direccion debe ser mas especifica"
+            errores["direccion"] = "La dirección debe ser más específica"
         if len(departamento) < 3:
             errores["departamento"] = "El departamento debe tener al menos 3 caracteres"
         if len(municipio) < 3:
             errores["municipio"] = "El municipio debe tener al menos 3 caracteres"
         if zona and (not zona.isdigit() or len(zona) > 2):
-            errores["zona"] = "La zona debe ser un numero valido"
+            errores["zona"] = "La zona debe ser un número válido"
         latitud, longitud, error_coordenadas = validar_coordenadas(data.get("latitud"), data.get("longitud"))
         if error_coordenadas:
             errores["latitud"] = error_coordenadas

@@ -57,7 +57,7 @@ export default function OrgFormModal({
                     </div>
 
                     <div className="form-field">
-                        <label className="form-label">Descripcion</label>
+                        <label className="form-label">Descripción</label>
                         <textarea
                             className={`form-textarea ${orgFormErrors.descripcion ? 'form-input-invalid' : ''}`}
                             name="descripcion"
@@ -72,7 +72,7 @@ export default function OrgFormModal({
                     <CoordinatesFields form={orgForm} errors={orgFormErrors} onChange={onChange} disabled={isSubmitting} />
 
                     <div className="form-field">
-                        <label className="form-label">Telefono</label>
+                        <label className="form-label">Teléfono</label>
                         <input
                             className={`form-input ${orgFormErrors.telefono ? 'form-input-invalid' : ''}`}
                             name="telefono"

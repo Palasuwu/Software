@@ -29,8 +29,8 @@ def dataset_conocido():
 
         cursor.execute(
             "INSERT INTO donante (id_usuario, departamento, municipio, zona, direccion_detalle) VALUES "
-            "(%s, 'Guatemala', 'Guatemala', '1', 'Direccion de prueba'), "
-            "(%s, 'Guatemala', 'Guatemala', '1', 'Direccion de prueba')",
+            "(%s, 'Guatemala', 'Guatemala', '1', 'Dirección de prueba'), "
+            "(%s, 'Guatemala', 'Guatemala', '1', 'Dirección de prueba')",
             (id_donante_a, id_donante_b),
         )
 

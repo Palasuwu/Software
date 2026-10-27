@@ -42,7 +42,7 @@ describe('Registro público con alta administrativa de intermediarios', () => {
         expect(url).toBe('/api/usuarios')
         expect(JSON.parse(init.body)).toEqual({ nombre: 'Ana Perez', telefono: '22223333', correo: 'ana@example.com', password: 'clave1234', rol: 'donante', departamento: 'Guatemala', municipio: 'Mixco', zona: '4', direccion_detalle: '5 avenida 10-20' })
         expect(fetch.mock.calls[1][0]).toBe('/api/login')
-        expect(screen.getByText('¡¡¡Cuenta creada! Redirigiendo...')).toBeInTheDocument()
+        expect(screen.getByText('¡Cuenta creada! Redirigiendo...')).toBeInTheDocument()
     })
     it('muestra rechazo del registro y no inicia sesión ni crea estados pendientes ficticios', async () => {
         fetch.mockResolvedValue({ ok: false, json: async () => ({ error: 'El correo ya está registrado' }) })

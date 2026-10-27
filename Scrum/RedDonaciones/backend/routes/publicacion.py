@@ -40,7 +40,7 @@ def listar_articulos():
             return jsonify(cursor.fetchall()), 200
 
     except Exception:
-        logging.exception("Error al obtener articulos")
+        logging.exception("Error al obtener artículos")
 
         return jsonify({
             "error": "Error al obtener artículos"
@@ -176,7 +176,7 @@ def crear_publicacion():
             ):
                 return jsonify({
                     "error": (
-                        "La organizacion seleccionada "
+                        "La organización seleccionada "
                         "debe estar verificada"
                     )
                 }), 400
@@ -190,7 +190,7 @@ def crear_publicacion():
                 return jsonify({
                     "error": (
                         "El intermediario no pertenece "
-                        "a la organizacion seleccionada"
+                        "a la organización seleccionada"
                     )
                 }), 400
 
@@ -200,7 +200,7 @@ def crear_publicacion():
                 payload["id_articulo"]
             ):
                 return jsonify({
-                    "error": "El articulo seleccionado no existe"
+                    "error": "El artículo seleccionado no existe"
                 }), 400
 
             crear_publicacion_db(
@@ -216,7 +216,7 @@ def crear_publicacion():
             }), 201
 
     except Exception:
-        logging.exception("Error al crear publicacion")
+        logging.exception("Error al crear publicación")
 
         return jsonify({
             "error": "Error al crear publicación"
@@ -242,7 +242,7 @@ def actualizar_estado_publicacion(id_publicacion):
         if not validar_estado_publicacion(estado):
             return jsonify({
                 "error": (
-                    "Estado invalido. "
+                    "Estado inválido. "
                     "Usa activa, finalizada o cancelada"
                 )
             }), 400
@@ -262,7 +262,7 @@ def actualizar_estado_publicacion(id_publicacion):
 
             if not cursor.fetchone():
                 return jsonify({
-                    "error": "Publicacion no encontrada"
+                    "error": "Publicación no encontrada"
                 }), 404
 
             actualizar_estado_publicacion_db(
@@ -274,7 +274,7 @@ def actualizar_estado_publicacion(id_publicacion):
             conn.commit()
 
             return jsonify({
-                "message": "Estado de publicacion actualizado",
+                "message": "Estado de publicación actualizado",
                 "publicacion": {
                     "id_publicacion": id_publicacion,
                     "estado": estado
@@ -283,14 +283,14 @@ def actualizar_estado_publicacion(id_publicacion):
 
     except Exception:
         logging.exception(
-            "Error al actualizar estado de publicacion %s",
+            "Error al actualizar estado de publicación %s",
             id_publicacion
         )
 
         return jsonify({
             "error": (
                 "No se pudo actualizar "
-                "el estado de la publicacion"
+                "el estado de la publicación"
             )
         }), 500
 
@@ -539,7 +539,7 @@ def obtener_publicacion(id_publicacion):
 
     except Exception:
         logging.exception(
-            "Error al obtener publicacion %s",
+            "Error al obtener publicación %s",
             id_publicacion
         )
 

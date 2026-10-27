@@ -64,7 +64,7 @@ def _leer_estado():
     if estado is not None and not estado.strip():
         return None, (jsonify({"error": "estado no puede estar vacio"}), 400)
     if estado and estado not in ESTADOS_DONACION:
-        return None, (jsonify({"error": "estado invalido"}), 400)
+        return None, (jsonify({"error": "estado inválido"}), 400)
     return estado, None
 
 
@@ -98,9 +98,9 @@ def _resolver_alcance_organizacion():
     if request.usuario_rol == "intermediario":
         id_organizacion = _obtener_organizacion_actual_intermediario(request.usuario_id)
         if id_organizacion is None:
-            return None, (jsonify({"error": "El usuario no esta asociado a una organizacion"}), 403)
+            return None, (jsonify({"error": "El usuario no esta asociado a una organización"}), 403)
         if not _organizacion_verificada(id_organizacion):
-            return None, (jsonify({"error": "La organizacion no esta verificada"}), 403)
+            return None, (jsonify({"error": "La organización no está verificada"}), 403)
         return id_organizacion, None
 
     return None, (jsonify({"error": "Acceso denegado"}), 403)

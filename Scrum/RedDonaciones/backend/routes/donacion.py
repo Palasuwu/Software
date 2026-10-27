@@ -274,7 +274,7 @@ def obtener_detalle_donacion(id_donacion):
 
     except Exception:
         logging.exception(
-            "Error al obtener detalle de donacion %s",
+            "Error al obtener detalle de donación %s",
             id_donacion
         )
 
@@ -557,7 +557,7 @@ def crear_donacion():
         if conn:
             conn.rollback()
 
-        logging.exception("Error al registrar una donacion")
+        logging.exception("Error al registrar una donación")
 
         return jsonify({
             "error": "Error al registrar la donación"
@@ -643,7 +643,7 @@ def obtener_estado_donacion(id_donacion):
 
     except Exception:
         logging.exception(
-            "Error al obtener estado de donacion %s",
+            "Error al obtener estado de donación %s",
             id_donacion
         )
 
@@ -757,7 +757,7 @@ def actualizar_estado_donacion(id_donacion):
 
     except Exception:
         logging.exception(
-            "Error al actualizar estado de donacion %s",
+            "Error al actualizar estado de donación %s",
             id_donacion
         )
 

@@ -41,7 +41,7 @@ export default function DonationCard({ org, index = 0 }) {
 
         <div className="campaign-location">
           <IconLocation className="meta-icon" />
-          <span>{org.location || 'Ubicacion no disponible'}</span>
+          <span>{org.location || 'Ubicación no disponible'}</span>
         </div>
 
         <p className="campaign-description">{org.description}</p>

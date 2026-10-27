@@ -33,7 +33,7 @@ export default function AdminOrgsTable({
                                 <th>Organización</th>
                                 <th>Estado</th>
                                 <th>Dirección</th>
-                                <th>Telefono</th>
+                                <th>Teléfono</th>
                                 <th>Correo</th>
                                 <th>Acciones</th>
                             </tr>
@@ -65,7 +65,7 @@ export default function AdminOrgsTable({
                                                 className="admin-icon-button admin-icon-button-danger"
                                                 onClick={() => onArchivar(org)}
                                                 disabled
-                                                title="No se puede archivar: es la unica organizacion de la plataforma"
+                                                title="No se puede archivar: es la unica organización de la plataforma"
                                                 aria-label={`Archivar ${org.nombre} (deshabilitado)`}
                                             >
                                                 <IconTrash className="admin-action-icon" />

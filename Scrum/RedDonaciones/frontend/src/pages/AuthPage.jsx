@@ -259,7 +259,7 @@ function RegisterForm({ onAuthSuccess }) {
             guardarTokenSesion(loginBody.token)
             guardarUsuarioSesion(loginBody.usuario)
             if (typeof onAuthSuccess === 'function') onAuthSuccess(loginBody.usuario)
-            setSuccessMessage('¡¡¡Cuenta creada! Redirigiendo...')
+            setSuccessMessage('¡Cuenta creada! Redirigiendo...')
             setTimeout(() => navigate('/perfil', { state: { flash: 'Usuario creado con éxito' } }), 800)
         } catch (err) {
             setApiError(err.message || 'No se pudo completar el registro')

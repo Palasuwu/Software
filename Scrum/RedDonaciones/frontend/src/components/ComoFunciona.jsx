@@ -90,7 +90,7 @@ function VistaElegir({ activo, reducirMovimiento }) {
                 const esta = i === elegida
                 return (
                     <motion.div
-                        className={`cf-fila-campana${esta && enfocada ? ' cf-fila-campana--activa' : ''}`}
+                        className={`cf-fila-campana${esta && enfocada ? ' cf-fila-campaña--activa' : ''}`}
                         key={campana.titulo}
                         animate={{
                             y: esta && clicada ? 0 : 0,

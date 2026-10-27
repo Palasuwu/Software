@@ -7,7 +7,7 @@ def _payload_base(**overrides):
         "id_organizacion": 1,
         "id_articulo": 1,
         "titulo": "Campaña de prueba",
-        "descripcion": "Descripcion de prueba con suficiente longitud",
+        "descripcion": "Descripción de prueba con suficiente longitud",
         "cantidad_necesaria": 10,
         "fecha_publicacion": "2026-01-01",
         "fecha_limite": "2026-01-31",

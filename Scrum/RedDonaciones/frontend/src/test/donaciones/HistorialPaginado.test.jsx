@@ -129,7 +129,7 @@ describe('Paginación del historial', () => {
     it('no consulta donaciones sin sesión', async () => {
         obtenerUsuarioSesion.mockReturnValue(null)
         abrirHistorial()
-        await waitFor(() => expect(screen.getByText('Inicia sesion para ver tu historial de donaciones')).toBeInTheDocument())
+        await waitFor(() => expect(screen.getByText('Inicia sesión para ver tu historial de donaciones')).toBeInTheDocument())
         expect(apiGet).not.toHaveBeenCalled()
     })
 })

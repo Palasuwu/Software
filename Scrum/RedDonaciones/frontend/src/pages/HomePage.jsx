@@ -83,7 +83,7 @@ export default function HomePage({ isAuthenticated }) {
 
     return apiGet('/api/publicaciones')
       .then((data) => {
-        if (!Array.isArray(data)) throw new Error('Respuesta invalida del servidor')
+        if (!Array.isArray(data)) throw new Error('Respuesta inválida del servidor')
 
         const ahora = new Date()
         const hoyStr = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`

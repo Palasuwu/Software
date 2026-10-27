@@ -31,7 +31,7 @@ def _entero(nombre, valor_por_omision):
     try:
         return int(os.environ.get(nombre) or valor_por_omision)
     except ValueError:
-        logging.warning("%s no es un numero; se usa %s", nombre, valor_por_omision)
+        logging.warning("%s no es un número; se usa %s", nombre, valor_por_omision)
         return valor_por_omision
 
 
@@ -72,7 +72,7 @@ def enviar_correo(destino, asunto, texto, html=None):
         destino,
         host,
         puerto,
-        "" if usuario else "  (sin autenticacion: buzon local de desarrollo)",
+        "" if usuario else "  (sin autenticación: buzon local de desarrollo)",
     )
 
     mensaje = EmailMessage()

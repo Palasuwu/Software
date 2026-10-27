@@ -30,7 +30,7 @@ def volumen(request):
             inicio = time.perf_counter()
             datos = _poblar(cursor, **VOLUMENES[request.param])
             conn.commit()
-            cursor.execute("ANALYZE TABLE publicacion, donacion")
+            cursor.execute("ANALYZE TABLE publicación, donación")
             cursor.fetchall()
             cursor.execute(f"USE `{nombre_real}`")
 

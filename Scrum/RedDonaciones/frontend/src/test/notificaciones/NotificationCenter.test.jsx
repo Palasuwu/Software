@@ -19,7 +19,7 @@ describe('NotificationCenter', () => {
       total_no_leidas: 1,
       notificaciones: [{
         id_notificacion: 10,
-        titulo: 'Donacion registrada',
+        titulo: 'Donación registrada',
         mensaje: 'Tu aporte fue registrado.',
         enlace: null,
         leida: 0,
@@ -41,7 +41,7 @@ describe('NotificationCenter', () => {
     })
 
     fireEvent.click(screen.getByLabelText('Notificaciones, 1 sin leer'))
-    fireEvent.click(await screen.findByText('Donacion registrada'))
+    fireEvent.click(await screen.findByText('Donación registrada'))
 
     await waitFor(() => {
       expect(apiPatch).toHaveBeenCalledWith('/api/notificaciones/10/leer')

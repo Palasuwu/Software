@@ -127,7 +127,7 @@ def simular_error_de_conexion(monkeypatch):
     ("metodo", "ruta", "datos", "mensaje"),
     [
         ("get", "/usuarios", None, "Error al obtener usuarios"),
-        ("post", "/login", {"correo": "a@b.com", "password": "clave1234"}, "Error al iniciar sesion"),
+        ("post", "/login", {"correo": "a@b.com", "password": "clave1234"}, "Error al iniciar sesión"),
         ("put", "/usuarios/7/desactivar", None, "No se pudo desactivar el usuario"),
         ("put", "/usuarios/7/activar", None, "No se pudo activar el usuario"),
         ("put", "/usuarios/7/anonimizar", None, "No se pudo anonimizar el usuario"),

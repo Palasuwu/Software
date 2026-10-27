@@ -72,7 +72,7 @@ export default function MisDonacionesPage() {
 
     const usuario = obtenerUsuarioSesion()
     if (!usuario?.id_usuario) {
-      setError('Inicia sesion para ver tu historial de donaciones')
+      setError('Inicia sesión para ver tu historial de donaciones')
       setLoading(false)
       return
     }
@@ -205,7 +205,7 @@ export default function MisDonacionesPage() {
                     <div className="donation-row-left-figma">
                       <div className="donation-row-top-figma">
                         <h3 className="donation-row-title-figma">
-                          {donacion.publicacion_titulo || 'Publicacion sin titulo'}
+                          {donacion.publicacion_titulo || 'Publicación sin título'}
                         </h3>
 
                         <span className={`status-badge donation-row-status-figma donacion-estado-${estadoDonacion}`}>
