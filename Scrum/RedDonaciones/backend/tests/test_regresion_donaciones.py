@@ -209,7 +209,7 @@ def test_crear_donacion_cantidad_invalida(client, monkeypatch):
 
     monkeypatch.setattr("routes.donacion.get_db_connection", lambda: conn)
 
-    for invalido in [0, -3, "texto_no_valido"]:
+    for invalido in [0, -3, "texto_no_valido", 1.9, True, False]:
         payload = payload_base()
         payload["cantidad_donada"] = invalido
 
@@ -220,6 +220,38 @@ def test_crear_donacion_cantidad_invalida(client, monkeypatch):
         )
 
         assert response.status_code == 400
+
+
+def test_crear_donacion_tipos_de_texto_invalidos(client, monkeypatch):
+    cursor = RegresionDonacionCursor()
+    conn = RegresionDonacionConexion(cursor)
+
+    monkeypatch.setattr("routes.donacion.get_db_connection", lambda: conn)
+
+    # Tipos incorrectos: antes causaban un 500 al llamar .strip() sobre algo que no es texto
+    for campo, valor in [
+        ("nombre_contacto", 12345),
+        ("nombre_contacto", True),
+        ("telefono_contacto", 55554444),
+        ("descripcion", {"texto": "no valido"}),
+        ("nota", 123),
+    ]:
+        payload = payload_base()
+        payload[campo] = valor
+
+        response = client.post("/donaciones", json=payload, headers=auth_headers_donante(1))
+        assert response.status_code == 400
+
+    # Textos que exceden el limite de su columna (descripcion VARCHAR(300), nombre_contacto VARCHAR(200))
+    payload_descripcion_larga = payload_base()
+    payload_descripcion_larga["descripcion"] = "a" * 301
+    r1 = client.post("/donaciones", json=payload_descripcion_larga, headers=auth_headers_donante(1))
+    assert r1.status_code == 400
+
+    payload_nombre_largo = payload_base()
+    payload_nombre_largo["nombre_contacto"] = "a" * 201
+    r2 = client.post("/donaciones", json=payload_nombre_largo, headers=auth_headers_donante(1))
+    assert r2.status_code == 400
 
 
 def test_crear_donacion_formatos_fecha_hora_invalidos(client, monkeypatch):

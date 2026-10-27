@@ -252,12 +252,16 @@ def crear_donacion():
         cantidad_donada = data.get("cantidad_donada")
 
         # Validar campos obligatorios
-        if (not id_publicacion or not descripcion or not nombre_contacto or not telefono_contacto or not hora_preferida or not fecha_donacion or not cantidad_donada ):
+        if (not id_publicacion or not descripcion or not nombre_contacto or not telefono_contacto or not hora_preferida or not fecha_donacion or cantidad_donada in (None, "")):
             return jsonify({
                 "error": "Faltan datos obligatorios"
             }), 400
 
-        # PARA VALIDAR LA CANTIDAD
+        # PARA VALIDAR LA CANTIDAD: rechaza booleanos y decimales en vez de truncarlos en silencio
+        if isinstance(cantidad_donada, bool) or (isinstance(cantidad_donada, float) and not cantidad_donada.is_integer()):
+            return jsonify({
+                "error": "cantidad_donada debe ser un número entero"
+            }), 400
         try:
             cantidad_donada = int(cantidad_donada)
         except (ValueError, TypeError):
@@ -269,6 +273,24 @@ def crear_donacion():
             return jsonify({
                 "error": "La cantidad donada debe ser mayor a 0"
             }), 400
+
+        # Validar id_publicacion (mismo motivo: evitar que un tipo incorrecto llegue a la BD)
+        if isinstance(id_publicacion, bool):
+            return jsonify({"error": "id_publicacion debe ser un número entero"}), 400
+        try:
+            id_publicacion = int(id_publicacion)
+        except (ValueError, TypeError):
+            return jsonify({"error": "id_publicacion debe ser un número entero"}), 400
+
+        # Validar tipo y longitud de los textos segun los limites de la tabla donacion
+        if not isinstance(descripcion, str) or not descripcion.strip() or len(descripcion) > 300:
+            return jsonify({"error": "descripcion debe ser texto de hasta 300 caracteres"}), 400
+        if not isinstance(nombre_contacto, str) or not nombre_contacto.strip() or len(nombre_contacto) > 200:
+            return jsonify({"error": "nombre_contacto debe ser texto de hasta 200 caracteres"}), 400
+        if not isinstance(telefono_contacto, str) or not telefono_contacto.strip() or len(telefono_contacto) > 100:
+            return jsonify({"error": "telefono_contacto debe ser texto de hasta 100 caracteres"}), 400
+        if nota is not None and (not isinstance(nota, str) or len(nota) > 500):
+            return jsonify({"error": "nota debe ser texto de hasta 500 caracteres"}), 400
 
         # Vlidar fecha
         try:
