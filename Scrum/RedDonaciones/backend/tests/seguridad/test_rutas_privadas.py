@@ -256,10 +256,12 @@ def test_detalle_donacion_propietario_obtiene_200_y_consulta_organizacion(
     )
 
     assert response.status_code == 200
-    assert any(
-        "p.id_organizacion" in query
-        for query, _ in connection.cursor_obj.queries
-    )
+    query, params = connection.cursor_obj.queries[0]
+    proyeccion, origen = query.split("FROM", 1)
+    assert proyeccion.lstrip().startswith("SELECT")
+    assert "p.id_organizacion" in proyeccion
+    assert "donacion d" in origen
+    assert params == (4,)
 
 
 def test_detalle_donacion_donante_ajeno_obtiene_404(client, monkeypatch):
@@ -279,17 +281,26 @@ def test_detalle_donacion_donante_ajeno_obtiene_404(client, monkeypatch):
     assert response.get_json() == {"error": "Donación no encontrada"}
 
 
+@pytest.mark.parametrize(
+    "id_usuario",
+    [30, 31],
+    ids=["creador", "otro_intermediario_misma_organizacion"],
+)
 def test_detalle_donacion_intermediario_de_organizacion_obtiene_200(
     client,
     monkeypatch,
+    id_usuario,
 ):
-    auth_usuario(monkeypatch, 30, "intermediario")
+    auth_usuario(monkeypatch, id_usuario, "intermediario")
     configurar_acceso_intermediario(monkeypatch, 3)
+    donacion = donacion_para_pruebas(id_organizacion=3)
+    # La publicación pertenece al intermediario 30; el 31 también tiene acceso.
+    donacion["id_intermediario"] = 30
     configurar_conexion_donacion(
         monkeypatch,
-        donacion_para_pruebas(id_organizacion=3),
+        donacion,
     )
-    token = token_usuario(30, "intermediario")
+    token = token_usuario(id_usuario, "intermediario")
 
     response = client.get(
         "/donaciones/4",
@@ -297,6 +308,8 @@ def test_detalle_donacion_intermediario_de_organizacion_obtiene_200(
     )
 
     assert response.status_code == 200
+    assert response.get_json()["id_donacion"] == 4
+    assert response.get_json()["articulos"] == []
 
 
 def test_detalle_donacion_intermediario_de_otra_organizacion_obtiene_404(
@@ -317,6 +330,32 @@ def test_detalle_donacion_intermediario_de_otra_organizacion_obtiene_404(
     )
 
     assert response.status_code == 404
+    assert response.get_json() == {"error": "Donación no encontrada"}
+
+
+def test_detalle_donacion_inexistente_obtiene_404(client, monkeypatch):
+    auth_usuario(monkeypatch, 30, "intermediario")
+    connection = configurar_conexion_donacion(monkeypatch, None)
+    token = token_usuario(30, "intermediario")
+
+    response = client.get(
+        "/donaciones/4",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 404
+    assert response.get_json() == {"error": "Donación no encontrada"}
+    assert len(connection.cursor_obj.queries) == 1
+
+
+def test_detalle_donacion_sin_token_obtiene_401(client, monkeypatch):
+    connection = configurar_conexion_donacion(monkeypatch, donacion_para_pruebas())
+
+    response = client.get("/donaciones/4")
+
+    assert response.status_code == 401
+    assert response.get_json() == {"error": "Token no proporcionado o malformado"}
+    assert connection.cursor_obj.queries == []
 
 
 def test_detalle_donacion_administrador_obtiene_200(client, monkeypatch):

@@ -148,6 +148,7 @@ def obtener_detalle_donacion(id_donacion):
                         p.fecha_limite,
                         '%Y-%m-%d'
                     ) AS fecha_limite,
+                    p.id_organizacion,
                     o.nombre AS organizacion_nombre,
                     o.direccion AS organizacion_direccion,
                     c.nombre AS categoria,
