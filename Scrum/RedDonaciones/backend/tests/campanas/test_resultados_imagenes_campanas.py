@@ -51,6 +51,9 @@ class MockResultadoCursor:
         if "information_schema" in self.last_query:
             return {"total": 1, "nullable": "YES"}
 
+        if "FROM organizacion" in self.last_query:
+            return {"id_organizacion": self.publicacion["id_organizacion"]} if self.publicacion.get("estado_verificacion", "verificada") == "verificada" else None
+
         if "FROM intermediario" in self.last_query:
             if self.org_intermediario == self.publicacion.get("id_organizacion"):
                 return {"1": 1}

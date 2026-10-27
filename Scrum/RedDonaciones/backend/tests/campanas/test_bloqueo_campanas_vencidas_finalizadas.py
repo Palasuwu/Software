@@ -61,6 +61,12 @@ class MockBloqueoCursor:
         if "FROM donante" in self.last_query:
             return {"id_usuario": 1} if self.donante_existe else None
 
+        if "FROM organizacion" in self.last_query:
+            return {"estado_verificacion": "verificada"}
+
+        if "SELECT id_organizacion FROM publicacion" in self.last_query:
+            return {"id_organizacion": 1}
+
         if "FROM publicacion" in self.last_query:
             # Manejar el cálculo de estado en SELECT de detalle si aplica
             pub_copy = dict(self.publicacion)

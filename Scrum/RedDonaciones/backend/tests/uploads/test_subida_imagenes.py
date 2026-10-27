@@ -16,6 +16,8 @@ def carpeta(tmp_path, monkeypatch):
 
 def headers(monkeypatch, rol):
     monkeypatch.setenv("JWT_SECRET_KEY", SECRET)
+    monkeypatch.setattr("routes.upload._obtener_organizacion_actual_intermediario", lambda _: 1)
+    monkeypatch.setattr("routes.upload._organizacion_verificada", lambda _: True)
     monkeypatch.setattr("auth_utils._obtener_usuario_actual", lambda uid: {"id_usuario": uid, "rol": rol, "activo": 1})
     return {"Authorization": f"Bearer {generate_token(5, rol)}"}
 

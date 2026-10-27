@@ -38,6 +38,8 @@ class CursorDonacion:
         self.queries.append((sql, params))
 
     def fetchone(self):
+        if "FROM organizacion" in self.last_query:
+            return {"estado_verificacion": "verificada"}
         if "FROM intermediario" in self.last_query:
             return {
                 "id_organizacion": self.id_organizacion_intermediario
@@ -82,12 +84,13 @@ def configurar_conexion_donacion(
 
 
 def configurar_acceso_intermediario(monkeypatch, id_organizacion):
+    monkeypatch.setattr("routes.donacion._organizacion_verificada", lambda _: True)
     monkeypatch.setattr(
         "routes.donacion._obtener_organizacion_actual_intermediario",
         lambda _: id_organizacion,
     )
     monkeypatch.setattr(
-        "routes.donacion._organizacion_verificada",
+        "routes.donacion._organizacion_permite_lectura",
         lambda _: True,
     )
 
@@ -659,11 +662,11 @@ def test_intermediario_solo_consulta_donaciones_de_su_organizacion(
         lambda _: 3,
     )
     monkeypatch.setattr(
-        "auth_utils._organizacion_verificada",
+        "auth_utils._organizacion_permite_lectura",
         lambda _: True,
     )
     monkeypatch.setattr(
-        "routes.donacion._organizacion_verificada",
+        "routes.donacion._organizacion_permite_lectura",
         lambda _: True,
     )
     token = token_usuario(10, "intermediario")
@@ -736,7 +739,7 @@ def test_organizacion_no_verificada_bloquea_ruta_institucional(
         lambda _: 3,
     )
     monkeypatch.setattr(
-        "auth_utils._organizacion_verificada",
+        "auth_utils._organizacion_permite_lectura",
         lambda _: False,
     )
     token = token_usuario(11, "intermediario")

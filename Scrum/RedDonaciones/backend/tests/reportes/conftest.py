@@ -69,7 +69,7 @@ def sesion(monkeypatch):
         usuario = {"id_usuario": id_usuario, "rol": rol, "activo": 1}
         monkeypatch.setattr("auth_utils._obtener_usuario_actual", lambda _: usuario)
         monkeypatch.setattr("routes.reporte._obtener_organizacion_actual_intermediario", lambda _: id_organizacion)
-        monkeypatch.setattr("routes.reporte._organizacion_verificada", lambda _: organizacion_verificada)
+        monkeypatch.setattr("routes.reporte._organizacion_permite_lectura", lambda _: organizacion_verificada)
         token = generate_token(id_usuario, rol, id_organizacion)
         return {"Authorization": f"Bearer {token}"}
 

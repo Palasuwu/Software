@@ -88,9 +88,13 @@ class NotificacionesMockCursor:
         elif "FROM donante" in sql_norm:
             self._current_donacion = {"id_usuario": params[0]}
 
+        elif "FROM organizacion" in sql_norm:
+            self._current_donacion = {"estado_verificacion": "verificada"}
+
         elif "FROM publicacion" in sql_norm:
             self._current_donacion = {
                 "id_publicacion": params[0],
+                "id_organizacion": 1,
                 "id_intermediario": self.intermediario_id,
                 "titulo": "Campaña Ropa",
                 "cantidad_necesaria": 100,

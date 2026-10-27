@@ -24,6 +24,8 @@ class MockCursor:
             self.rowcount = 1
 
     def fetchone(self):
+        if "FROM organizacion" in self.last_query:
+            return {"estado_verificacion": "verificada"}
         if "FROM intermediario WHERE id_usuario" in self.last_query:
             if self.org_intermediario is not None:
                 return {"id_organizacion": self.org_intermediario}

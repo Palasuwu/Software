@@ -3,7 +3,7 @@ import uuid
 from io import BytesIO
 from flask import Blueprint, request, jsonify, send_from_directory
 from PIL import Image
-from auth_utils import token_required
+from auth_utils import token_required, _obtener_organizacion_actual_intermediario, _organizacion_verificada
 
 upload_bp = Blueprint("upload", __name__)
 
@@ -23,6 +23,11 @@ def upload_imagen():
     # token_required establece el rol actual del usuario desde la BD.
     if request.usuario_rol not in ("administrador", "intermediario"):
         return jsonify({"error": "No tienes permiso para subir imágenes"}), 403
+
+    if request.usuario_rol == "intermediario":
+        id_organizacion = _obtener_organizacion_actual_intermediario(request.usuario_id)
+        if id_organizacion is None or not _organizacion_verificada(id_organizacion):
+            return jsonify({"error": "La organización no está verificada"}), 403
 
     if "file" not in request.files:
         return jsonify({"error": "No se envió ningún archivo"}), 400

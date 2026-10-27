@@ -6,6 +6,7 @@ from auth_utils import (
     token_required,
     _obtener_organizacion_actual_intermediario,
     _organizacion_verificada,
+    _organizacion_permite_lectura,
 )
 from db.connection import get_db_connection, db_cursor
 from services.donacion_service import (
@@ -187,7 +188,7 @@ def obtener_detalle_donacion(id_donacion):
                 )
                 if (
                     id_organizacion is None
-                    or not _organizacion_verificada(id_organizacion)
+                    or not _organizacion_permite_lectura(id_organizacion)
                     or id_organizacion != donacion["id_organizacion"]
                 ):
                     return jsonify({"error": "Donación no encontrada"}), 404
@@ -338,6 +339,30 @@ def crear_donacion():
                 "error": "El donante no existe"
             }), 404
 
+        # Orden de bloqueos: organización (compartido), luego campaña (UPDATE).
+        # El bloqueo compartido permite donaciones concurrentes, pero impide que
+        # el estado institucional cambie entre su validación y el commit.
+        cursor.execute(
+            "SELECT id_organizacion FROM publicacion WHERE id_publicacion = %s",
+            (id_publicacion,),
+        )
+        destino = cursor.fetchone()
+        if not destino:
+            return jsonify({"error": "La publicación no existe"}), 404
+        cursor.execute(
+            """
+            SELECT estado_verificacion
+            FROM organizacion
+            WHERE id_organizacion = %s
+            FOR SHARE
+            """,
+            (destino["id_organizacion"],),
+        )
+        organizacion = cursor.fetchone()
+        if not organizacion or organizacion["estado_verificacion"] in ("pendiente", "archivada"):
+            conn.rollback()
+            return jsonify({"error": "La organización no acepta nuevas donaciones"}), 400
+
         # 2. Obtener publicación
         cursor.execute(
             """
@@ -443,6 +468,7 @@ def crear_donacion():
                 END,
                 cantidad_recibida = cantidad_recibida + %s
             WHERE id_publicacion = %s
+              AND id_organizacion = %s
               AND (estado = 'activa' OR estado IS NULL)
               AND (fecha_limite IS NULL OR fecha_limite >= CURDATE())
               AND cantidad_recibida + %s <= cantidad_necesaria
@@ -453,6 +479,7 @@ def crear_donacion():
                 cantidad_donada,
                 cantidad_donada,
                 id_publicacion,
+                destino["id_organizacion"],
                 cantidad_donada,
             )
         )
@@ -585,6 +612,15 @@ def obtener_estado_donacion(id_donacion):
                 )
 
                 intermediario = cursor.fetchone()
+
+                if intermediario:
+                    cursor.execute(
+                        "SELECT estado_verificacion FROM organizacion WHERE id_organizacion = %s",
+                        (intermediario["id_organizacion"],),
+                    )
+                    organizacion = cursor.fetchone()
+                    if not organizacion or organizacion["estado_verificacion"] == "pendiente":
+                        return jsonify({"error": "Donación no encontrada"}), 404
 
                 if not intermediario:
                     return jsonify({

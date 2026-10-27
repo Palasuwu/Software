@@ -6,7 +6,7 @@ from flask import Blueprint, jsonify, request
 
 from db.connection import get_db_connection, db_cursor
 from db.ubicaciones_schema import asegurar_columnas_ubicacion
-from auth_utils import admin_required, validar_admin_request
+from auth_utils import admin_required, validar_admin_request, autorizar_lectura_institucional
 from services.plataforma_config import obtener_id_organizacion_principal
 from utils.validation import EMAIL_REGEX, PHONE_REGEX, limpiar_espacios, validar_coordenadas, normalizar_fila_coordenadas
 
@@ -138,7 +138,7 @@ def _detalle_organizacion_response(id_organizacion):
                    latitud, longitud, telefono, correo, estado_verificacion,
                    quienes_somos, que_hacemos, como_trabajamos, donde_trabajamos, url_logo, imagen_portada
             FROM organizacion
-            WHERE id_organizacion = %s AND estado_verificacion = 'verificada'
+            WHERE id_organizacion = %s
             """,
             (id_organizacion,),
         )
@@ -146,6 +146,17 @@ def _detalle_organizacion_response(id_organizacion):
 
         if not organizacion:
             return jsonify({"error": "Organización no encontrada"}), 404
+
+        if organizacion["estado_verificacion"] != "verificada":
+            # Conservar la visibilidad anterior de rechazadas e inactivas.
+            if organizacion["estado_verificacion"] not in ("pendiente", "archivada"):
+                return jsonify({"error": "Organización no encontrada"}), 404
+            error = autorizar_lectura_institucional(
+                cursor, id_organizacion, organizacion["estado_verificacion"],
+                "Organización no encontrada",
+            )
+            if error:
+                return error
 
         cursor.execute(
             """
