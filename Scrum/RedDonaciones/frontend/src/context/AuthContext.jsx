@@ -33,7 +33,7 @@ export function AuthProvider({ children }) {
             // El aviso va en el state para que no lo borre el efecto de location.state
             navigate('/login', {
                 replace: true,
-                state: { from: location.pathname, flash: 'Tu sesión expiró. Inicia sesión nuevamente.' }
+                state: { from: location.pathname, flash: 'Tu sesión venció. Inicia sesión nuevamente.' }
             })
         }
 

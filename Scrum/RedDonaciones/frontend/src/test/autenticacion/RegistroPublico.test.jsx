@@ -9,10 +9,10 @@ beforeEach(() => { localStorage.clear(); vi.stubGlobal('fetch', vi.fn()) })
 const abrir = () => render(<MemoryRouter><AuthPage defaultMode="register" /></MemoryRouter>)
 function completar() {
     for (const [label, value] of [
-        ['Nombre completo', 'Ana Perez'], ['Telefono', '22223333'],
-        ['Correo electronico', 'ANA@example.com'], ['Contrasena', 'clave1234'],
-        ['Confirmar contrasena', 'clave1234'], ['Departamento', 'Guatemala'],
-        ['Municipio', 'Mixco'], ['Zona', '4'], ['Direccion', '5 avenida 10-20'],
+        ['Nombre completo', 'Ana Perez'], ['Teléfono', '22223333'],
+        ['Correo electrónico', 'ANA@example.com'], ['Contraseña', 'clave1234'],
+        ['Confirmar contraseña', 'clave1234'], ['Departamento', 'Guatemala'],
+        ['Municipio', 'Mixco'], ['Zona', '4'], ['Dirección', '5 avenida 10-20'],
     ]) fireEvent.change(screen.getByLabelText(label, { exact: true }), { target: { value } })
 }
 
@@ -23,7 +23,7 @@ describe('Registro público con alta administrativa de intermediarios', () => {
         expect(screen.getByText(/Contacta al administrador/)).toBeInTheDocument()
         expect(screen.queryByLabelText('Tipo de cuenta')).toBeNull()
         expect(screen.queryByLabelText('Cargo')).toBeNull()
-        expect(screen.queryByLabelText('Organizacion')).toBeNull()
+        expect(screen.queryByLabelText('Organización')).toBeNull()
         expect(fetch).not.toHaveBeenCalled()
     })
     it('mantiene validaciones y no envía datos incompletos', () => {
@@ -42,7 +42,7 @@ describe('Registro público con alta administrativa de intermediarios', () => {
         expect(url).toBe('/api/usuarios')
         expect(JSON.parse(init.body)).toEqual({ nombre: 'Ana Perez', telefono: '22223333', correo: 'ana@example.com', password: 'clave1234', rol: 'donante', departamento: 'Guatemala', municipio: 'Mixco', zona: '4', direccion_detalle: '5 avenida 10-20' })
         expect(fetch.mock.calls[1][0]).toBe('/api/login')
-        expect(screen.getByText('Cuenta creada! Redirigiendo...')).toBeInTheDocument()
+        expect(screen.getByText('¡¡¡Cuenta creada! Redirigiendo...')).toBeInTheDocument()
     })
     it('muestra rechazo del registro y no inicia sesión ni crea estados pendientes ficticios', async () => {
         fetch.mockResolvedValue({ ok: false, json: async () => ({ error: 'El correo ya está registrado' }) })

@@ -88,7 +88,7 @@ def _identidad_desde_peticion():
     except FirebaseNoConfigurado:
         logging.exception("Firebase no esta configurado en este entorno")
         return None, (
-            jsonify({"error": "El inicio de sesion con Google no esta disponible"}),
+            jsonify({"error": "El inicio de sesión con Google no está disponible"}),
             503,
         )
 
@@ -117,8 +117,8 @@ def iniciar_sesion_con_google():
         return jsonify(_sesion_de(usuario)), 200
 
     except Exception:
-        logging.exception("Error al iniciar sesion con Google")
-        return jsonify({"error": "No se pudo iniciar sesion con Google"}), 500
+        logging.exception("Error al iniciar sesión con Google")
+        return jsonify({"error": "No se pudo iniciar sesión con Google"}), 500
 
 
 @auth_google_bp.route("/auth/google/registro", methods=["POST"])
@@ -140,7 +140,7 @@ def registrar_con_google():
     elif not NAME_REGEX.match(nombre):
         errores["nombre"] = "El nombre solo debe contener letras y espacios"
     if not telefono_valido(telefono):
-        errores["telefono"] = "El telefono debe ser valido"
+        errores["telefono"] = "El teléfono debe ser válido"
 
     departamento = limpiar_espacios(data.get("departamento"))
     municipio = limpiar_espacios(data.get("municipio"))
@@ -152,9 +152,9 @@ def registrar_con_google():
     if not municipio:
         errores["municipio"] = "El municipio es obligatorio"
     if not zona.isdigit() or len(zona) > 2:
-        errores["zona"] = "La zona debe ser un numero valido"
+        errores["zona"] = "La zona debe ser un número válido"
     if len(direccion_detalle) < 8:
-        errores["direccion_detalle"] = "La direccion debe ser mas especifica"
+        errores["direccion_detalle"] = "La dirección debe ser más específica"
 
     if errores:
         return jsonify({"error": "Datos invalidos", "campos": errores}), 400

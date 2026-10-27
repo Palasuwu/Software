@@ -158,7 +158,7 @@ def test_enlace_ya_usado_se_rechaza(client, monkeypatch):
     )
 
     assert respuesta.status_code == 400
-    assert "ya se uso" in respuesta.get_json()["error"]
+    assert "ya se usó" in respuesta.get_json()["error"]
 
 
 def test_token_de_sesion_no_sirve_para_restablecer(client, monkeypatch):

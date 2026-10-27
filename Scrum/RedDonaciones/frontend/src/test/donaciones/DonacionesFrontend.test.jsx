@@ -95,7 +95,7 @@ describe('Seguimiento de donaciones por el donante', () => {
     })
 
     it('muestra el listado de donaciones con sus estados en MisDonacionesPage', async () => {
-        apiGet.mockResolvedValue([
+        apiGet.mockResolvedValue({ donaciones: [
             {
                 id_donacion: 1,
                 publicacion_titulo: 'Campaña 1',
@@ -120,7 +120,8 @@ describe('Seguimiento de donaciones por el donante', () => {
                 estado: 'entregada',
                 publicacion_estado: 'finalizada'
             }
-        ])
+        ], page: 1, per_page: 10, total: 2, total_pages: 1,
+            resumen: { total: 2, activas: 1, finalizadas: 1 } })
 
         const { container } = render(
             <MemoryRouter>

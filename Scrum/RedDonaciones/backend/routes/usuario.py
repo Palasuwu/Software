@@ -51,9 +51,9 @@ def validar_usuario_base(nombre, correo, telefono):
     elif not NAME_REGEX.match(nombre):
         errores["nombre"] = "El nombre solo debe contener letras y espacios"
     if not EMAIL_REGEX.match(correo):
-        errores["correo"] = "El correo debe ser valido"
+        errores["correo"] = "El correo debe ser válido"
     if not telefono_valido(telefono):
-        errores["telefono"] = "El telefono debe ser valido"
+        errores["telefono"] = "El teléfono debe ser válido"
     return errores
 
 # Validación de datos de donante
@@ -66,9 +66,9 @@ def validar_datos_donante(data):
     if not departamento or not municipio or not zona or not direccion_detalle:
         return None, "Faltan datos obligatorios para donante"
     if not zona.isdigit() or len(zona) > 2:
-        return None, "La zona debe ser un numero valido"
+        return None, "La zona debe ser un número válido"
     if len(direccion_detalle) < 8:
-        return None, "La direccion debe ser mas especifica"
+        return None, "La dirección debe ser más específica"
 
     return {
         "departamento": departamento,
@@ -80,13 +80,13 @@ def validar_datos_donante(data):
 # Validación de password para registro
 def validar_password_registro(password):
     if not isinstance(password, str):
-        return "El password debe ser texto"
+        return "La contraseña debe ser texto"
     if len(password.encode("utf-8")) > 72:
-        return "El password no puede superar los 72 bytes"
+        return "La contraseña no puede superar los 72 bytes"
     if len(password) < 8:
-        return "El password debe tener al menos 8 caracteres"
+        return "La contraseña debe tener al menos 8 caracteres"
     if not re.search(r"[A-Za-z]", password) or not re.search(r"\d", password):
-        return "El password debe incluir letras y numeros"
+        return "La contraseña debe incluir letras y números"
     return None
 
 # Función para verificar si el usuario está autorizado para acceder a un recurso basado en su ID
@@ -324,7 +324,7 @@ def eliminar_usuario(id_usuario):
         if conn:
             conn.rollback()
         return jsonify({
-            "error": "No se puede eliminar el usuario porque tiene informacion relacionada"
+            "error": "No se puede eliminar el usuario porque tiene información relacionada"
         }), 409
     except Exception:
         if conn:
@@ -364,7 +364,7 @@ def crear_usuario():
 
         rol = rol.strip().lower()
         if rol not in ("donante", "intermediario", "administrador"):
-            return jsonify({"error": "Rol invalido para registro"}), 400
+            return jsonify({"error": "Rol inválido para registro"}), 400
 
         if rol != "donante":
             error_response = validar_admin_request()
@@ -408,7 +408,7 @@ def crear_usuario():
             try:
                 id_organizacion = int(id_organizacion)
             except (TypeError, ValueError):
-                return jsonify({"error": "id_organizacion debe ser un entero valido"}), 400
+                return jsonify({"error": "id_organizacion debe ser un entero válido"}), 400
 
             if id_organizacion <= 0:
                 return jsonify({"error": "id_organizacion debe ser un entero positivo"}), 400
@@ -424,7 +424,7 @@ def crear_usuario():
             )
             if not cursor.fetchone():
                 conn.rollback()
-                return jsonify({"error": "La organizacion seleccionada no esta verificada o no existe"}), 400
+                return jsonify({"error": "La organización seleccionada no está verificada o no existe"}), 400
 
         hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
@@ -605,7 +605,7 @@ def login_usuario():
             conn.rollback()
         logging.exception("Error al iniciar sesión")
         return jsonify({
-            "error": "Error al iniciar sesion",
+            "error": "Error al iniciar sesión",
         }), 500
 
     finally:

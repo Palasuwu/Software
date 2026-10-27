@@ -15,6 +15,7 @@ cuenta en la plataforma.
 import logging
 import os
 import time
+from html import escape
 
 import bcrypt
 from flask import Blueprint, jsonify, request
@@ -38,8 +39,8 @@ password_reset_bp = Blueprint("password_reset", __name__)
 
 # Respuesta unica de /password/olvide: no revela si el correo esta registrado.
 RESPUESTA_GENERICA = (
-    "Si el correo esta registrado, en unos minutos llegara "
-    "un enlace para restablecer la contrasena."
+    "Si el correo está registrado, en unos minutos llegará "
+    "un enlace para restablecer la contraseña."
 )
 
 SEGUNDOS_ENTRE_SOLICITUDES = 60
@@ -72,31 +73,37 @@ def _url_frontend():
 def _cuerpo_correo(nombre, enlace):
     texto = (
         f"Hola {nombre},\n\n"
-        "Recibimos una solicitud para restablecer la contrasena de tu cuenta "
+        "Recibimos una solicitud para restablecer la contraseña de tu cuenta "
         "en Liga Juvenil Donaciones.\n\n"
         f"Abre este enlace para elegir una nueva:\n{enlace}\n\n"
         f"El enlace vence en {VIGENCIA_MINUTOS} minutos y solo se puede usar "
         "una vez.\n\n"
-        "Si no fuiste tu, puedes ignorar este correo: tu contrasena actual "
+        "Si no fuiste tú, puedes ignorar este correo: tu contraseña actual "
         "sigue funcionando.\n\n"
         "Liga Juvenil Donaciones"
     )
 
-    html = (
-        "<div style=\"font-family:system-ui,sans-serif;font-size:15px;"
-        "line-height:1.6;color:#1f2937\">"
-        f"<p>Hola {nombre},</p>"
-        "<p>Recibimos una solicitud para restablecer la contrasena de tu "
-        "cuenta en <strong>Liga Juvenil Donaciones</strong>.</p>"
-        f"<p><a href=\"{enlace}\" style=\"display:inline-block;padding:12px 20px;"
-        "background:#1d4ed8;color:#fff;border-radius:8px;text-decoration:none\">"
-        "Elegir una nueva contrasena</a></p>"
-        f"<p style=\"color:#6b7280\">El enlace vence en {VIGENCIA_MINUTOS} "
-        "minutos y solo se puede usar una vez.</p>"
-        "<p style=\"color:#6b7280\">Si no fuiste tu, puedes ignorar este "
-        "correo: tu contrasena actual sigue funcionando.</p>"
-        "</div>"
-    )
+    nombre_seguro = escape(nombre)
+    enlace_seguro = escape(enlace, quote=True)
+    html = f"""<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:24px 12px;background:#f1f5f9;color:#1f2937;font-family:Arial,sans-serif">
+<table role="presentation" style="width:100%;max-width:560px;margin:auto;border-spacing:0;background:#fff;border-radius:16px">
+<tr><td style="padding:24px;background:#1e3a8a;color:#fff;border-radius:16px 16px 0 0;font-size:18px;font-weight:bold">
+Liga Juvenil · Donaciones</td></tr>
+<tr><td style="padding:24px;line-height:1.6;font-size:16px">
+<h1 style="font-size:24px;margin:0 0 20px">Restablece tu contraseña</h1>
+<p>Hola {nombre_seguro},</p>
+<p>Recibimos una solicitud para restablecer la contraseña de tu cuenta.</p>
+<p style="margin:28px 0"><a href="{enlace_seguro}" style="display:inline-block;padding:14px 20px;background:#1d4ed8;color:#fff;border-radius:8px;text-decoration:none;font-weight:bold">
+Elegir una nueva contraseña</a></p>
+<p style="padding:16px;background:#eff6ff;border-radius:8px">El enlace vence en
+<strong>{VIGENCIA_MINUTOS} minutos</strong> y solo se puede usar una vez.</p>
+<p>Si no fuiste tú, puedes ignorar este correo: tu contraseña actual sigue funcionando.</p>
+<p style="font-size:13px;color:#475569">Si el botón no abre, copia este enlace en tu navegador:</p>
+<p style="font-size:12px;word-break:break-all"><a href="{enlace_seguro}">{enlace_seguro}</a></p>
+</td></tr></table></body></html>"""
 
     return texto, html
 
@@ -111,9 +118,9 @@ def solicitar_restablecimiento():
 
     # Condicion del entorno, no de la cuenta: decirlo no filtra nada.
     if not smtp_configurado():
-        logging.warning("Se pidio recuperar contrasena sin SMTP configurado")
+        logging.warning("Se pidio recuperar contraseña sin SMTP configurado")
         return jsonify({
-            "error": "El envio de correo no esta disponible en este entorno"
+            "error": "El envío de correo no está disponible en este entorno"
         }), 503
 
     if _demasiado_pronto(correo):
@@ -148,7 +155,7 @@ def solicitar_restablecimiento():
             try:
                 enviar_correo(
                     usuario["correo"],
-                    "Restablece tu contrasena - Liga Juvenil Donaciones",
+                    "Restablece tu contraseña - Liga Juvenil Donaciones",
                     texto,
                     html,
                 )
@@ -158,16 +165,16 @@ def solicitar_restablecimiento():
                 # Se responde igual que siempre: un 500 aqui solo ocurriria
                 # con correos registrados y delataria cuales lo estan.
                 logging.exception(
-                    "No se pudo enviar el correo de recuperacion al usuario %s",
+                    "No se pudo enviar el correo de recuperación al usuario %s",
                     usuario["id_usuario"],
                 )
         else:
-            logging.info("Solicitud de recuperacion para un correo sin cuenta activa")
+            logging.info("Solicitud de recuperación para un correo sin cuenta activa")
 
         return jsonify({"message": RESPUESTA_GENERICA}), 200
 
     except Exception:
-        logging.exception("Error al procesar la solicitud de recuperacion")
+        logging.exception("Error al procesar la solicitud de recuperación")
         return jsonify({"error": "No se pudo procesar la solicitud"}), 500
 
     finally:
@@ -207,13 +214,13 @@ def restablecer_password():
         usuario = cursor.fetchone()
 
         if not usuario or usuario.get("activo") != 1:
-            return jsonify({"error": "El enlace no es valido"}), 400
+            return jsonify({"error": "El enlace no es válido"}), 400
 
         # La huella del token no coincide: la contrasena ya cambio desde que
         # se emitio, asi que este enlace esta gastado.
         if payload["huella"] != huella_de(usuario["password"]):
             return jsonify({
-                "error": "Este enlace ya se uso. Solicita uno nuevo"
+                "error": "Este enlace ya se usó. Solicita uno nuevo"
             }), 400
 
         hash_nuevo = bcrypt.hashpw(
@@ -232,14 +239,14 @@ def restablecer_password():
         conn.commit()
 
         return jsonify({
-            "message": "Contrasena actualizada. Ya puedes iniciar sesion"
+            "message": "Contraseña actualizada. Ya puedes iniciar sesión"
         }), 200
 
     except Exception:
         if conn:
             conn.rollback()
-        logging.exception("Error al restablecer la contrasena")
-        return jsonify({"error": "No se pudo restablecer la contrasena"}), 500
+        logging.exception("Error al restablecer la contraseña")
+        return jsonify({"error": "No se pudo restablecer la contraseña"}), 500
 
     finally:
         if cursor:

@@ -49,7 +49,7 @@ export function OlvidePasswordPage() {
         setApiError('')
 
         if (!valor) return setError('El correo es obligatorio')
-        if (!EMAIL_REGEX.test(valor)) return setError('Ingresa un correo valido')
+        if (!EMAIL_REGEX.test(valor)) return setError('Ingresa un correo válido')
         setError('')
 
         setIsSubmitting(true)
@@ -79,7 +79,7 @@ export function OlvidePasswordPage() {
                     de spam o vuelve a intentarlo en un minuto.
                 </p>
                 <Link to="/login" className="auth-submit-btn auth-submit-link">
-                    Volver al inicio de sesion
+                    Volver al inicio de sesión
                 </Link>
             </Marco>
         )
@@ -87,11 +87,11 @@ export function OlvidePasswordPage() {
 
     return (
         <Marco
-            titulo="Olvidaste tu contrasena?"
+            titulo="¿Olvidaste tu contraseña?"
             subtitulo="Escribe tu correo y te enviamos un enlace para crear una nueva."
         >
             <form onSubmit={handleSubmit} noValidate>
-                <Campo label="Correo electronico" id="olvide-correo" error={error}>
+                <Campo label="Correo electrónico" id="olvide-correo" error={error}>
                     <input
                         id="olvide-correo"
                         type="email"
@@ -109,7 +109,7 @@ export function OlvidePasswordPage() {
                 </button>
             </form>
             <p className="auth-hint">
-                <Link to="/login" className="auth-link">Volver al inicio de sesion</Link>
+                <Link to="/login" className="auth-link">Volver al inicio de sesión</Link>
             </p>
         </Marco>
     )
@@ -135,14 +135,14 @@ export function RestablecerPasswordPage() {
     const handleSubmit = async (e) => {
         e.preventDefault()
         const next = {}
-        if (!form.password) next.password = 'La contrasena es obligatoria'
-        else if (form.password.length < 8) next.password = 'Minimo 8 caracteres'
+        if (!form.password) next.password = 'La contraseña es obligatoria'
+        else if (form.password.length < 8) next.password = 'Mínimo 8 caracteres'
         else if (!/[A-Za-z]/.test(form.password) || !/\d/.test(form.password)) {
-            next.password = 'Incluye letras y numeros'
+            next.password = 'Incluye letras y números'
         }
-        if (!form.confirmPassword) next.confirmPassword = 'Confirma tu contrasena'
+        if (!form.confirmPassword) next.confirmPassword = 'Confirma tu contraseña'
         else if (form.password !== form.confirmPassword) {
-            next.confirmPassword = 'Las contrasenas no coinciden'
+            next.confirmPassword = 'Las contraseñas no coinciden'
         }
 
         setErrors(next)
@@ -157,13 +157,13 @@ export function RestablecerPasswordPage() {
                 body: JSON.stringify({ token, password: form.password })
             })
             const body = await res.json().catch(() => null)
-            if (!res.ok) throw new Error(body?.error || 'No se pudo restablecer la contrasena')
+            if (!res.ok) throw new Error(body?.error || 'No se pudo restablecer la contraseña')
             navigate('/login', {
                 replace: true,
-                state: { flash: body?.message || 'Contrasena actualizada' }
+                state: { flash: body?.message || 'Contraseña actualizada' }
             })
         } catch (err) {
-            setApiError(err.message || 'No se pudo restablecer la contrasena')
+            setApiError(err.message || 'No se pudo restablecer la contraseña')
         } finally {
             setIsSubmitting(false)
         }
@@ -173,7 +173,7 @@ export function RestablecerPasswordPage() {
         return (
             <Marco
                 titulo="Enlace incompleto"
-                subtitulo="Este enlace no trae el codigo de recuperacion."
+                subtitulo="Este enlace no trae el código de recuperación."
             >
                 <Link to="/olvide-password" className="auth-submit-btn auth-submit-link">
                     Solicitar uno nuevo
@@ -183,22 +183,22 @@ export function RestablecerPasswordPage() {
     }
 
     return (
-        <Marco titulo="Nueva contrasena" subtitulo="Elige una contrasena para tu cuenta.">
+        <Marco titulo="Nueva contraseña" subtitulo="Elige una contraseña para tu cuenta.">
             <form onSubmit={handleSubmit} noValidate>
-                <Campo label="Nueva contrasena" id="reset-password" error={errors.password}>
+                <Campo label="Nueva contraseña" id="reset-password" error={errors.password}>
                     <input
                         id="reset-password"
                         type="password"
                         className={`auth-input ${errors.password ? 'auth-input-invalid' : ''}`}
                         name="password"
-                        placeholder="Minimo 8 caracteres"
+                        placeholder="Mínimo 8 caracteres"
                         value={form.password}
                         onChange={handleChange}
                         autoComplete="new-password"
                     />
                 </Campo>
                 <Campo
-                    label="Confirmar contrasena"
+                    label="Confirmar contraseña"
                     id="reset-confirm"
                     error={errors.confirmPassword}
                 >
@@ -207,7 +207,7 @@ export function RestablecerPasswordPage() {
                         type="password"
                         className={`auth-input ${errors.confirmPassword ? 'auth-input-invalid' : ''}`}
                         name="confirmPassword"
-                        placeholder="Repite la contrasena"
+                        placeholder="Repite la contraseña"
                         value={form.confirmPassword}
                         onChange={handleChange}
                         autoComplete="new-password"
@@ -215,12 +215,12 @@ export function RestablecerPasswordPage() {
                 </Campo>
                 {apiError && <div className="auth-api-error">{apiError}</div>}
                 <button type="submit" className="auth-submit-btn" disabled={isSubmitting}>
-                    {isSubmitting ? 'Guardando...' : 'Guardar contrasena'}
+                    {isSubmitting ? 'Guardando...' : 'Guardar contraseña'}
                 </button>
             </form>
             <p className="auth-hint">
                 <Link to="/olvide-password" className="auth-link">
-                    El enlace expiro? Solicita uno nuevo
+                    ¿El enlace venció? Solicita uno nuevo
                 </Link>
             </p>
         </Marco>

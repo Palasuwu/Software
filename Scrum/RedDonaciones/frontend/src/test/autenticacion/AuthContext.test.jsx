@@ -63,7 +63,7 @@ describe('AuthContext', () => {
     })
     expect(screen.getByText('ruta: /login')).toBeInTheDocument()
     expect(screen.getByText('usuario: ninguno')).toBeInTheDocument()
-    expect(screen.getByText(/Tu sesión expiró/)).toBeInTheDocument()
+    expect(screen.getByText(/Tu sesión venció/)).toBeInTheDocument()
   })
 
   it('si falta permiso avisa sin cerrar la sesión', () => {

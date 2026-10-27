@@ -67,21 +67,21 @@ def verificar_token(token):
     :raises TokenResetInvalido: ausente, mal firmado, expirado o de otro tipo.
     """
     if not token or not isinstance(token, str):
-        raise TokenResetInvalido("No se recibio el token")
+        raise TokenResetInvalido("No se recibió el token")
 
     try:
         payload = jwt.decode(token, _clave(), algorithms=["HS256"])
     except jwt.ExpiredSignatureError:
-        raise TokenResetInvalido("El enlace expiro. Solicita uno nuevo")
+        raise TokenResetInvalido("El enlace venció. Solicita uno nuevo")
     except jwt.InvalidTokenError:
-        raise TokenResetInvalido("El enlace no es valido")
+        raise TokenResetInvalido("El enlace no es válido")
 
     # Un token de sesion esta firmado con la misma clave: sin esta
     # comprobacion serviria para cambiar la contrasena de su dueno.
     if payload.get("tipo") != TIPO:
-        raise TokenResetInvalido("El enlace no es valido")
+        raise TokenResetInvalido("El enlace no es válido")
 
     if not payload.get("id_reset") or not payload.get("huella"):
-        raise TokenResetInvalido("El enlace no es valido")
+        raise TokenResetInvalido("El enlace no es válido")
 
     return payload

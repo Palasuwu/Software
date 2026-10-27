@@ -27,8 +27,8 @@ function validateLogin(form) {
     const errors = {}
     const correo = form.correo.trim()
     if (!correo) errors.correo = 'El correo es obligatorio'
-    else if (!EMAIL_REGEX.test(correo)) errors.correo = 'Ingresa un correo valido'
-    if (!form.password) errors.password = 'La contrasena es obligatoria'
+    else if (!EMAIL_REGEX.test(correo)) errors.correo = 'Ingresa un correo válido'
+    if (!form.password) errors.password = 'La contraseña es obligatoria'
     return errors
 }
 
@@ -40,20 +40,20 @@ function validateRegister(form) {
     else if (!NAME_REGEX.test(nombre)) errors.nombre = 'El nombre solo debe contener letras y espacios'
     const correo = form.correo.trim()
     if (!correo) errors.correo = 'El correo es obligatorio'
-    else if (!EMAIL_REGEX.test(correo)) errors.correo = 'Ingresa un correo valido'
+    else if (!EMAIL_REGEX.test(correo)) errors.correo = 'Ingresa un correo válido'
     const telefono = form.telefono.trim()
-    if (!telefono) errors.telefono = 'El telefono es obligatorio'
-    else if (!PHONE_REGEX.test(telefono) || countDigits(telefono) < 8) errors.telefono = 'Ingresa un telefono valido'
-    if (!form.password) errors.password = 'La contrasena es obligatoria'
-    else if (form.password.length < 8) errors.password = 'Minimo 8 caracteres'
-    else if (!/[A-Za-z]/.test(form.password) || !/\d/.test(form.password)) errors.password = 'Incluye letras y numeros'
-    if (!form.confirmPassword) errors.confirmPassword = 'Confirma tu contrasena'
-    else if (form.password !== form.confirmPassword) errors.confirmPassword = 'Las contrasenas no coinciden'
+    if (!telefono) errors.telefono = 'El teléfono es obligatorio'
+    else if (!PHONE_REGEX.test(telefono) || countDigits(telefono) < 8) errors.telefono = 'Ingresa un teléfono válido'
+    if (!form.password) errors.password = 'La contraseña es obligatoria'
+    else if (form.password.length < 8) errors.password = 'Mínimo 8 caracteres'
+    else if (!/[A-Za-z]/.test(form.password) || !/\d/.test(form.password)) errors.password = 'Incluye letras y números'
+    if (!form.confirmPassword) errors.confirmPassword = 'Confirma tu contraseña'
+    else if (form.password !== form.confirmPassword) errors.confirmPassword = 'Las contraseñas no coinciden'
     if (!cleanSpaces(form.departamento)) errors.departamento = 'El departamento es obligatorio'
     if (!cleanSpaces(form.municipio)) errors.municipio = 'El municipio es obligatorio'
     if (!form.zona.trim()) errors.zona = 'La zona es obligatoria'
-    else if (!/^\d{1,2}$/.test(form.zona.trim())) errors.zona = 'Ingresa una zona valida'
-    if (cleanSpaces(form.direccion_detalle).length < 8) errors.direccion_detalle = 'Ingresa una direccion mas especifica'
+    else if (!/^\d{1,2}$/.test(form.zona.trim())) errors.zona = 'Ingresa una zona válida'
+    if (cleanSpaces(form.direccion_detalle).length < 8) errors.direccion_detalle = 'Ingresa una dirección más específica'
     return errors
 }
 
@@ -78,21 +78,21 @@ function BrandPanel({ isRegister, isTransitioning, onSwitchTo }) {
                 </div>
                 <h1 className="auth-brand-title">Liga Juvenil · Donaciones</h1>
                 <p className="auth-brand-sub">
-                    Conectamos a quienes quieren ayudar con quienes mas lo necesitan.
+                    Conectamos a quienes quieren ayudar con quienes más lo necesitan.
                 </p>
                 <div className={`auth-brand-switch ${isTransitioning ? 'auth-fading' : ''}`}>
                     {isRegister ? (
                         <>
-                            <p>Ya tienes cuenta?</p>
+                            <p>¿Ya tienes cuenta?</p>
                             <button className="auth-switch-btn" onClick={() => onSwitchTo('login')}>
-                                Iniciar sesion
+                                Iniciar sesión
                             </button>
                         </>
                     ) : (
                         <>
-                            <p>No tienes cuenta aun?</p>
+                            <p>¿No tienes cuenta aún?</p>
                             <button className="auth-switch-btn" onClick={() => onSwitchTo('register')}>
-                                Registrate
+                                Regístrate
                             </button>
                         </>
                     )}
@@ -149,14 +149,14 @@ function LoginForm({ onAuthSuccess, onRequiereRegistro }) {
                 body: JSON.stringify({ correo: form.correo.trim().toLowerCase(), password: form.password })
             })
             const body = await res.json().catch(() => null)
-            if (!res.ok || !body?.usuario) throw new Error(body?.error || 'No se pudo iniciar sesion')
-            if (!body?.token) throw new Error('No se recibio el token de autenticacion')
+            if (!res.ok || !body?.usuario) throw new Error(body?.error || 'No se pudo iniciar sesión')
+            if (!body?.token) throw new Error('No se recibió el token de autenticación')
             guardarTokenSesion(body.token)
             guardarUsuarioSesion(body.usuario)
             if (typeof onAuthSuccess === 'function') onAuthSuccess(body.usuario)
-            navigate('/perfil', { state: { flash: 'Sesion iniciada con exito' } })
+            navigate('/perfil', { state: { flash: 'Sesión iniciada con éxito' } })
         } catch (err) {
-            setApiError(err.message || 'No se pudo iniciar sesion')
+            setApiError(err.message || 'No se pudo iniciar sesión')
         } finally {
             setIsSubmitting(false)
         }
@@ -170,7 +170,7 @@ function LoginForm({ onAuthSuccess, onRequiereRegistro }) {
             </div>
             {flash && <div className="auth-success-msg">{flash}</div>}
             <form onSubmit={handleSubmit} noValidate>
-                <Field label="Correo electronico" id="login-correo" error={errors.correo}>
+                <Field label="Correo electrónico" id="login-correo" error={errors.correo}>
                     <input
                         id="login-correo"
                         type="email"
@@ -182,13 +182,13 @@ function LoginForm({ onAuthSuccess, onRequiereRegistro }) {
                         autoComplete="email"
                     />
                 </Field>
-                <Field label="Contrasena" id="login-password" error={errors.password}>
+                <Field label="Contraseña" id="login-password" error={errors.password}>
                     <input
                         id="login-password"
                         type="password"
                         className={`auth-input ${errors.password ? 'auth-input-invalid' : ''}`}
                         name="password"
-                        placeholder="Tu contrasena"
+                        placeholder="Tu contraseña"
                         value={form.password}
                         onChange={handleChange}
                         autoComplete="current-password"
@@ -196,12 +196,12 @@ function LoginForm({ onAuthSuccess, onRequiereRegistro }) {
                 </Field>
                 <p className="auth-forgot">
                     <Link to="/olvide-password" className="auth-link">
-                        Olvidaste tu contrasena?
+                        ¿Olvidaste tu contraseña?
                     </Link>
                 </p>
                 {apiError && <div className="auth-api-error">{apiError}</div>}
                 <button type="submit" className="auth-submit-btn" disabled={isSubmitting}>
-                    {isSubmitting ? 'Ingresando...' : 'Iniciar sesion'}
+                    {isSubmitting ? 'Ingresando...' : 'Iniciar sesión'}
                 </button>
             </form>
 
@@ -254,13 +254,13 @@ function RegisterForm({ onAuthSuccess }) {
                 body: JSON.stringify({ correo: payload.correo, password: payload.password })
             })
             const loginBody = await loginRes.json().catch(() => null)
-            if (!loginRes.ok || !loginBody?.usuario) throw new Error(loginBody?.error || 'Cuenta creada, pero no se pudo iniciar sesion')
-            if (!loginBody?.token) throw new Error('No se recibio el token de autenticacion')
+            if (!loginRes.ok || !loginBody?.usuario) throw new Error(loginBody?.error || 'Cuenta creada, pero no se pudo iniciar sesión')
+            if (!loginBody?.token) throw new Error('No se recibió el token de autenticación')
             guardarTokenSesion(loginBody.token)
             guardarUsuarioSesion(loginBody.usuario)
             if (typeof onAuthSuccess === 'function') onAuthSuccess(loginBody.usuario)
-            setSuccessMessage('Cuenta creada! Redirigiendo...')
-            setTimeout(() => navigate('/perfil', { state: { flash: 'Usuario creado con exito' } }), 800)
+            setSuccessMessage('¡¡¡Cuenta creada! Redirigiendo...')
+            setTimeout(() => navigate('/perfil', { state: { flash: 'Usuario creado con éxito' } }), 800)
         } catch (err) {
             setApiError(err.message || 'No se pudo completar el registro')
         } finally {
@@ -272,7 +272,7 @@ function RegisterForm({ onAuthSuccess }) {
         <div className="auth-form-section">
             <div className="auth-form-heading">
                 <h2>Crear cuenta de donante</h2>
-                <p>Completa tu informacion para empezar a donar.</p>
+                <p>Completa tu información para empezar a donar.</p>
                 <p className="auth-help-text">¿Quieres ser intermediario? Contacta al administrador de la organización. Él verificará tus datos y creará tu cuenta. Cuando te entregue tus credenciales, podrás iniciar sesión aquí.</p>
             </div>
             <form onSubmit={handleSubmit} noValidate>
@@ -280,19 +280,19 @@ function RegisterForm({ onAuthSuccess }) {
                     <Field label="Nombre completo" id="reg-nombre" error={errors.nombre}>
                         <input id="reg-nombre" className={`auth-input ${errors.nombre ? 'auth-input-invalid' : ''}`} name="nombre" placeholder="Tu nombre" value={form.nombre} onChange={handleChange} autoComplete="name" />
                     </Field>
-                    <Field label="Telefono" id="reg-telefono" error={errors.telefono}>
+                    <Field label="Teléfono" id="reg-telefono" error={errors.telefono}>
                         <input id="reg-telefono" className={`auth-input ${errors.telefono ? 'auth-input-invalid' : ''}`} name="telefono" placeholder="5555-0000" value={form.telefono} onChange={handleChange} autoComplete="tel" />
                     </Field>
                 </div>
-                <Field label="Correo electronico" id="reg-correo" error={errors.correo}>
+                <Field label="Correo electrónico" id="reg-correo" error={errors.correo}>
                     <input id="reg-correo" type="email" className={`auth-input ${errors.correo ? 'auth-input-invalid' : ''}`} name="correo" placeholder="correo@ejemplo.com" value={form.correo} onChange={handleChange} autoComplete="email" />
                 </Field>
                 <div className="auth-row">
-                    <Field label="Contrasena" id="reg-password" error={errors.password}>
-                        <input id="reg-password" type="password" className={`auth-input ${errors.password ? 'auth-input-invalid' : ''}`} name="password" placeholder="Minimo 8 caracteres" value={form.password} onChange={handleChange} autoComplete="new-password" />
+                    <Field label="Contraseña" id="reg-password" error={errors.password}>
+                        <input id="reg-password" type="password" className={`auth-input ${errors.password ? 'auth-input-invalid' : ''}`} name="password" placeholder="Mínimo 8 caracteres" value={form.password} onChange={handleChange} autoComplete="new-password" />
                     </Field>
-                    <Field label="Confirmar contrasena" id="reg-confirmPassword" error={errors.confirmPassword}>
-                        <input id="reg-confirmPassword" type="password" className={`auth-input ${errors.confirmPassword ? 'auth-input-invalid' : ''}`} name="confirmPassword" placeholder="Repite tu contrasena" value={form.confirmPassword} onChange={handleChange} autoComplete="new-password" />
+                    <Field label="Confirmar contraseña" id="reg-confirmPassword" error={errors.confirmPassword}>
+                        <input id="reg-confirmPassword" type="password" className={`auth-input ${errors.confirmPassword ? 'auth-input-invalid' : ''}`} name="confirmPassword" placeholder="Repite tu contraseña" value={form.confirmPassword} onChange={handleChange} autoComplete="new-password" />
                     </Field>
                 </div>
 
@@ -308,7 +308,7 @@ function RegisterForm({ onAuthSuccess }) {
                     <Field label="Zona" id="reg-zona" error={errors.zona}>
                         <input id="reg-zona" className={`auth-input ${errors.zona ? 'auth-input-invalid' : ''}`} name="zona" placeholder="Zona" value={form.zona} onChange={handleChange} />
                     </Field>
-                    <Field label="Direccion" id="reg-direccion" error={errors.direccion_detalle}>
+                    <Field label="Dirección" id="reg-direccion" error={errors.direccion_detalle}>
                         <input id="reg-direccion" className={`auth-input ${errors.direccion_detalle ? 'auth-input-invalid' : ''}`} name="direccion_detalle" placeholder="Calle, avenida, referencia" value={form.direccion_detalle} onChange={handleChange} />
                     </Field>
                 </div>

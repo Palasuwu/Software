@@ -65,16 +65,16 @@ describe("AuthPage - LoginForm", () => {
         ).toBeInTheDocument();
 
         expect(
-            screen.getByLabelText(/correo electronico/i)
+            screen.getByLabelText(/correo electrónico/i)
         ).toBeInTheDocument();
 
         expect(
-            screen.getByLabelText(/contrasena/i)
+            screen.getByLabelText(/contraseña/i)
         ).toBeInTheDocument();
 
         expect(
             screen.getByRole("button", {
-                name: /iniciar sesion/i
+                name: /iniciar sesión/i
             })
         ).toBeInTheDocument();
 
@@ -103,7 +103,7 @@ describe("AuthPage - LoginForm", () => {
 
         await user.click(
             screen.getByRole("button", {
-                name: /iniciar sesion/i
+                name: /iniciar sesión/i
             })
         );
 
@@ -112,7 +112,7 @@ describe("AuthPage - LoginForm", () => {
         ).toBeInTheDocument();
 
         expect(
-            screen.getByText("La contrasena es obligatoria")
+            screen.getByText("La contraseña es obligatoria")
         ).toBeInTheDocument();
 
         expect(fetch).not.toHaveBeenCalled();
@@ -141,23 +141,23 @@ describe("AuthPage - LoginForm", () => {
         );
 
         await user.type(
-            screen.getByLabelText(/correo electronico/i),
+            screen.getByLabelText(/correo electrónico/i),
             "correo-invalido"
         );
 
         await user.type(
-            screen.getByLabelText(/contrasena/i),
+            screen.getByLabelText(/contraseña/i),
             "12345678"
         );
 
         await user.click(
             screen.getByRole("button", {
-                name: /iniciar sesion/i
+                name: /iniciar sesión/i
             })
         );
 
         expect(
-            await screen.findByText("Ingresa un correo valido")
+            await screen.findByText("Ingresa un correo válido")
         ).toBeInTheDocument();
 
         expect(fetch).not.toHaveBeenCalled();
@@ -219,18 +219,18 @@ describe("AuthPage - LoginForm", () => {
         );
 
         await user.type(
-            screen.getByLabelText(/correo electronico/i),
+            screen.getByLabelText(/correo electrónico/i),
             "ana@test.com"
         );
 
         await user.type(
-            screen.getByLabelText(/contrasena/i),
+            screen.getByLabelText(/contraseña/i),
             "12345678"
         );
 
         await user.click(
             screen.getByRole("button", {
-                name: /iniciar sesion/i
+                name: /iniciar sesión/i
             })
         );
 

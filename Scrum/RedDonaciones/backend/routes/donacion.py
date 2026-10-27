@@ -42,10 +42,52 @@ def listar_donaciones():
 
         id_donante = request.usuario_id
 
+    paginado = any(
+        campo in request.args
+        for campo in ("page", "per_page", "estado_publicacion")
+    )
+    if paginado:
+        try:
+            pagina = int(request.args.get("page", "1"))
+            por_pagina = int(request.args.get("per_page", "10"))
+            if not 1 <= pagina <= 1_000_000_000 or not 1 <= por_pagina <= 50:
+                raise ValueError
+        except ValueError:
+            return jsonify({
+                "error": "page debe ser un entero positivo y per_page debe estar entre 1 y 50"
+            }), 400
+
+        estado_publicacion = request.args.get("estado_publicacion")
+        if estado_publicacion not in (None, "activa", "finalizada"):
+            return jsonify({"error": "Estado de campaña inválido"}), 400
+
     try:
         with db_cursor(
             connection_factory=get_db_connection
         ) as (conn, cursor):
+
+            if paginado:
+                cursor.execute(
+                    """
+                    SELECT COUNT(*) AS total,
+                        COALESCE(SUM(p.estado = 'activa'), 0) AS activas,
+                        COALESCE(SUM(p.estado = 'finalizada'), 0) AS finalizadas
+                    FROM donacion d
+                    JOIN publicacion p ON p.id_publicacion = d.id_publicacion
+                    JOIN organizacion o ON o.id_organizacion = p.id_organizacion
+                    WHERE (%s IS NULL OR d.id_donante = %s)
+                    """,
+                    (id_donante, id_donante)
+                )
+                resumen = {
+                    clave: int(valor)
+                    for clave, valor in cursor.fetchone().items()
+                }
+                total = resumen[{
+                    "activa": "activas", "finalizada": "finalizadas"
+                }.get(estado_publicacion, "total")]
+                total_paginas = (total + por_pagina - 1) // por_pagina
+                pagina = min(pagina, max(1, total_paginas))
 
             sql = """
                 SELECT
@@ -90,14 +132,30 @@ def listar_donaciones():
                 LEFT JOIN categoria_articulo c
                     ON c.id_categoria = a.id_categoria
                 WHERE (%s IS NULL OR d.id_donante = %s)
-                ORDER BY
-                    d.fecha_donacion DESC,
-                    d.id_donacion DESC
-                LIMIT 50
             """
 
-            cursor.execute(sql, (id_donante, id_donante))
+            parametros = [id_donante, id_donante]
+            if paginado and estado_publicacion:
+                sql += " AND p.estado = %s"
+                parametros.append(estado_publicacion)
+            sql += " ORDER BY d.fecha_donacion DESC, d.id_donacion DESC"
+            if paginado:
+                sql += " LIMIT %s OFFSET %s"
+                parametros.extend([por_pagina, (pagina - 1) * por_pagina])
+            else:
+                sql += " LIMIT 50"
+
+            cursor.execute(sql, tuple(parametros))
             donaciones = cursor.fetchall()
+            if paginado:
+                return jsonify({
+                    "donaciones": donaciones,
+                    "page": pagina,
+                    "per_page": por_pagina,
+                    "total": total,
+                    "total_pages": total_paginas,
+                    "resumen": resumen
+                }), 200
             return jsonify(donaciones), 200
 
     except Exception:
