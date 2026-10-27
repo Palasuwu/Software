@@ -32,14 +32,11 @@ export default function HomeFilterSidebar({
   query,
   category,
   estado,
-  organizacion,
   progressRange,
   categoriasDisponibles,
-  organizacionesDisponibles,
   onQueryChange,
   onCategoryChange,
   onEstadoChange,
-  onOrganizacionChange,
   onProgressRangeChange,
   onReset,
   isOpen,
@@ -48,7 +45,6 @@ export default function HomeFilterSidebar({
   const [sections, setSections] = React.useState({
     estado: true,
     categoria: true,
-    organizacion: false,
     progreso: false,
   })
 
@@ -58,15 +54,14 @@ export default function HomeFilterSidebar({
   const estadoOptions = [
     { value: 'Todos', label: 'Todos' },
     { value: 'activa', label: 'Activa' },
-    { value: 'proxima', label: 'Próxima' },
     { value: 'finalizada', label: 'Finalizada' },
   ]
 
   const progresoOptions = [
     { value: 'Todos', label: 'Todos' },
-    { value: 'Bajo', label: '≤ 49%' },
-    { value: 'Medio', label: '≥ 50%' },
-    { value: 'Completo', label: '100%' },
+    { value: 'Bajo', label: 'Menos de 50%' },
+    { value: 'Medio', label: 'De 50% a 99%' },
+    { value: 'Completo', label: 'Meta alcanzada (100%)' },
   ]
 
   return (
@@ -153,31 +148,6 @@ export default function HomeFilterSidebar({
               onClick={() => onCategoryChange(cat)}
             >
               {cat}
-            </button>
-          ))}
-        </FilterSection>
-
-        {/* ── Organización ── */}
-        <FilterSection
-          title="Organización"
-          isOpen={sections.organizacion}
-          onToggle={() => toggleSection('organizacion')}
-        >
-          <button
-            type="button"
-            className={`hf-filter-item${organizacion === 'Todas' ? ' hf-filter-item--active' : ''}`}
-            onClick={() => onOrganizacionChange('Todas')}
-          >
-            Todas
-          </button>
-          {organizacionesDisponibles.map((org) => (
-            <button
-              key={org}
-              type="button"
-              className={`hf-filter-item${organizacion === org ? ' hf-filter-item--active' : ''}`}
-              onClick={() => onOrganizacionChange(org)}
-            >
-              {org}
             </button>
           ))}
         </FilterSection>

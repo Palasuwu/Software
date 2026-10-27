@@ -21,6 +21,8 @@ import { campaignStatusLabel, donationStatusLabel } from './admin/adminHelpers'
 import AdminUsersTable from './admin/AdminUsersTable'
 import AdminOrgsTable from './admin/AdminOrgsTable'
 import AdminCampaignsTable from './admin/AdminCampaignsTable'
+import CampaignFiltersBar from './admin/CampaignFiltersBar'
+import { FILTROS_CAMPANA_VACIOS, filtrarCampanas } from './admin/campaignFilters'
 import AdminDonacionesTable from './admin/AdminDonacionesTable'
 import CarruselTable from './admin/CarruselTable'
 import AdminReportes from './admin/AdminReportes'
@@ -79,6 +81,11 @@ export default function AdminPanel({ usuarioSesion }) {
     const [modalError, setModalError] = React.useState('')
     const [isSubmitting, setIsSubmitting] = React.useState(false)
     const [savingCampaignId, setSavingCampaignId] = React.useState(null)
+    const [filtrosCampana, setFiltrosCampana] = React.useState(FILTROS_CAMPANA_VACIOS)
+    const campanasFiltradas = React.useMemo(
+        () => filtrarCampanas(publicaciones, filtrosCampana),
+        [publicaciones, filtrosCampana]
+    )
     const [copied, setCopied] = React.useState(false)
     const [confirmModal, setConfirmModal] = React.useState({
         isOpen: false,
@@ -1184,14 +1191,25 @@ export default function AdminPanel({ usuarioSesion }) {
                                     <span>Nueva Campaña</span>
                                 </button>
                             </div>
-                            <AdminCampaignsTable
-                                publicaciones={publicaciones}
-                                loadingCampaigns={loadingCampaigns}
-                                campaignsError={campaignsError}
-                                savingCampaignId={savingCampaignId}
-                                onRetry={loadCampaigns}
-                                onStatusChange={handleChangeCampaignStatus}
-                            />
+                            {!campaignsError && publicaciones.length > 0 && (
+                                <CampaignFiltersBar
+                                    publicaciones={publicaciones}
+                                    visibles={campanasFiltradas.length}
+                                    filtros={filtrosCampana}
+                                    onChange={setFiltrosCampana}
+                                    onClear={() => setFiltrosCampana(FILTROS_CAMPANA_VACIOS)}
+                                />
+                            )}
+                            {(campanasFiltradas.length > 0 || publicaciones.length === 0 || campaignsError) && (
+                                <AdminCampaignsTable
+                                    publicaciones={campanasFiltradas}
+                                    loadingCampaigns={loadingCampaigns}
+                                    campaignsError={campaignsError}
+                                    savingCampaignId={savingCampaignId}
+                                    onRetry={loadCampaigns}
+                                    onStatusChange={handleChangeCampaignStatus}
+                                />
+                            )}
                         </>
                     ) : activeTab === 'donaciones' ? (
                         <>

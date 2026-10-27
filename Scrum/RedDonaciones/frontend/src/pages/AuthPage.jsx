@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { guardarTokenSesion, guardarUsuarioSesion } from '../utils/session'
 import logoMark from '../assets/LogoOwnerMark.svg'
+import BotonGoogle from '../components/BotonGoogle'
+import RegistroGoogle from '../components/RegistroGoogle'
 import './AuthPage.css'
 
 const INITIAL_LOGIN = { correo: '', password: '' }
@@ -110,8 +112,12 @@ function Field({ label, id, error, children }) {
     )
 }
 
-function LoginForm({ onAuthSuccess }) {
+function LoginForm({ onAuthSuccess, onRequiereRegistro }) {
     const navigate = useNavigate()
+    const location = useLocation()
+    // Aviso que dejan otras pantallas al volver aqui (p. ej. tras
+    // restablecer la contrasena).
+    const flash = location.state?.flash
     const [form, setForm] = useState(INITIAL_LOGIN)
     const [errors, setErrors] = useState({})
     const [apiError, setApiError] = useState('')
@@ -162,6 +168,7 @@ function LoginForm({ onAuthSuccess }) {
                 <h2>Bienvenido de vuelta</h2>
                 <p>Ingresa tus datos para continuar</p>
             </div>
+            {flash && <div className="auth-success-msg">{flash}</div>}
             <form onSubmit={handleSubmit} noValidate>
                 <Field label="Correo electronico" id="login-correo" error={errors.correo}>
                     <input
@@ -187,11 +194,18 @@ function LoginForm({ onAuthSuccess }) {
                         autoComplete="current-password"
                     />
                 </Field>
+                <p className="auth-forgot">
+                    <Link to="/olvide-password" className="auth-link">
+                        Olvidaste tu contrasena?
+                    </Link>
+                </p>
                 {apiError && <div className="auth-api-error">{apiError}</div>}
                 <button type="submit" className="auth-submit-btn" disabled={isSubmitting}>
                     {isSubmitting ? 'Ingresando...' : 'Iniciar sesion'}
                 </button>
             </form>
+
+            <BotonGoogle onAuthSuccess={onAuthSuccess} onRequiereRegistro={onRequiereRegistro} />
         </div>
     )
 }
@@ -312,6 +326,9 @@ function RegisterForm({ onAuthSuccess }) {
 
 export default function AuthPage({ onAuthSuccess, defaultMode = 'login' }) {
     const [isRegister, setIsRegister] = useState(defaultMode === 'register')
+    // Datos que devuelve Google cuando el correo todavia no existe en la BD:
+    // mientras esten presentes se muestra el alta en lugar de login/registro.
+    const [datosGoogle, setDatosGoogle] = useState(null)
     // animClass: '' | 'anim-exit-left' | 'anim-exit-right' | 'anim-enter-right' | 'anim-enter-left'
     const [animClass, setAnimClass] = useState('')
     const [brandFading, setBrandFading] = useState(false)
@@ -343,9 +360,17 @@ export default function AuthPage({ onAuthSuccess, defaultMode = 'login' }) {
                 />
                 <div className="auth-form-area">
                     <div className={`auth-form-content ${animClass}`}>
-                        {isRegister
-                            ? <RegisterForm onAuthSuccess={onAuthSuccess} />
-                            : <LoginForm onAuthSuccess={onAuthSuccess} />
+                        {datosGoogle
+                            ? (
+                                <RegistroGoogle
+                                    datos={datosGoogle}
+                                    onAuthSuccess={onAuthSuccess}
+                                    onCancelar={() => setDatosGoogle(null)}
+                                />
+                            )
+                            : isRegister
+                                ? <RegisterForm onAuthSuccess={onAuthSuccess} />
+                                : <LoginForm onAuthSuccess={onAuthSuccess} onRequiereRegistro={setDatosGoogle} />
                         }
                     </div>
                 </div>

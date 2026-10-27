@@ -71,7 +71,6 @@ export default function HomePage({ isAuthenticated }) {
   const [query, setQuery] = React.useState('')
   const [category, setCategory] = React.useState('Todas')
   const [estado, setEstado] = React.useState('Todos')
-  const [organizacion, setOrganizacion] = React.useState('Todas')
   const [progressRange, setProgressRange] = React.useState('Todos')
   const [publicaciones, setPublicaciones] = React.useState([])
   const [loading, setLoading] = React.useState(true)
@@ -93,8 +92,6 @@ export default function HomePage({ isAuthenticated }) {
           const fechaLimiteStr = p.fecha_limite ? String(p.fecha_limite).slice(0, 10) : null
           const esVencida = Boolean(fechaLimiteStr && fechaLimiteStr < hoyStr)
           const estado = esVencida ? 'cancelada' : (p.estado || 'activa').toLowerCase()
-          const fechaPublicacion = p.fecha_publicacion ? new Date(p.fecha_publicacion) : null
-          const esProxima = estado === 'activa' && fechaPublicacion !== null && fechaPublicacion > ahora
 
           return {
             id: p.id_publicacion,
@@ -104,7 +101,6 @@ export default function HomePage({ isAuthenticated }) {
             location: [p.municipio, p.departamento].filter(Boolean).join(', ') || p.direccion,
             organizacion: p.organizacion || 'Sin organización',
             estado,
-            esProxima,
             imagen: resolvePublicationImage(p.imagen_url),
             progress: p.cantidad_necesaria > 0
               ? Math.min(100, Math.round((p.cantidad_recibida / p.cantidad_necesaria) * 100))
@@ -145,10 +141,13 @@ export default function HomePage({ isAuthenticated }) {
     [publicaciones]
   )
 
-  const organizacionesDisponibles = React.useMemo(() =>
-    Array.from(new Set(publicaciones.map((p) => p.organizacion))).sort((a, b) => a.localeCompare(b)),
-    [publicaciones]
-  )
+  // Si la categoría elegida deja de existir al recargar, se vuelve a "Todas"
+  // para no dejar la lista vacía sin ningún filtro marcado
+  React.useEffect(() => {
+    if (category !== 'Todas' && publicaciones.length > 0 && !categoriasDisponibles.includes(category)) {
+      setCategory('Todas')
+    }
+  }, [category, categoriasDisponibles, publicaciones.length])
 
   const filtered = React.useMemo(() => {
     return publicaciones.filter((item) => {
@@ -159,9 +158,7 @@ export default function HomePage({ isAuthenticated }) {
         item.category.toLowerCase().includes(text)
       )
       const matchesCategory = category === 'Todas' || item.category === category
-      const matchesEstado = estado === 'Todos'
-        || (estado === 'proxima' ? item.esProxima : item.estado === estado)
-      const matchesOrganizacion = organizacion === 'Todas' || item.organizacion === organizacion
+      const matchesEstado = estado === 'Todos' || item.estado === estado
       const matchesProgress = (() => {
         if (progressRange === 'Todos') return true
         if (progressRange === 'Bajo') return item.progress < 50
@@ -169,9 +166,9 @@ export default function HomePage({ isAuthenticated }) {
         if (progressRange === 'Completo') return item.progress >= 100
         return true
       })()
-      return matchesQuery && matchesCategory && matchesEstado && matchesOrganizacion && matchesProgress
+      return matchesQuery && matchesCategory && matchesEstado && matchesProgress
     })
-  }, [publicaciones, query, category, estado, organizacion, progressRange])
+  }, [publicaciones, query, category, estado, progressRange])
 
   const statsFinalizadas = React.useMemo(
     () => publicaciones.filter((p) => p.estado === 'finalizada').length,
@@ -187,7 +184,6 @@ export default function HomePage({ isAuthenticated }) {
     query.trim() !== '',
     category !== 'Todas',
     estado !== 'Todos',
-    organizacion !== 'Todas',
     progressRange !== 'Todos',
   ].filter(Boolean).length
 
@@ -195,7 +191,6 @@ export default function HomePage({ isAuthenticated }) {
     setQuery('')
     setCategory('Todas')
     setEstado('Todos')
-    setOrganizacion('Todas')
     setProgressRange('Todos')
   }
 
@@ -212,14 +207,11 @@ export default function HomePage({ isAuthenticated }) {
           query={query}
           category={category}
           estado={estado}
-          organizacion={organizacion}
           progressRange={progressRange}
           categoriasDisponibles={categoriasDisponibles}
-          organizacionesDisponibles={organizacionesDisponibles}
           onQueryChange={setQuery}
           onCategoryChange={setCategory}
           onEstadoChange={setEstado}
-          onOrganizacionChange={setOrganizacion}
           onProgressRangeChange={setProgressRange}
           onReset={resetFilters}
           isOpen={sidebarOpen}

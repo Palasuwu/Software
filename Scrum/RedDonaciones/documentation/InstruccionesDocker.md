@@ -208,6 +208,7 @@ Esto construye y levanta los 3 servicios automáticamente:
 | Frontend          | React + Nginx  | http://localhost:3000 |
 | Backend           | Flask (Python) | http://localhost:5000 |
 | Base de datos     | MySQL 8        | localhost:3306        |
+| Buzón de correo   | Mailpit        | http://localhost:8025 |
 
 > ⚠️ La primera vez puede tardar unos minutos mientras descarga las imágenes base y construye todo.
 
@@ -341,6 +342,39 @@ docker system prune
 | Ver logs de un servicio       | `docker compose logs <servicio>`           |
 | Logs en tiempo real           | `docker compose logs -f <servicio>`        |
 | Reconstruir un servicio       | `docker compose up --build <servicio>`     |
+
+---
+
+## 📧 Correo: recuperación de contraseña
+
+El backend manda correo para el flujo de *olvidé mi contraseña*. A dónde se
+entrega depende de lo que tenga tu `.env`:
+
+| Tu `.env` | Qué pasa | Dónde ves el correo |
+|---|---|---|
+| Con las variables `SMTP_*` | Se entrega de verdad | La bandeja real del destinatario |
+| Sin ellas | Se entrega al buzón local | http://localhost:8025 |
+
+En los dos casos el flujo funciona completo. El buzón local existe para que
+nadie quede bloqueado si todavía no tiene las credenciales.
+
+**Para entrega real** necesitas las 5 variables `SMTP_*` en tu `.env` (están
+documentadas en `.env.ejemplo`). Pídeselas a quien administra el proyecto:
+no se versionan, porque el repositorio es público.
+
+### Cómo saber a dónde se fue un correo
+
+```bash
+docker compose logs backend | grep "Enviando correo"
+```
+
+- `via smtp.gmail.com:587` → salió a internet, revisa la bandeja real.
+- `via mailpit:1025  (sin autenticacion: buzon local de desarrollo)` → quedó
+  en http://localhost:8025, no salió.
+
+> Los enlaces del correo apuntan a `FRONTEND_URL` (por omisión
+> `http://localhost:3000`). Si abres ese correo desde el celular, el enlace no
+> va a cargar: hay que abrirlo en la máquina donde corre el proyecto.
 
 ---
 

@@ -11,6 +11,7 @@ import OrganizacionesPage from './pages/OrganizacionesPage'
 import OrgaDetailPage from './pages/OrgaDetailPage'
 import AdminPanel from './pages/AdminPanel'
 import OrgaPanel from './pages/OrgaPanel'
+import { OlvidePasswordPage, RestablecerPasswordPage } from './pages/PasswordResetPage'
 import ProtectedRoute from './components/ProtectedRoute'
 
 export default function AppRoutes({ usuarioSesion, isAuthenticated, onAuthSuccess }) {
@@ -26,6 +27,11 @@ export default function AppRoutes({ usuarioSesion, isAuthenticated, onAuthSucces
                 path="/signup"
                 element={isAuthenticated ? <Navigate to="/perfil" replace /> : <AuthPage onAuthSuccess={onAuthSuccess} defaultMode="register" />}
             />
+
+            {/* Recuperar contrasena: accesible sin sesion, igual que /login.
+                El enlace del correo apunta a /restablecer?token=... */}
+            <Route path="/olvide-password" element={<OlvidePasswordPage />} />
+            <Route path="/restablecer" element={<RestablecerPasswordPage />} />
 
             <Route
                 path="/perfil"

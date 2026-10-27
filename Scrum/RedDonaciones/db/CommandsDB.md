@@ -4,7 +4,7 @@
 
 Este proyecto utiliza **MySQL 8 en Docker** para gestionar la base de datos del sistema Red de Donaciones.
 
-La base de datos se inicializa automáticamente mediante el archivo `db/init.sql`, el cual contiene la creación de las tablas y datos de ejemplo utilizados durante el desarrollo.
+El DDL tiene una sola fuente: `db/init.sql`. Los datos demo están en `db/datos.sql`. En un volumen nuevo Docker crea la base indicada por `MYSQL_DATABASE` y ejecuta los montajes `10-schema.sql` y `20-demo.sql`, en ese orden. Ninguno de los SQL crea o selecciona una base: el cliente la selecciona explícitamente.
 
 ---
 
@@ -33,48 +33,33 @@ Para iniciar normalmente el proyecto:
 docker compose up --build
 ```
 
-Si se realizaron cambios en la estructura de `init.sql` y ya existe un volumen de MySQL:
+Una base existente no se actualiza al cambiar estos archivos. Para conservar sus
+ datos, revisar las diferencias y aplicar una migración específica; no borrar el
+ volumen para aplicar esta separación.
+
+## Preparación manual de una base local nueva
+
+Seleccionar un destino local vacío y confirmado. Crear primero la base, si no
+ existe (sustituir `USUARIO_LOCAL`; `-p` solicita la contraseña sin escribirla):
 
 ```bash
-docker compose down -v
-docker compose up --build
+mysql -u USUARIO_LOCAL -p -e "CREATE DATABASE donaciones CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+mysql --default-character-set=utf8mb4 --show-warnings -u USUARIO_LOCAL -p --database=donaciones < db/init.sql
+mysql --default-character-set=utf8mb4 --show-warnings -u USUARIO_LOCAL -p --database=donaciones < db/datos.sql
 ```
 
-### ⚠️ ¿Por qué usar `down -v`?
+Ejecutar desde la raíz. Para esquema vacío cargar solo el primer archivo SQL.
+ Para desarrollo cargar ambos en ese orden. No hay `SOURCE` ni inclusiones con
+ rutas relativas; las rutas de redirección las resuelve la shell. La selección
+ explícita de base funciona igual para ambos archivos. El seed conserva
+ `INSERT IGNORE`, pero no debe usarse como migración sobre datos existentes.
 
-MySQL almacena la información de la base de datos en un volumen de Docker.
-
-El archivo `init.sql` se utiliza para inicializar la base de datos cuando se crea por primera vez el volumen. Por lo tanto, modificar `init.sql` no modifica automáticamente una base de datos que ya fue inicializada.
-
-El comando:
+El montaje de Docker usa nombres ordenados dentro de `/docker-entrypoint-initdb.d`;
+ la validación desechable reproduce ese entrypoint y el procedimiento manual:
 
 ```bash
-docker compose down -v
+python3 scripts/test_mysql.py --check-development
 ```
-
-elimina los volúmenes asociados al proyecto. Al volver a levantar los contenedores, MySQL crea nuevamente la base de datos utilizando el `init.sql` actualizado.
-
-> **Advertencia:** este comando elimina los datos almacenados en la base de datos local. Debe utilizarse únicamente cuando se quiera reconstruir la BD de desarrollo desde `init.sql`.
-
----
-
-## Creación de la base de datos
-
-La base de datos se crea automáticamente mediante:
-
-```text
-db/init.sql
-```
-
-Este archivo:
-
-- Crea la base de datos `donaciones`.
-- Crea las tablas necesarias.
-- Define claves primarias y foráneas.
-- Define restricciones y valores por defecto.
-- Inserta datos de ejemplo para desarrollo y pruebas.
-
----
 
 ## Cambios recientes del esquema
 
@@ -165,7 +150,7 @@ docker compose up --build
 
 ## Datos de ejemplo
 
-`init.sql` incluye datos de ejemplo para facilitar el desarrollo y las pruebas.
+`datos.sql` incluye datos de ejemplo para facilitar el desarrollo y las pruebas.
 
 Actualmente se incluyen:
 
@@ -489,7 +474,7 @@ DESCRIBE nombre_tabla;
 ## Estado actual
 
 - Esquema principal de la base de datos implementado.
-- Datos de ejemplo disponibles.
+- Datos de ejemplo disponibles en `datos.sql`, separados del DDL de `init.sql`.
 - Estados de seguimiento de donaciones definidos.
 - Información institucional de organizaciones incorporada.
 - Soporte de campos opcionales para identidad visual de organizaciones preparado.

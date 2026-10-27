@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React from 'react'
 import { Link } from 'react-router-dom'
 import heroVideo    from '../assets/hero.mp4'
 import helpingSvg   from '../assets/helping.svg'
@@ -8,8 +8,8 @@ import celebrationSvg from '../assets/celebration.svg'
 import logoMark     from '../assets/LogoOwnerMark.svg'
 import instagramSvg from '../assets/instagram.svg'
 import ComoFunciona from '../components/ComoFunciona'
+import GaleriaImpacto from '../components/GaleriaImpacto'
 import { obtenerUsuarioSesion } from '../utils/session'
-import { apiGet } from '../utils/api'
 import './LandingPage.css'
 
 const INSTAGRAM_URL = 'https://www.instagram.com/ligajuvenil_oficial/'
@@ -38,15 +38,6 @@ const VALORES = [
   { titulo: 'Compromiso social', desc: 'Nuestro trabajo empieza en la comunidad y regresa a ella.' },
   { titulo: 'Participación', desc: 'Ninguna decisión sobre la juventud se toma sin la juventud.' },
   { titulo: 'Respeto', desc: 'Escuchamos primero, sin importar de dónde venga la voz.' }
-]
-
-// Respaldo si el carrusel administrable (GET /api/carrusel) esta vacio o falla:
-// mismas 4 imagenes por defecto que se siembran en la base de datos.
-const CAROUSEL_FALLBACK = [
-  { src: '/carousel/carr1.jpeg', alt: 'Voluntario entregando una donación a una niña junto a su familia' },
-  { src: '/carousel/carr2.jpeg', alt: 'Grupo de voluntarios y jóvenes de la comunidad sonriendo juntos' },
-  { src: '/carousel/carr3.jpeg', alt: 'Voluntario entregando ropa y una manta a una niña' },
-  { src: '/carousel/carr4.jpeg', alt: 'Voluntario compartiendo un libro con niñas de la comunidad' },
 ]
 
 // ─── Navbar ────────────────────────────────────────────────────────────────────
@@ -130,138 +121,6 @@ function SectionDivider({ left = [], label, right = [] }) {
         </div>
       </div>
     </div>
-  )
-}
-
-// ─── Horizontal Carousel (Autoplay) ────────────────────────────────────────────
-
-function HorizontalCarousel() {
-  const sectionRef = useRef(null)
-  const trackRef   = useRef(null)
-  const idxRef     = useRef(0)
-  const pausedRef  = useRef(false)
-  const [activeIdx, setActiveIdx] = useState(0)
-  const [images, setImages] = useState(CAROUSEL_FALLBACK)
-
-  useEffect(() => {
-    apiGet('/api/carrusel')
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setImages(data.map((img) => ({ src: img.url_imagen, alt: img.alt_text })))
-        }
-      })
-      .catch(() => {
-        // Sin conexion o carrusel vacio: se mantiene el respaldo por defecto.
-      })
-  }, [])
-
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    if (mq.matches) return
-
-    const track = trackRef.current
-    if (!track) return
-
-    const N = images.length
-
-    const snapTo = (idx) => {
-      idxRef.current = idx
-      setActiveIdx(idx)
-      const item = track.children[idx]
-      if (!item) return
-      const pad = parseFloat(getComputedStyle(track).paddingLeft) || 0
-      track.style.transform = `translateX(${-(item.offsetLeft - pad)}px)`
-    }
-
-    snapTo(0)
-
-    const tick = setInterval(() => {
-      if (pausedRef.current) return
-      snapTo((idxRef.current + 1) % N)
-    }, 3800)
-
-    // Re-align translateX on resize (item width depends on viewport)
-    const onResize = () => snapTo(idxRef.current)
-    window.addEventListener('resize', onResize)
-
-    return () => {
-      clearInterval(tick)
-      window.removeEventListener('resize', onResize)
-    }
-  }, [images])
-
-  const N = images.length
-  const goTo = (idx) => {
-    const track = trackRef.current
-    if (!track) return
-    idxRef.current = idx
-    setActiveIdx(idx)
-    const item = track.children[idx]
-    if (!item) return
-    const pad = parseFloat(getComputedStyle(track).paddingLeft) || 0
-    track.style.transform = `translateX(${-(item.offsetLeft - pad)}px)`
-  }
-
-  return (
-    <section className="ld-scroll-section" ref={sectionRef} aria-label="Galería de impacto">
-      <div className="ld-scroll-sticky">
-
-        {/* ── Left: editorial copy (dark panel) ── */}
-        <aside className="ld-scroll-copy">
-          <p className="ld-scroll-label">Nuestro trabajo en campo</p>
-          <h2 className="ld-scroll-heading">
-            Cada donación<br />llega a quien<br />más lo necesita.
-          </h2>
-          <p className="ld-scroll-desc">
-            Estas fotografías son de entregas reales: jornadas comunitarias,
-            familias acompañadas y jóvenes que llevaron los artículos hasta
-            donde hacían falta.
-          </p>
-        </aside>
-
-        {/* ── Right: autoplay carousel ── */}
-        <div
-          className="ld-carousel-viewport"
-          aria-label="Galería fotográfica"
-          onMouseEnter={() => { pausedRef.current = true }}
-          onMouseLeave={() => { pausedRef.current = false }}
-        >
-          <div className="ld-carousel-track" ref={trackRef}>
-            {images.map((img, i) => (
-              <figure
-                className={`ld-carousel-item${i === activeIdx ? ' ld-carousel-item--active' : ''}`}
-                key={i}
-              >
-                <img
-                  src={img.src}
-                  alt={img.alt}
-                  loading={i < 2 ? 'eager' : 'lazy'}
-                />
-                <figcaption className="ld-carousel-num">
-                  {String(activeIdx + 1).padStart(2, '0')} / {String(N).padStart(2, '0')}
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-
-          {/* Dot navigation */}
-          <div className="ld-carousel-dots" role="tablist" aria-label="Navegación de imágenes">
-            {images.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                role="tab"
-                aria-selected={i === activeIdx}
-                aria-label={`Imagen ${i + 1} de ${N}`}
-                className={`ld-carousel-dot${i === activeIdx ? ' ld-carousel-dot--active' : ''}`}
-                onClick={() => goTo(i)}
-              />
-            ))}
-          </div>
-        </div>
-
-      </div>
-    </section>
   )
 }
 
@@ -428,7 +287,7 @@ export default function LandingPage() {
       <About />
       <Pillars />
       <ComoFunciona />
-      <HorizontalCarousel />
+      <GaleriaImpacto />
       <SectionDivider
         left={[celebrationSvg]}
         label="Impacto real en comunidades"

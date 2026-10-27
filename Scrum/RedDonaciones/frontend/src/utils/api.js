@@ -114,3 +114,13 @@ export async function apiUpload(file) {
 
     return parseApiResponse(response)
 }
+
+export async function apiUploadProfilePhoto(idUsuario, file) {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await apiFetch(`/api/usuarios/${idUsuario}/foto`, {
+        method: 'PUT',
+        body: formData
+    })
+    return parseApiResponse(response)
+}

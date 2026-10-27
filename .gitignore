@@ -25,3 +25,18 @@ venv/
 # OS
 .DS_Store
 Thumbs.db
+
+# Credenciales de servicio (Firebase u otros): fuera del repositorio
+**/secrets/*
+!**/secrets/.gitignore
+*-firebase-adminsdk-*.json
+
+# Variables de entorno: cada quien mantiene su copia local.
+# La plantilla versionada es .env.ejemplo
+.env
+.env.*
+!.env.ejemplo
+!.env.example
+
+# Reportes generados por las pruebas automatizadas
+Scrum/RedDonaciones/backend/reportes/
