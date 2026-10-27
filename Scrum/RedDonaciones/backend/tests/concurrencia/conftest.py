@@ -1,53 +1,21 @@
-# Cada prueba usa una base de datos temporal con el mismo esquema que la real
-# y la borra al terminar, así las donaciones de prueba no tocan los datos del proyecto.
-import os
+# Cada prueba usa una base sin seed dentro del MySQL exclusivo del runner.
 import threading
 import uuid
 
 import pytest
 
 import db.connection
+from tests.mysql_support import temporary_database
 from app import app
 from auth_utils import generate_token
 
 
 SECRET = "test-secret-key-with-at-least-32-bytes"
-TABLAS = (
-    "usuario",
-    "organizacion",
-    "donante",
-    "intermediario",
-    "categoria_articulo",
-    "articulo",
-    "publicacion",
-    "donacion",
-    "notificacion",
-)
-
-
 @pytest.fixture
 def base_aislada(monkeypatch):
-    nombre_real = os.getenv("DB_NAME")
-    nombre = f"{nombre_real}_concurrencia_{uuid.uuid4().hex[:8]}"
-    conn = db.connection.get_db_connection()
-    cursor = conn.cursor()
-
-    try:
-        cursor.execute(f"CREATE DATABASE `{nombre}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
-        for tabla in TABLAS:
-            cursor.execute(f"SHOW CREATE TABLE `{nombre_real}`.`{tabla}`")
-            definicion = cursor.fetchone()[1]
-            cursor.execute(f"USE `{nombre}`")
-            cursor.execute(definicion)
-            cursor.execute(f"USE `{nombre_real}`")
-
-        monkeypatch.setenv("DB_NAME", nombre)
+    with temporary_database(monkeypatch, "concurrencia") as nombre:
         monkeypatch.setenv("JWT_SECRET_KEY", SECRET)
         yield nombre
-    finally:
-        cursor.execute(f"DROP DATABASE IF EXISTS `{nombre}`")
-        cursor.close()
-        conn.close()
 
 
 def _insertar(cursor, sql, params=()):
@@ -57,71 +25,66 @@ def _insertar(cursor, sql, params=()):
 
 @pytest.fixture
 def crear_campana(base_aislada):
-    conn = db.connection.get_db_connection()
-    cursor = conn.cursor()
-    id_categoria = _insertar(cursor, "INSERT INTO categoria_articulo (nombre, descripcion) VALUES ('Ropa', 'Ropa')")
-    id_articulo = _insertar(cursor, "INSERT INTO articulo (nombre, descripcion, id_categoria) VALUES ('Abrigos', 'Abrigos', %s)", (id_categoria,))
-    id_organizacion = _insertar(
-        cursor,
-        """
-        INSERT INTO organizacion (nombre, descripcion, direccion, departamento, municipio, zona,
-                                  telefono, correo, estado_verificacion)
-        VALUES ('Organización', 'Organización de prueba', '1 calle 1-1', 'Guatemala', 'Guatemala', '1',
-                '11110000', 'org@concurrencia.test', 'verificada')
-        """,
-    )
-    id_intermediario = _insertar(
-        cursor,
-        "INSERT INTO usuario (nombre, correo, password, telefono, rol) "
-        "VALUES ('Intermediario', 'inter@concurrencia.test', 'x', '22220000', 'intermediario')",
-    )
-    cursor.execute(
-        "INSERT INTO intermediario (id_usuario, id_organizacion, cargo) VALUES (%s, %s, 'Coordinador')",
-        (id_intermediario, id_organizacion),
-    )
-    conn.commit()
-
-    def crear(cantidad_necesaria=100, cantidad_recibida=90):
-        id_publicacion = _insertar(
+    with db.connection.db_cursor(dictionary=False) as (conn, cursor):
+        id_categoria = _insertar(cursor, "INSERT INTO categoria_articulo (nombre, descripcion) VALUES ('Ropa', 'Ropa')")
+        id_articulo = _insertar(cursor, "INSERT INTO articulo (nombre, descripcion, id_categoria) VALUES ('Abrigos', 'Abrigos', %s)", (id_categoria,))
+        id_organizacion = _insertar(
             cursor,
             """
-            INSERT INTO publicacion (id_intermediario, id_organizacion, id_articulo, titulo, descripcion,
-                                     cantidad_necesaria, cantidad_recibida, fecha_publicacion, fecha_limite, estado)
-            VALUES (%s, %s, %s, 'Campaña cerca de la meta', 'Recolección de abrigos', %s, %s,
-                    '2026-01-01', '2099-12-31', 'activa')
+            INSERT INTO organizacion (nombre, descripcion, direccion, departamento, municipio, zona,
+                                      telefono, correo, estado_verificacion)
+            VALUES ('Organización', 'Organización de prueba', '1 calle 1-1', 'Guatemala', 'Guatemala', '1',
+                    '11110000', 'org@concurrencia.test', 'verificada')
             """,
-            (id_intermediario, id_organizacion, id_articulo, cantidad_necesaria, cantidad_recibida),
+        )
+        id_intermediario = _insertar(
+            cursor,
+            "INSERT INTO usuario (nombre, correo, password, telefono, rol) "
+            "VALUES ('Intermediario', 'inter@concurrencia.test', 'x', '22220000', 'intermediario')",
+        )
+        cursor.execute(
+            "INSERT INTO intermediario (id_usuario, id_organizacion, cargo) VALUES (%s, %s, 'Coordinador')",
+            (id_intermediario, id_organizacion),
         )
         conn.commit()
-        return id_publicacion
 
-    yield crear
-    cursor.close()
-    conn.close()
+        def crear(cantidad_necesaria=100, cantidad_recibida=90):
+            id_publicacion = _insertar(
+                cursor,
+                """
+                INSERT INTO publicacion (id_intermediario, id_organizacion, id_articulo, titulo, descripcion,
+                                         cantidad_necesaria, cantidad_recibida, fecha_publicacion, fecha_limite, estado)
+                VALUES (%s, %s, %s, 'Campaña cerca de la meta', 'Recolección de abrigos', %s, %s,
+                        '2026-01-01', '2099-12-31', 'activa')
+                """,
+                (id_intermediario, id_organizacion, id_articulo, cantidad_necesaria, cantidad_recibida),
+            )
+            conn.commit()
+            return id_publicacion
+
+        yield crear
+
 
 
 @pytest.fixture
 def crear_donantes(base_aislada):
     def crear(cantidad):
-        conn = db.connection.get_db_connection()
-        cursor = conn.cursor()
-        ids = []
-        for numero in range(cantidad):
-            id_usuario = _insertar(
-                cursor,
-                "INSERT INTO usuario (nombre, correo, password, telefono, rol) VALUES (%s, %s, 'x', %s, 'donante')",
-                (f"Donante {numero + 1}", f"donante{uuid.uuid4().hex[:8]}@concurrencia.test", f"3333{uuid.uuid4().int % 10000:04d}"),
-            )
-            cursor.execute(
-                "INSERT INTO donante (id_usuario, departamento, municipio, zona, direccion_detalle) "
-                "VALUES (%s, 'Guatemala', 'Guatemala', '1', 'Dirección de prueba')",
-                (id_usuario,),
-            )
-            ids.append(id_usuario)
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return ids
+        with db.connection.db_cursor(dictionary=False) as (conn, cursor):
+            ids = []
+            for numero in range(cantidad):
+                id_usuario = _insertar(
+                    cursor,
+                    "INSERT INTO usuario (nombre, correo, password, telefono, rol) VALUES (%s, %s, 'x', %s, 'donante')",
+                    (f"Donante {numero + 1}", f"donante{uuid.uuid4().hex[:8]}@concurrencia.test", f"3333{uuid.uuid4().int % 10000:04d}"),
+                )
+                cursor.execute(
+                    "INSERT INTO donante (id_usuario, departamento, municipio, zona, direccion_detalle) "
+                    "VALUES (%s, 'Guatemala', 'Guatemala', '1', 'Dirección de prueba')",
+                    (id_usuario,),
+                )
+                ids.append(id_usuario)
+            conn.commit()
+            return ids
 
     return crear
 
@@ -211,12 +174,8 @@ def donar_en_paralelo(base_aislada, monkeypatch):
 @pytest.fixture
 def consultar(base_aislada):
     def consultar(sql, params=()):
-        conn = db.connection.get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute(sql, params)
-        filas = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return filas
+        with db.connection.db_cursor() as (_, cursor):
+            cursor.execute(sql, params)
+            return cursor.fetchall()
 
     return consultar
