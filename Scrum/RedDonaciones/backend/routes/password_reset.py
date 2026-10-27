@@ -110,8 +110,13 @@ Elegir una nueva contraseña</a></p>
 
 @password_reset_bp.route("/password/olvide", methods=["POST"])
 def solicitar_restablecimiento():
-    data = request.get_json(silent=True) or {}
-    correo = (data.get("correo") or "").strip().lower()
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"error": "Los datos deben ser un objeto JSON"}), 400
+    correo = data.get("correo", "")
+    if not isinstance(correo, str):
+        return jsonify({"error": "El correo debe ser texto"}), 400
+    correo = correo.strip().lower()
 
     if not correo:
         return jsonify({"error": "El correo es obligatorio"}), 400
@@ -186,7 +191,9 @@ def solicitar_restablecimiento():
 
 @password_reset_bp.route("/password/restablecer", methods=["POST"])
 def restablecer_password():
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"error": "Los datos deben ser un objeto JSON"}), 400
     password = data.get("password")
 
     try:
