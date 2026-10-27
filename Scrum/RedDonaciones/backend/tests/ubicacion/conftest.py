@@ -206,7 +206,7 @@ class BaseDatosFalsa:
             fila = self.publicaciones.get(params[0])
             if fila is None or (len(params) > 1 and fila["id_organizacion"] != params[1]):
                 return []
-            return [{"id_publicacion": fila["id_publicacion"], "id_organizacion": fila["id_organizacion"]}]
+            return [{"id_publicacion": fila["id_publicacion"], "id_organizacion": fila["id_organizacion"], "cantidad_recibida": fila["cantidad_recibida"]}]
         return [dict(p) for p in self.publicaciones.values() if p["id_organizacion"] == params[0]]
 
     def _consultar_campanas(self, sql, params):
@@ -215,13 +215,20 @@ class BaseDatosFalsa:
             campanas = [p for p in campanas if p["id_publicacion"] == params[0]]
         elif "WHERE p.id_organizacion = %s" in sql:
             campanas = [p for p in campanas if p["id_organizacion"] == params[0]]
-        return [self._fila_campana(p, resolver="COALESCE(p.latitud" in sql) for p in campanas]
+        return [self._fila_campana(p, resolver="THEN o.latitud" in sql) for p in campanas]
 
     def _fila_campana(self, p, resolver):
         o = self.organizaciones[p["id_organizacion"]]
 
         def valor(propio, heredado):
             if not resolver or p[propio] is not None:
+                return p[propio]
+            return o[heredado]
+
+        # Las coordenadas se heredan junto con el resto de la direccion, no de forma
+        # independiente: una campaña con direccion propia nunca toma las de la organizacion.
+        def valor_coordenada(propio, heredado):
+            if not resolver or p["departamento"] is not None:
                 return p[propio]
             return o[heredado]
 
@@ -240,8 +247,8 @@ class BaseDatosFalsa:
             "municipio": valor("municipio", "municipio"),
             "zona": valor("zona", "zona"),
             "direccion_detalle": valor("direccion_detalle", "direccion"),
-            "latitud": valor("latitud", "latitud"),
-            "longitud": valor("longitud", "longitud"),
+            "latitud": valor_coordenada("latitud", "latitud"),
+            "longitud": valor_coordenada("longitud", "longitud"),
             "ubicacion_heredada": int(p["departamento"] is None),
             "organizacion": o["nombre"],
             "direccion": o["direccion"],

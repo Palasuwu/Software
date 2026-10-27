@@ -76,7 +76,9 @@ def test_con_ubicacion_propia_la_consulta_devuelve_la_de_la_campana(client, bd, 
     assert (campana["latitud"], campana["longitud"]) == (14.64, -90.56)
 
 
-def test_ubicacion_propia_sin_coordenadas_usa_las_de_la_organizacion(client, bd, intermediario):
+def test_ubicacion_propia_sin_coordenadas_no_usa_las_de_la_organizacion(client, bd, intermediario):
+    # La campaña tiene su propia direccion (Mixco) pero no coordenadas: el pin no debe
+    # saltar a las coordenadas de la organizacion, que corresponden a otra direccion.
     datos = {**UBICACION_PROPIA, "latitud": "", "longitud": ""}
     client.post("/intermediario/publicaciones", json={**CAMPANA, **datos}, headers=intermediario)
     id_publicacion = bd.escrituras_en("publicacion")[0]["id_publicacion"]
@@ -85,7 +87,7 @@ def test_ubicacion_propia_sin_coordenadas_usa_las_de_la_organizacion(client, bd,
 
     assert campana["ubicacion_heredada"] is False
     assert campana["municipio"] == "Mixco"
-    assert (campana["latitud"], campana["longitud"]) == (14.6, -90.5)
+    assert (campana["latitud"], campana["longitud"]) == (None, None)
 
 
 @pytest.mark.parametrize("cambios", [

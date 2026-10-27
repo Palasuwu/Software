@@ -95,8 +95,10 @@ def listar_publicaciones():
                     COALESCE(p.municipio, o.municipio) AS municipio,
                     COALESCE(p.zona, o.zona) AS zona,
                     COALESCE(p.direccion_detalle, o.direccion) AS direccion_detalle,
-                    COALESCE(p.latitud, o.latitud) AS latitud,
-                    COALESCE(p.longitud, o.longitud) AS longitud,
+                    -- Las coordenadas solo se heredan junto con el resto de la direccion:
+                    -- una campaña con direccion propia nunca debe tomar prestadas las de la organizacion.
+                    CASE WHEN p.departamento IS NULL THEN o.latitud ELSE p.latitud END AS latitud,
+                    CASE WHEN p.departamento IS NULL THEN o.longitud ELSE p.longitud END AS longitud,
                     (p.departamento IS NULL) AS ubicacion_heredada,
                     o.nombre AS organizacion,
                     o.direccion AS direccion,
@@ -323,8 +325,9 @@ def obtener_publicacion(id_publicacion):
                     COALESCE(p.municipio, o.municipio) AS municipio,
                     COALESCE(p.zona, o.zona) AS zona,
                     COALESCE(p.direccion_detalle, o.direccion) AS direccion_detalle,
-                    COALESCE(p.latitud, o.latitud) AS latitud,
-                    COALESCE(p.longitud, o.longitud) AS longitud,
+                    -- Las coordenadas solo se heredan junto con el resto de la direccion
+                    CASE WHEN p.departamento IS NULL THEN o.latitud ELSE p.latitud END AS latitud,
+                    CASE WHEN p.departamento IS NULL THEN o.longitud ELSE p.longitud END AS longitud,
                     (p.departamento IS NULL) AS ubicacion_heredada,
                     DATE_FORMAT(
                         p.fecha_publicacion,
