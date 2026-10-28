@@ -112,8 +112,13 @@ export default function AdminReportes() {
 
         try {
             const filas = []
+            const ids = new Set()
             let paginaActual = 1
             let totalPaginas = 1
+            let totalInicial = null
+            // Si alguien registra o cambia una donacion mientras se recorren las paginas,
+            // el total cambia o se repiten filas: se avisa en vez de descargar un archivo incompleto.
+            const datosCambiaron = new Error('Los datos cambiaron mientras se exportaba. Vuelve a intentarlo.')
 
             do {
                 const query = construirQuery(filtrosAplicados, {
@@ -121,10 +126,18 @@ export default function AdminReportes() {
                     page_size: TAMANO_PAGINA_MAXIMO
                 })
                 const lote = await apiGet(`/api/reportes/detalle?${query}`)
-                filas.push(...(lote.items || []))
+                if (paginaActual === 1) totalInicial = lote.total ?? null
+                if (totalInicial !== null && lote.total !== totalInicial) throw datosCambiaron
+                for (const fila of lote.items || []) {
+                    if (ids.has(fila.id_donacion)) throw datosCambiaron
+                    ids.add(fila.id_donacion)
+                    filas.push(fila)
+                }
                 totalPaginas = lote.total_paginas || 1
                 paginaActual += 1
             } while (paginaActual <= totalPaginas)
+
+            if (totalInicial !== null && filas.length !== totalInicial) throw datosCambiaron
 
             if (filas.length === 0) {
                 setAvisoExport('No hay donaciones que coincidan con los filtros')

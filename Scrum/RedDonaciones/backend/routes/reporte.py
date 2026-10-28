@@ -1,5 +1,6 @@
 # Endpoints de reportes/estadisticas: solo administrador e intermediario.
 import logging
+from datetime import datetime
 
 from flask import Blueprint, jsonify, request
 from auth_utils import (
@@ -53,6 +54,11 @@ def _leer_filtros_fecha():
         return None, None, (jsonify({"error": "fecha_inicio debe tener formato YYYY-MM-DD"}), 400)
     if fecha_fin and not validar_fecha_yyyy_mm_dd(fecha_fin):
         return None, None, (jsonify({"error": "fecha_fin debe tener formato YYYY-MM-DD"}), 400)
+    # Se pasan a AAAA-MM-DD: "2019-9-1" y "2019-10-1" comparados como texto quedaban al revés.
+    if fecha_inicio:
+        fecha_inicio = datetime.strptime(fecha_inicio, "%Y-%m-%d").date().isoformat()
+    if fecha_fin:
+        fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date().isoformat()
     if fecha_inicio and fecha_fin and fecha_fin < fecha_inicio:
         return None, None, (jsonify({"error": "fecha_fin no puede ser anterior a fecha_inicio"}), 400)
 

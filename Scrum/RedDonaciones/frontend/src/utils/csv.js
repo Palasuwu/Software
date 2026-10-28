@@ -2,10 +2,11 @@
 // los reportes ya vienen del backend y aqui solo se serializan y descargan.
 
 // Escapa segun RFC 4180: entrecomilla si hay separador, comillas o saltos de
-// linea, y duplica las comillas internas.
+// linea, y duplica las comillas internas. Un texto que empieza con =, +, -, @
+// (o tabulador/retorno) Excel lo abre como formula, asi que se le antepone '.
 function escaparCampo(valor) {
     if (valor === null || valor === undefined) return ''
-    const texto = String(valor)
+    const texto = typeof valor === 'string' && /^[=+\-@\t\r]/.test(valor) ? `'${valor}` : String(valor)
     return /[",;\n\r]/.test(texto) ? `"${texto.replace(/"/g, '""')}"` : texto
 }
 
