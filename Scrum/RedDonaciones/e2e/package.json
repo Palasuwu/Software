@@ -1,0 +1,17 @@
+{
+  "name": "reddonaciones-e2e",
+  "private": true,
+  "type": "commonjs",
+  "description": "Recorridos de usabilidad y compatibilidad en navegadores reales",
+  "scripts": {
+    "instalar-navegadores": "playwright install chromium firefox webkit",
+    "test": "playwright test",
+    "test:escritorio": "playwright test --project=chromium --project=firefox --project=webkit --project=edge --project=chrome",
+    "test:tablet": "playwright test --project=ipad",
+    "test:rapido": "playwright test --project=chromium",
+    "reporte": "playwright show-report reporte"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}
