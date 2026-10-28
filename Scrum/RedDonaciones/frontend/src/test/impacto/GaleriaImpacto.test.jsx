@@ -1,12 +1,12 @@
 import React from 'react'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import GaleriaImpacto from '../../components/GaleriaImpacto'
-import { apiGet } from '../../utils/api'
+import { apiGet, apiFetch } from '../../utils/api'
 
 const vista = vi.hoisted(() => ({ enVista: true, reducir: false }))
 
-vi.mock('../../utils/api', () => ({ apiGet: vi.fn() }))
+vi.mock('../../utils/api', () => ({ apiGet: vi.fn(), apiFetch: vi.fn() }))
 vi.mock('framer-motion', async (importOriginal) => ({
   ...(await importOriginal()),
   useInView: () => vista.enVista,
@@ -23,16 +23,21 @@ const contador = () => document.querySelector('.gi-conteo').textContent.replace(
 describe('GaleriaImpacto', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    apiFetch.mockImplementation(async () => new Response(new Blob(['imagen'])))
+    vi.stubGlobal('URL', class extends URL {})
+    URL.createObjectURL = vi.fn().mockReturnValue('blob:carrusel')
+    URL.revokeObjectURL = vi.fn()
     vista.enVista = true
     vista.reducir = false
   })
 
-  afterEach(() => vi.useRealTimers())
+  afterEach(() => { cleanup(); vi.useRealTimers(); vi.unstubAllGlobals() })
 
   it('usa las imágenes configuradas por el administrador', async () => {
     apiGet.mockResolvedValue(DESDE_API)
     render(<GaleriaImpacto />)
-    expect(await screen.findByAltText('Entrega en Mixco')).toHaveAttribute('src', '/api/uploads/a.jpg')
+    await waitFor(() => expect(screen.getByAltText('Entrega en Mixco')).toHaveAttribute('src', 'blob:carrusel'))
+    expect(apiFetch).toHaveBeenCalledWith('/api/uploads/a.jpg', expect.objectContaining({ redirect: 'error', cache: 'no-store' }))
     expect(apiGet).toHaveBeenCalledWith('/api/carrusel')
     expect(screen.getAllByRole('tab')).toHaveLength(2)
     expect(contador()).toBe('01/02')

@@ -4,6 +4,7 @@ import pytest
 from PIL import Image
 from auth_utils import generate_token
 from routes import upload
+from tests.helpers import crear_conexion_mock
 
 SECRET = "test-subida-imagenes-con-al-menos-32-bytes"
 
@@ -11,11 +12,14 @@ SECRET = "test-subida-imagenes-con-al-menos-32-bytes"
 @pytest.fixture
 def carpeta(tmp_path, monkeypatch):
     monkeypatch.setattr(upload, "UPLOAD_FOLDER", str(tmp_path))
+    monkeypatch.setattr(upload, "get_db_connection", lambda: crear_conexion_mock(resultado_fetchall=[]))
     return tmp_path
 
 
 def headers(monkeypatch, rol):
     monkeypatch.setenv("JWT_SECRET_KEY", SECRET)
+    monkeypatch.setattr("routes.upload._obtener_organizacion_actual_intermediario", lambda _: 1)
+    monkeypatch.setattr("routes.upload._organizacion_verificada", lambda _: True)
     monkeypatch.setattr("auth_utils._obtener_usuario_actual", lambda uid: {"id_usuario": uid, "rol": rol, "activo": 1})
     return {"Authorization": f"Bearer {generate_token(5, rol)}"}
 
@@ -90,7 +94,9 @@ def test_archivos_invalidos_se_rechazan_sin_guardar(client, carpeta, monkeypatch
 
 def test_imagen_subida_se_puede_consultar(client, carpeta, monkeypatch):
     url = client.post("/upload", headers=headers(monkeypatch, "administrador"), data={"file": (imagen(), "a.png")}).get_json()["url"]
-    response = client.get(url.replace("/api", "", 1))
+    # Un upload aún sin asociar solo puede ser consultado por administrador.
+    assert client.get(url.replace("/api", "", 1)).status_code == 404
+    response = client.get(url.replace("/api", "", 1), headers=headers(monkeypatch, "administrador"))
     assert response.status_code == 200
     assert response.mimetype == "image/jpeg"
 

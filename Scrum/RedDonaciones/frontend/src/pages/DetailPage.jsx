@@ -1,3 +1,4 @@
+import ImagenInstitucional from '../components/ImagenInstitucional'
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
@@ -209,7 +210,7 @@ export default function DetailPage() {
 
           {/* Imagen de la campaña */}
           <div className="dp-cover-wrap">
-            <img
+            <ImagenInstitucional
               className="dp-cover-image"
               src={info.imagen_url || defaultImg}
               alt={info.titulo}
@@ -294,7 +295,7 @@ export default function DetailPage() {
               <span className="dp-results-kicker">Campaña finalizada</span>
               <h2>El impacto que logramos juntos</h2>
               {info.resultado_imagen_url && (
-                <img src={info.resultado_imagen_url} alt={`Resultados de ${info.titulo}`} />
+                <ImagenInstitucional src={info.resultado_imagen_url} alt={`Resultados de ${info.titulo}`} />
               )}
               {info.resultado_resumen ? (
                 <>

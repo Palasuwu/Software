@@ -5,7 +5,7 @@ from flask import Blueprint, jsonify, request
 from auth_utils import (
     token_required,
     _obtener_organizacion_actual_intermediario,
-    _organizacion_verificada,
+    _organizacion_permite_lectura,
 )
 from db.connection import db_cursor, get_db_connection
 from services.publicacion_service import validar_fecha_yyyy_mm_dd
@@ -98,8 +98,8 @@ def _resolver_alcance_organizacion():
     if request.usuario_rol == "intermediario":
         id_organizacion = _obtener_organizacion_actual_intermediario(request.usuario_id)
         if id_organizacion is None:
-            return None, (jsonify({"error": "El usuario no esta asociado a una organización"}), 403)
-        if not _organizacion_verificada(id_organizacion):
+            return None, (jsonify({"error": "El usuario no está asociado a una organización"}), 403)
+        if not _organizacion_permite_lectura(id_organizacion):
             return None, (jsonify({"error": "La organización no está verificada"}), 403)
         return id_organizacion, None
 

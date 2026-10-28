@@ -1,3 +1,4 @@
+import ImagenInstitucional from '../../components/ImagenInstitucional'
 // Modal de crear/editar publicacion del panel de organizacion.
 // No reusa components/admin/AdminModal a proposito: el modal original de este
 // panel no tiene boton de cerrar ("x"), a diferencia de AdminModal que
@@ -143,7 +144,7 @@ export default function OrgaCampaignFormModal({
                                 )}
 
                                 {imagePreview && !uploadingImage && (
-                                    <img
+                                    <ImagenInstitucional
                                         src={imagePreview}
                                         alt="Vista previa"
                                         style={{ marginTop: '8px', maxHeight: '120px', borderRadius: '6px', objectFit: 'cover' }}

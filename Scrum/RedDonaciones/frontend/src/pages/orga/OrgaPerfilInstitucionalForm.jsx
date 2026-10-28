@@ -1,3 +1,4 @@
+import ImagenInstitucional, { useLiberarPreview } from '../../components/ImagenInstitucional'
 // Formulario del perfil institucional (quienes somos / que hacemos / como
 // trabajamos / donde trabajamos) de la organizacion del intermediario.
 // Autocontenido: carga y guarda su propio estado, igual que PerfilPage.
@@ -80,6 +81,9 @@ export default function OrgaPerfilInstitucionalForm() {
         cargarPerfil()
     }, [cargarPerfil])
 
+    useLiberarPreview(logoPreview)
+    useLiberarPreview(portadaPreview)
+
     const handleChange = (event) => {
         const { name, value } = event.target
         setForm((previous) => ({ ...previous, [name]: value }))
@@ -102,12 +106,12 @@ export default function OrgaPerfilInstitucionalForm() {
             return
         }
 
+        setLogoPreview(URL.createObjectURL(file))
         setUploadingLogo(true)
         setSaveError('')
         try {
             const { url } = await apiUpload(file)
             setForm((previous) => ({ ...previous, url_logo: url }))
-            setLogoPreview(url)
         } catch (error) {
             setSaveError(error.message || 'No se pudo subir el logo')
         } finally {
@@ -125,12 +129,12 @@ export default function OrgaPerfilInstitucionalForm() {
             return
         }
 
+        setPortadaPreview(URL.createObjectURL(file))
         setUploadingPortada(true)
         setSaveError('')
         try {
             const { url } = await apiUpload(file)
             setForm((previous) => ({ ...previous, imagen_portada: url }))
-            setPortadaPreview(url)
         } catch (error) {
             setSaveError(error.message || 'No se pudo subir la portada')
         } finally {
@@ -152,6 +156,8 @@ export default function OrgaPerfilInstitucionalForm() {
 
         try {
             await apiPut('/api/intermediario/organizacion', { ...form, ...buildCoordinatesPayload(form) })
+            setLogoPreview(form.url_logo || null)
+            setPortadaPreview(form.imagen_portada || null)
             setSaveSuccess('Perfil institucional actualizado')
         } catch (error) {
             const camposInvalidos = error.body?.campos
@@ -209,7 +215,7 @@ export default function OrgaPerfilInstitucionalForm() {
                 />
                 {uploadingLogo && <span className="form-error-text form-uploading-text">Subiendo logo...</span>}
                 {logoPreview && !uploadingLogo && (
-                    <img src={logoPreview} alt="Vista previa del logo" style={{ marginTop: '8px', maxHeight: '80px', borderRadius: '999px', objectFit: 'cover' }} />
+                    <ImagenInstitucional src={logoPreview} alt="Vista previa del logo" style={{ marginTop: '8px', maxHeight: '80px', borderRadius: '999px', objectFit: 'cover' }} />
                 )}
             </div>
 
@@ -224,7 +230,7 @@ export default function OrgaPerfilInstitucionalForm() {
                 />
                 {uploadingPortada && <span className="form-error-text form-uploading-text">Subiendo portada...</span>}
                 {portadaPreview && !uploadingPortada && (
-                    <img src={portadaPreview} alt="Vista previa de la portada" style={{ marginTop: '8px', maxHeight: '120px', borderRadius: '6px', objectFit: 'cover' }} />
+                    <ImagenInstitucional src={portadaPreview} alt="Vista previa de la portada" style={{ marginTop: '8px', maxHeight: '120px', borderRadius: '6px', objectFit: 'cover' }} />
                 )}
             </div>
 

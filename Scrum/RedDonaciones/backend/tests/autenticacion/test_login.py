@@ -59,7 +59,7 @@ def crear_conexion_mock(usuario_mock):
 
 def test_login_exitoso(client, monkeypatch):
 
-    os.environ["JWT_SECRET_KEY"] = "test-secret"
+    monkeypatch.setenv("JWT_SECRET_KEY", "test-secret")
 
     usuario_mock = {
         "id_usuario": 1,

@@ -206,7 +206,7 @@ class BaseDatosFalsa:
             fila = self.publicaciones.get(params[0])
             if fila is None or (len(params) > 1 and fila["id_organizacion"] != params[1]):
                 return []
-            return [{"id_publicacion": fila["id_publicacion"], "id_organizacion": fila["id_organizacion"]}]
+            return [{"id_publicacion": fila["id_publicacion"], "id_organizacion": fila["id_organizacion"], "cantidad_recibida": fila["cantidad_recibida"]}]
         return [dict(p) for p in self.publicaciones.values() if p["id_organizacion"] == params[0]]
 
     def _consultar_campanas(self, sql, params):
@@ -215,10 +215,12 @@ class BaseDatosFalsa:
             campanas = [p for p in campanas if p["id_publicacion"] == params[0]]
         elif "WHERE p.id_organizacion = %s" in sql:
             campanas = [p for p in campanas if p["id_organizacion"] == params[0]]
+        if "o.estado_verificacion = 'verificada'" in sql:
+            campanas = [p for p in campanas if self.organizaciones[p["id_organizacion"]]["estado_verificacion"] == "verificada"]
         return [
             self._fila_campana(
                 p,
-                resolver="COALESCE(p.latitud" in sql,
+                resolver="THEN o.latitud" in sql,
                 incluir_autorizacion=(
                     "p.id_organizacion, o.estado_verificacion" in sql
                 ),
@@ -231,6 +233,13 @@ class BaseDatosFalsa:
 
         def valor(propio, heredado):
             if not resolver or p[propio] is not None:
+                return p[propio]
+            return o[heredado]
+
+        # Las coordenadas se heredan junto con el resto de la direccion, no de forma
+        # independiente: una campaña con direccion propia nunca toma las de la organizacion.
+        def valor_coordenada(propio, heredado):
+            if not resolver or p["departamento"] is not None:
                 return p[propio]
             return o[heredado]
 
@@ -249,8 +258,8 @@ class BaseDatosFalsa:
             "municipio": valor("municipio", "municipio"),
             "zona": valor("zona", "zona"),
             "direccion_detalle": valor("direccion_detalle", "direccion"),
-            "latitud": valor("latitud", "latitud"),
-            "longitud": valor("longitud", "longitud"),
+            "latitud": valor_coordenada("latitud", "latitud"),
+            "longitud": valor_coordenada("longitud", "longitud"),
             "ubicacion_heredada": int(p["departamento"] is None),
             "organizacion": o["nombre"],
             "direccion": o["direccion"],
@@ -269,20 +278,21 @@ class BaseDatosFalsa:
 @pytest.fixture
 def bd(monkeypatch):
     base = BaseDatosFalsa()
-    for modulo in ("db.connection", "routes.organizacion", "routes.publicacion", "routes.intermediario"):
+    for modulo in ("auth_utils", "db.connection", "routes.organizacion", "routes.publicacion", "routes.intermediario"):
         monkeypatch.setattr(f"{modulo}.get_db_connection", base.conectar)
     return base
 
 
 @pytest.fixture
-def sesion(monkeypatch):
+def sesion(monkeypatch, bd):
     monkeypatch.setenv("JWT_SECRET_KEY", SECRET)
 
     def iniciar(rol, id_usuario=10, id_organizacion=None, organizacion_verificada=True):
         usuario = {"id_usuario": id_usuario, "rol": rol, "activo": 1}
         monkeypatch.setattr("auth_utils._obtener_usuario_actual", lambda _: usuario)
         monkeypatch.setattr("auth_utils._obtener_organizacion_actual_intermediario", lambda _: id_organizacion)
-        monkeypatch.setattr("auth_utils._organizacion_verificada", lambda _: organizacion_verificada)
+        if id_organizacion in bd.organizaciones and not organizacion_verificada:
+            bd.organizaciones[id_organizacion]["estado_verificacion"] = "pendiente"
         token = generate_token(id_usuario, rol, id_organizacion)
         return {"Authorization": f"Bearer {token}"}
 

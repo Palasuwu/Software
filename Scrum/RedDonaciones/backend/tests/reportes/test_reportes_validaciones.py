@@ -28,7 +28,7 @@ def test_intermediario_sin_organizacion_no_puede_ver_reportes(client, sesion, ru
     response = client.get(ruta, headers=headers)
 
     assert response.status_code == 403
-    assert response.get_json()["error"] == "El usuario no esta asociado a una organización"
+    assert response.get_json()["error"] == "El usuario no está asociado a una organización"
 
 
 @pytest.mark.parametrize("ruta", RUTAS)

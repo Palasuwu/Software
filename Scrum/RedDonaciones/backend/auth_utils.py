@@ -100,7 +100,7 @@ def _obtener_usuario_actual(id_usuario):
             conn.close()
 
 
-def _organizacion_verificada(id_organizacion):
+def _organizacion_en_estados(id_organizacion, estados):
     conn = None
     cursor = None
 
@@ -118,13 +118,46 @@ def _organizacion_verificada(id_organizacion):
         organizacion = cursor.fetchone()
         return bool(
             organizacion
-            and organizacion["estado_verificacion"] == "verificada"
+            and organizacion["estado_verificacion"] in estados
         )
     finally:
         if cursor:
             cursor.close()
         if conn:
             conn.close()
+
+def _organizacion_verificada(id_organizacion):
+    return _organizacion_en_estados(id_organizacion, ("verificada",))
+
+
+def _organizacion_permite_lectura(id_organizacion):
+    return _organizacion_en_estados(id_organizacion, ("verificada", "archivada"))
+
+
+def autorizar_lectura_institucional(cursor, id_organizacion, estado, mensaje):
+    """Autoriza un recurso no público; no concede permisos de escritura."""
+    no_encontrado = (jsonify({"error": mensaje}), 404)
+    if not request.headers.get("Authorization"):
+        return no_encontrado
+    _, error = _autenticar_request()
+    if error:
+        return error
+    if request.usuario_rol == "administrador":
+        return None
+    if request.usuario_rol != "intermediario" or estado not in ("verificada", "archivada"):
+        return no_encontrado
+    cursor.execute(
+        """
+        SELECT 1
+        FROM intermediario i
+        INNER JOIN organizacion o ON o.id_organizacion = i.id_organizacion
+        WHERE i.id_usuario = %s AND i.id_organizacion = %s
+          AND o.estado_verificacion IN ('verificada', 'archivada')
+        """,
+        (request.usuario_id, id_organizacion),
+    )
+    return None if cursor.fetchone() else no_encontrado
+
 
 # Valida el JWT y coloca en request únicamente la información de identidad/autorización base
 # id_organizacion puede venir en el JWT por compatibilidad, pero no debe considerarse información actual de la BD
@@ -243,6 +276,27 @@ def token_required(f):
     return decorated
 
 
+def intermediario_lectura_required(f):
+    """Lectura operativa de la organización actual, verificada o archivada."""
+    @wraps(f)
+    @token_required
+    def decorated(*args, **kwargs):
+        if request.usuario_rol != "intermediario":
+            return jsonify({"error": "Acceso denegado"}), 403
+        try:
+            id_organizacion = _obtener_organizacion_actual_intermediario(request.usuario_id)
+            if id_organizacion is None:
+                return jsonify({"error": "El usuario no está asociado a una organización"}), 403
+            if not _organizacion_permite_lectura(id_organizacion):
+                return jsonify({"error": "La organización no está verificada"}), 403
+        except Exception:
+            logging.exception("Error al consultar la organización actual del intermediario")
+            return jsonify({"error": "No se pudo validar la organización del intermediario"}), 500
+        request.id_organizacion = id_organizacion
+        return f(*args, **kwargs)
+    return decorated
+
+
 def validar_admin_request():
     """Valida que la petición actual pertenezca a un administrador activo."""
     _, error_response = _autenticar_request()
@@ -341,5 +395,3 @@ def intermediario_required(f):
         return f(*args, **kwargs)
 
     return decorated
-
-    

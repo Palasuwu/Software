@@ -1,3 +1,4 @@
+import ImagenInstitucional from '../../components/ImagenInstitucional'
 import React from 'react'
 
 export default function OrgaCampaignResultModal({ publicacion, form, onChange, onImageChange, imagePreview, uploadingImage, onSubmit, onClose, saving, error }) {
@@ -54,7 +55,7 @@ export default function OrgaCampaignResultModal({ publicacion, form, onChange, o
                                     </span>
                                 )}
                                 {imagePreview && (
-                                    <img
+                                    <ImagenInstitucional
                                         src={imagePreview}
                                         alt="Vista previa de resultados"
                                         style={{ marginTop: '8px', maxHeight: '120px', borderRadius: '6px', objectFit: 'cover' }}

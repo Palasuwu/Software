@@ -6,6 +6,7 @@ on:
       - "Scrum/RedDonaciones/backend/**"
       - "Scrum/RedDonaciones/frontend/**"
       - "Scrum/RedDonaciones/db/**"
+      - "Scrum/RedDonaciones/scripts/**"
       - ".github/workflows/pruebas-automatizadas.yml"
   pull_request:
     branches: [main]
@@ -23,6 +24,7 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: donaciones
+          MYSQL_ROOT_HOST: "%"
         ports:
           - 3306:3306
         options: >-
@@ -32,10 +34,12 @@ jobs:
           --health-retries=20
 
     env:
-      DB_HOST: 127.0.0.1
-      DB_USER: root
-      DB_PASSWORD: root
-      DB_NAME: donaciones
+      TEST_DB_HOST: 127.0.0.1
+      TEST_DB_PORT: "3306"
+      SPRINT9_MYSQL_INTEGRATION: "1"
+      TEST_DB_USER: root
+      TEST_DB_PASSWORD: root
+      TEST_DB_NAME: donaciones
       JWT_SECRET_KEY: ci-secret-key-with-at-least-32-bytes
       ID_ORGANIZACION_PRINCIPAL: "1"
 
@@ -59,8 +63,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt pytest-html
 
-      - name: Cargar el esquema de la base de datos (db/init.sql)
-        run: mysql -h 127.0.0.1 -uroot -proot donaciones < ../db/init.sql
+      - name: Preparar esquema vacío e identidad del servicio efímero
+        env:
+          TEST_MYSQL_CONTAINER: ${{ job.services.mysql.id }}
+        run: python ../scripts/prepare_ci_mysql.py
 
       - name: Preparar carpeta de uploads
         # routes/upload.py crea /app/uploads al importarse (ruta del contenedor Docker).
@@ -69,7 +75,7 @@ jobs:
       - name: Pruebas de integración (API + MySQL)
         id: integracion
         run: >-
-          pytest -m integracion tests/automatizadas -v
+          pytest --mysql -m integracion tests/automatizadas -v
           --junitxml=reportes/integracion.xml
           --html=reportes/integracion.html --self-contained-html
 
@@ -77,13 +83,13 @@ jobs:
         id: regresion
         if: success() || steps.integracion.conclusion == 'failure'
         run: >-
-          pytest -m regresion tests/automatizadas -v
+          pytest --mysql -m regresion tests/automatizadas -v
           --junitxml=reportes/regresion.xml
           --html=reportes/regresion.html --self-contained-html
 
       - name: Pruebas generales del backend
         run: >-
-          pytest tests -v
+          pytest --mysql tests -v
           --ignore=tests/automatizadas
           --ignore=tests/rendimiento
           --junitxml=reportes/backend-general.xml

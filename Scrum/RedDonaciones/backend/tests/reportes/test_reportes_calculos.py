@@ -5,8 +5,8 @@ ESTADOS = ["pendiente", "recibida", "en_proceso", "entregada", "rechazada"]
 
 
 @pytest.fixture
-def admin(sesion):
-    return sesion("administrador", id_usuario=1)
+def admin(datos_reportes):
+    return datos_reportes["admin_headers"]
 
 
 def por_estado(body):
@@ -20,14 +20,14 @@ def por_campana(body):
 def resumen(client, headers, **filtros):
     query = "&".join(f"{clave}={valor}" for clave, valor in filtros.items())
     response = client.get(f"/reportes/resumen?{query}", headers=headers)
-    assert response.status_code == 200
+    assert response.status_code == 200, response.get_json()
     return response.get_json()
 
 
 def detalle(client, headers, **filtros):
     query = "&".join(f"{clave}={valor}" for clave, valor in filtros.items())
     response = client.get(f"/reportes/detalle?{query}", headers=headers)
-    assert response.status_code == 200
+    assert response.status_code == 200, response.get_json()
     return response.get_json()
 
 
@@ -196,11 +196,11 @@ def test_rango_sin_donaciones_devuelve_ceros(client, admin, datos_reportes):
     assert lista == {"items": [], "total": 0, "page": 1, "page_size": 20, "total_paginas": 0}
 
 
-def test_intermediario_solo_ve_su_organizacion(client, sesion, datos_reportes):
+def test_intermediario_solo_ve_su_organizacion(client, datos_reportes):
     org_a = datos_reportes["organizaciones"]["A"]
     org_b = datos_reportes["organizaciones"]["B"]
     campanas = datos_reportes["campanas"]
-    headers = sesion("intermediario", id_usuario=20, id_organizacion=org_a)
+    headers = datos_reportes["intermediario_headers"]["A"]
 
     body = resumen(client, headers, id_organizacion=org_b)
     lista = detalle(client, headers, id_organizacion=org_b, page_size=100)
@@ -210,8 +210,8 @@ def test_intermediario_solo_ve_su_organizacion(client, sesion, datos_reportes):
     assert {fila["id_publicacion"] for fila in lista["items"]} == {campanas["A1"]}
 
 
-def test_intermediario_no_ve_campanas_ajenas_aunque_las_pida(client, sesion, datos_reportes):
-    headers = sesion("intermediario", id_usuario=20, id_organizacion=datos_reportes["organizaciones"]["A"])
+def test_intermediario_no_ve_campanas_ajenas_aunque_las_pida(client, datos_reportes):
+    headers = datos_reportes["intermediario_headers"]["A"]
 
     body = detalle(client, headers, id_publicacion=datos_reportes["campanas"]["B1"])
 

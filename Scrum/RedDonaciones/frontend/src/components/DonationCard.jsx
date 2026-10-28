@@ -1,3 +1,4 @@
+import ImagenInstitucional from './ImagenInstitucional'
 import React from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
@@ -22,7 +23,7 @@ export default function DonationCard({ org, index = 0 }) {
       onClick={() => navigate(`/detalle/${org.id}`)}
     >
       <div className="campaign-image-wrap">
-        <img
+        <ImagenInstitucional
           className="campaign-image"
           src={org.imagen}
           alt={org.title}

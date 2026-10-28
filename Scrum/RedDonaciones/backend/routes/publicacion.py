@@ -2,7 +2,7 @@
 import logging
 from flask import Blueprint, jsonify, request
 from auth_utils import (
-    _autenticar_request,
+    autorizar_lectura_institucional,
     admin_required,
     validar_admin_request,
 )
@@ -74,9 +74,6 @@ def listar_publicaciones():
                             AND (p.fecha_limite IS NULL OR p.fecha_limite >= CURDATE())
                         )
                     )
-                ) OR (
-                    o.estado_verificacion = 'archivada'
-                    AND COALESCE(p.estado, 'activa') = 'finalizada'
                 )
             """
 
@@ -99,8 +96,10 @@ def listar_publicaciones():
                     COALESCE(p.municipio, o.municipio) AS municipio,
                     COALESCE(p.zona, o.zona) AS zona,
                     COALESCE(p.direccion_detalle, o.direccion) AS direccion_detalle,
-                    COALESCE(p.latitud, o.latitud) AS latitud,
-                    COALESCE(p.longitud, o.longitud) AS longitud,
+                    -- Las coordenadas solo se heredan junto con el resto de la direccion:
+                    -- una campaña con direccion propia nunca debe tomar prestadas las de la organizacion.
+                    CASE WHEN p.departamento IS NULL THEN o.latitud ELSE p.latitud END AS latitud,
+                    CASE WHEN p.departamento IS NULL THEN o.longitud ELSE p.longitud END AS longitud,
                     (p.departamento IS NULL) AS ubicacion_heredada,
                     o.nombre AS organizacion,
                     o.direccion AS direccion,
@@ -329,8 +328,9 @@ def obtener_publicacion(id_publicacion):
                     COALESCE(p.municipio, o.municipio) AS municipio,
                     COALESCE(p.zona, o.zona) AS zona,
                     COALESCE(p.direccion_detalle, o.direccion) AS direccion_detalle,
-                    COALESCE(p.latitud, o.latitud) AS latitud,
-                    COALESCE(p.longitud, o.longitud) AS longitud,
+                    -- Las coordenadas solo se heredan junto con el resto de la direccion
+                    CASE WHEN p.departamento IS NULL THEN o.latitud ELSE p.latitud END AS latitud,
+                    CASE WHEN p.departamento IS NULL THEN o.longitud ELSE p.longitud END AS longitud,
                     (p.departamento IS NULL) AS ubicacion_heredada,
                     DATE_FORMAT(
                         p.fecha_publicacion,
@@ -372,47 +372,16 @@ def obtener_publicacion(id_publicacion):
                 }), 404
 
             es_publica = (
-                (
-                    publicacion["estado_verificacion"] == "verificada"
-                    and publicacion["estado"] in ("activa", "finalizada")
-                )
-                or (
-                    publicacion["estado_verificacion"] == "archivada"
-                    and publicacion["estado"] == "finalizada"
-                )
+                publicacion["estado_verificacion"] == "verificada"
+                and publicacion["estado"] in ("activa", "finalizada")
             )
             if not es_publica:
-                no_encontrada = (
-                    jsonify({"error": "Publicación no encontrada"}),
-                    404,
+                error = autorizar_lectura_institucional(
+                    cursor, publicacion["id_organizacion"],
+                    publicacion["estado_verificacion"], "Publicación no encontrada",
                 )
-                if not request.headers.get("Authorization"):
-                    return no_encontrada
-
-                _, error_autenticacion = _autenticar_request()
-                if error_autenticacion:
-                    return error_autenticacion
-
-                if request.usuario_rol == "intermediario":
-                    cursor.execute(
-                        """
-                        SELECT 1
-                        FROM intermediario i
-                        INNER JOIN organizacion o
-                            ON o.id_organizacion = i.id_organizacion
-                        WHERE i.id_usuario = %s
-                          AND i.id_organizacion = %s
-                          AND o.estado_verificacion = 'verificada'
-                        """,
-                        (
-                            request.usuario_id,
-                            publicacion["id_organizacion"],
-                        ),
-                    )
-                    if not cursor.fetchone():
-                        return no_encontrada
-                elif request.usuario_rol != "administrador":
-                    return no_encontrada
+                if error:
+                    return error
 
             # Obtener los artículos relacionados con la publicación.
             articulos_sql = """

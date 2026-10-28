@@ -1,49 +1,31 @@
 # Llena una base de datos temporal con muchas campañas y donaciones, mide los
 # tiempos de respuesta y la borra al terminar. Se ejecutan solo con RENDIMIENTO=1.
-import os
 import time
-import uuid
 
 import pytest
 
 import db.connection
+from tests.mysql_support import temporary_database
 from app import app
-from medicion import PLANES, RESULTADOS, SECRET, TABLAS, VOLUMENES, _poblar
+from medicion import PLANES, RESULTADOS, SECRET, VOLUMENES, _poblar
 
 
 @pytest.fixture(scope="module", params=list(VOLUMENES))
 def volumen(request):
-    nombre_real = os.getenv("DB_NAME")
-    nombre = f"{nombre_real}_rendimiento_{uuid.uuid4().hex[:8]}"
-    conn = db.connection.get_db_connection()
-    cursor = conn.cursor()
-
     with pytest.MonkeyPatch.context() as mp:
-        try:
-            cursor.execute(f"CREATE DATABASE `{nombre}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
-            for tabla in TABLAS:
-                cursor.execute(f"SHOW CREATE TABLE `{nombre_real}`.`{tabla}`")
-                definicion = cursor.fetchone()[1]
-                cursor.execute(f"USE `{nombre}`")
-                cursor.execute(definicion)
-
-            inicio = time.perf_counter()
-            datos = _poblar(cursor, **VOLUMENES[request.param])
-            conn.commit()
-            cursor.execute("ANALYZE TABLE publicación, donación")
-            cursor.fetchall()
-            cursor.execute(f"USE `{nombre_real}`")
-
-            mp.setenv("DB_NAME", nombre)
-            mp.setenv("JWT_SECRET_KEY", SECRET)
-            datos["nombre"] = request.param
-            datos["base"] = nombre
-            datos["segundos_carga"] = time.perf_counter() - inicio
-            yield datos
-        finally:
-            cursor.execute(f"DROP DATABASE IF EXISTS `{nombre}`")
-            cursor.close()
-            conn.close()
+        with temporary_database(mp, "rendimiento") as nombre:
+            with db.connection.db_cursor(dictionary=False) as (conn, cursor):
+                inicio = time.perf_counter()
+                datos = _poblar(cursor, **VOLUMENES[request.param])
+                conn.commit()
+                cursor.execute("ANALYZE TABLE publicacion, donacion")
+                cursor.fetchall()
+                mp.setenv("ID_ORGANIZACION_PRINCIPAL", str(datos["organizacion"]))
+                mp.setenv("JWT_SECRET_KEY", SECRET)
+                datos["nombre"] = request.param
+                datos["base"] = nombre
+                datos["segundos_carga"] = time.perf_counter() - inicio
+                yield datos
 
 
 @pytest.fixture

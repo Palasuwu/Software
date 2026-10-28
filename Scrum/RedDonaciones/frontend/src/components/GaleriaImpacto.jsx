@@ -1,3 +1,4 @@
+import ImagenInstitucional from './ImagenInstitucional'
 // Galeria de impacto del landing (antes "HorizontalCarousel", dentro de
 // LandingPage.jsx).
 //
@@ -33,7 +34,7 @@ function Diapositiva({ imagen, activa, indice }) {
             }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         >
-            <img src={imagen.src} alt={imagen.alt} loading={indice < 2 ? 'eager' : 'lazy'} draggable="false" />
+            <ImagenInstitucional src={imagen.src} alt={imagen.alt} loading={indice < 2 ? 'eager' : 'lazy'} draggable="false" />
         </motion.figure>
     )
 }

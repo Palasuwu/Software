@@ -2,8 +2,9 @@ import logging
 
 from flask import Blueprint, jsonify, request
 
-from auth_utils import token_required
+from auth_utils import token_required, autorizar_lectura_institucional
 from db.connection import db_cursor, get_db_connection
+from services.publicacion_service import organizacion_verificada
 from services.resultado_campana_service import (
     guardar_resultado_campana,
     obtener_resultado_campana,
@@ -28,7 +29,8 @@ def _puede_publicar_resultado(cursor, publicacion):
         """,
         (request.usuario_id, publicacion["id_organizacion"])
     )
-    return cursor.fetchone() is not None
+    pertenece = cursor.fetchone() is not None
+    return pertenece and organizacion_verificada(cursor, publicacion["id_organizacion"])
 
 
 @resultado_campana_bp.route(
@@ -38,6 +40,38 @@ def _puede_publicar_resultado(cursor, publicacion):
 def consultar_resultado(id_publicacion):
     try:
         with db_cursor(connection_factory=get_db_connection) as (_, cursor):
+            cursor.execute(
+                """
+                SELECT p.id_organizacion, o.estado_verificacion,
+                    CASE
+                        WHEN COALESCE(p.estado, 'activa') = 'activa'
+                             AND p.fecha_limite IS NOT NULL AND p.fecha_limite < CURDATE()
+                        THEN 'cancelada'
+                        ELSE COALESCE(p.estado, 'activa')
+                    END AS estado
+                FROM publicacion p
+                INNER JOIN organizacion o ON o.id_organizacion = p.id_organizacion
+                WHERE p.id_publicacion = %s
+                """,
+                (id_publicacion,),
+            )
+            publicacion = cursor.fetchone()
+            if not publicacion:
+                return jsonify({"error": "Resultado no publicado"}), 404
+            # Pendientes y archivadas nunca son públicas. Para verificadas,
+            # respetar también la visibilidad actual de la campaña.
+            requiere_autorizacion = (
+                publicacion["estado_verificacion"] in ("pendiente", "archivada")
+                or (publicacion["estado_verificacion"] == "verificada"
+                    and publicacion["estado"] not in ("activa", "finalizada"))
+            )
+            if requiere_autorizacion:
+                error = autorizar_lectura_institucional(
+                    cursor, publicacion["id_organizacion"], publicacion["estado_verificacion"],
+                    "Resultado no publicado",
+                )
+                if error:
+                    return error
             resultado = obtener_resultado_campana(cursor, id_publicacion)
             if not resultado:
                 return jsonify({"error": "Resultado no publicado"}), 404

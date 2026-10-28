@@ -6,8 +6,9 @@ from flask import Blueprint, jsonify, request
 from auth_utils import (
     token_required,
     intermediario_required,
+    intermediario_lectura_required,
+    _organizacion_permite_lectura,
     _obtener_organizacion_actual_intermediario,
-    _organizacion_verificada,
 )
 from db.connection import get_db_connection, db_cursor
 from services.publicacion_service import (
@@ -15,6 +16,7 @@ from services.publicacion_service import (
     actualizar_estado_publicacion_db,
     crear_publicacion_db,
     editar_publicacion_db,
+    obtener_cantidad_recibida,
     organizacion_verificada,
     publicacion_pertenece_a_organizacion,
     validar_estado_publicacion,
@@ -34,7 +36,7 @@ intermediario_bp = Blueprint("intermediario", __name__)
     "/intermediario/publicaciones",
     methods=["GET"]
 )
-@intermediario_required
+@intermediario_lectura_required
 def obtener_publicaciones_intermediario():
     try:
         with db_cursor(
@@ -97,7 +99,7 @@ def obtener_publicaciones_intermediario():
     "/intermediario/usuarios",
     methods=["GET"]
 )
-@intermediario_required
+@intermediario_lectura_required
 def obtener_intermediarios_organizacion():
     try:
         with db_cursor(
@@ -334,6 +336,16 @@ def editar_publicacion_intermediario(id_publicacion):
                     "error": "El artículo seleccionado no existe"
                 }), 400
 
+            # La meta no puede quedar por debajo de lo que ya se recibio
+            cantidad_recibida_actual = obtener_cantidad_recibida(cursor, id_publicacion)
+            if payload["cantidad_necesaria"] < cantidad_recibida_actual:
+                return jsonify({
+                    "error": (
+                        "cantidad_necesaria no puede ser menor a lo ya recibido "
+                        f"({cantidad_recibida_actual})"
+                    )
+                }), 400
+
             editar_publicacion_db(cursor, id_publicacion, payload)
 
             conn.commit()
@@ -376,7 +388,7 @@ def obtener_donaciones_intermediario():
                 return jsonify({
                     "error": "El usuario no está asociado a una organización"
                 }), 403
-            if not _organizacion_verificada(id_organizacion):
+            if not _organizacion_permite_lectura(id_organizacion):
                 return jsonify({"error": "La organización no está verificada"}), 403
         elif request.usuario_rol == "administrador":
             org_param = request.args.get("id_organizacion")
@@ -537,7 +549,7 @@ def actualizar_estado_donaciones_masivo():
     "/intermediario/organizacion",
     methods=["GET"]
 )
-@intermediario_required
+@intermediario_lectura_required
 def obtener_perfil_institucional():
     try:
         with db_cursor(

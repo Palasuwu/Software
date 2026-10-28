@@ -11,6 +11,7 @@ class MockCursor:
         self.queries = []
         self.last_query = ""
         self.updated_estado = None
+        self.rowcount = 0
 
     def execute(self, sql, params=None):
         self.last_query = " ".join(sql.split())
@@ -20,8 +21,11 @@ class MockCursor:
             self.updated_estado = params[0]
             if self.donacion_data:
                 self.donacion_data["estado"] = params[0]
+            self.rowcount = 1
 
     def fetchone(self):
+        if "FROM organizacion" in self.last_query:
+            return {"estado_verificacion": "verificada"}
         if "FROM intermediario WHERE id_usuario" in self.last_query:
             if self.org_intermediario is not None:
                 return {"id_organizacion": self.org_intermediario}

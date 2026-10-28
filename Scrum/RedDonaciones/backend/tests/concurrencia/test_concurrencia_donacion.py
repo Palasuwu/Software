@@ -33,6 +33,12 @@ class DonacionCursor:
         if sql_norm.startswith("SELECT id_usuario FROM donante"):
             self._resultado = {"id_usuario": params[0]}
 
+        elif "FROM organizacion" in sql_norm:
+            self._resultado = {"estado_verificacion": "verificada"}
+
+        elif "SELECT id_organizacion FROM publicacion" in sql_norm:
+            self._resultado = {"id_organizacion": 1}
+
         elif (
             sql_norm.startswith("SELECT")
             and "FROM publicacion" in sql_norm

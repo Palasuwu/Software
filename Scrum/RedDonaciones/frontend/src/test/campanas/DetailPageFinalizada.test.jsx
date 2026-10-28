@@ -6,7 +6,8 @@ import DetailPage from '../../pages/DetailPage'
 import { apiGet } from '../../utils/api'
 
 vi.mock('../../utils/api', () => ({ apiGet: vi.fn(), apiPost: vi.fn() }))
-vi.mock('../../utils/session', () => ({ obtenerUsuarioSesion: vi.fn(() => null) }))
+vi.mock('../../utils/session', async (importOriginal) => ({
+  ...(await importOriginal()), obtenerUsuarioSesion: vi.fn(() => null) }))
 
 const finalizada = [{
   id_publicacion: 10,

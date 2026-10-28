@@ -2,8 +2,8 @@ import pytest
 
 
 @pytest.fixture
-def admin(sesion):
-    return sesion("administrador", id_usuario=1)
+def admin(datos_reportes):
+    return datos_reportes["admin_headers"]
 
 
 def pagina(client, headers, datos, page, page_size):
