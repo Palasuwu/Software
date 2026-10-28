@@ -1,3 +1,4 @@
+import { useLiberarPreview } from '../components/ImagenInstitucional'
 // Contenedor del panel de administrador: mantiene todo el estado y las
 // llamadas a la API. La presentacion (tablas, modales, formularios) vive en
 // pages/admin/ y recibe todo por props.
@@ -107,6 +108,12 @@ export default function AdminPanel({ usuarioSesion }) {
     const [carruselFormErrors, setCarruselFormErrors] = React.useState({})
     const [carruselImagePreview, setCarruselImagePreview] = React.useState(null)
     const [uploadingCarruselImage, setUploadingCarruselImage] = React.useState(false)
+
+    useLiberarPreview(imagePreview)
+
+    useLiberarPreview(orgLogoPreview)
+
+    useLiberarPreview(orgPortadaPreview)
 
     React.useEffect(() => {
         if (!successMessage) return

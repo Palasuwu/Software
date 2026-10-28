@@ -1,3 +1,4 @@
+import ImagenInstitucional from '../../components/ImagenInstitucional'
 // Modal de crear/editar una imagen del carrusel de la landing page.
 import React from 'react'
 import AdminModal from './AdminModal'
@@ -52,7 +53,7 @@ export default function CarruselFormModal({
                         {uploadingImage && <span className="form-error-text form-uploading-text">Subiendo imagen...</span>}
                         {errors.url_imagen && <span className="form-error-text org-field-error-text">{errors.url_imagen}</span>}
                         {imagePreview && !uploadingImage && (
-                            <img src={imagePreview} alt="Vista previa" style={{ marginTop: '8px', maxHeight: '120px', borderRadius: '6px', objectFit: 'cover' }} />
+                            <ImagenInstitucional src={imagePreview} alt="Vista previa" style={{ marginTop: '8px', maxHeight: '120px', borderRadius: '6px', objectFit: 'cover' }} />
                         )}
                     </div>
 

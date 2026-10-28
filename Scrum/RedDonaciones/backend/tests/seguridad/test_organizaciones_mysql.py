@@ -11,7 +11,7 @@ pytestmark = pytest.mark.mysql
 
 
 @pytest.fixture
-def escenario(mysql_case):
+def escenario(mysql_case, reloj_jwt):
     data = mysql_case
     org = data.organization("Institución principal")
     otra = data.organization("Otra institución")

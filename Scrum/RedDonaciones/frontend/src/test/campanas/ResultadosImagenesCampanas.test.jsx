@@ -12,7 +12,8 @@ vi.mock('../../utils/api', () => ({
   apiPost: vi.fn()
 }))
 
-vi.mock('../../utils/session', () => ({
+vi.mock('../../utils/session', async (importOriginal) => ({
+  ...(await importOriginal()),
   obtenerUsuarioSesion: vi.fn()
 }))
 

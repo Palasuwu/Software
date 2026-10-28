@@ -1,3 +1,4 @@
+import ImagenInstitucional from '../components/ImagenInstitucional'
 // Pagina publica de detalle de organizacion. Sigue el mismo patron visual
 // que DetailPage.jsx (hero, secciones con icono + titulo) adaptado a la
 // informacion institucional que la organizacion carga en su perfil privado.
@@ -118,7 +119,7 @@ function OrgaDetailPage() {
       <div className="org-detail-header">
         <div className="org-detail-cover">
           {mostrarPortada && (
-            <img
+            <ImagenInstitucional
               src={organizacion.imagen_portada}
               alt=""
               onError={() => setPortadaRota(true)}
@@ -128,7 +129,7 @@ function OrgaDetailPage() {
           <div className="org-detail-logo">
             {mostrarLogo
               ? (
-                <img
+                <ImagenInstitucional
                   src={organizacion.url_logo}
                   alt={`Logo de ${organizacion.nombre}`}
                   onError={() => setLogoRoto(true)}

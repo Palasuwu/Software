@@ -1,3 +1,4 @@
+import ImagenInstitucional from '../../components/ImagenInstitucional'
 // Modal de crear/editar organizacion.
 import React from 'react'
 import AdminModal from './AdminModal'
@@ -114,7 +115,7 @@ export default function OrgFormModal({
                         <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={onLogoChange} disabled={uploadingLogo} className="form-input form-file-input" />
                         {uploadingLogo && <span className="form-error-text form-uploading-text">Subiendo logo...</span>}
                         {logoPreview && !uploadingLogo && (
-                            <img src={logoPreview} alt="Vista previa del logo" style={{ marginTop: '8px', maxHeight: '80px', borderRadius: '999px', objectFit: 'cover' }} />
+                            <ImagenInstitucional src={logoPreview} alt="Vista previa del logo" style={{ marginTop: '8px', maxHeight: '80px', borderRadius: '999px', objectFit: 'cover' }} />
                         )}
                     </div>
 
@@ -123,7 +124,7 @@ export default function OrgFormModal({
                         <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={onPortadaChange} disabled={uploadingPortada} className="form-input form-file-input" />
                         {uploadingPortada && <span className="form-error-text form-uploading-text">Subiendo portada...</span>}
                         {portadaPreview && !uploadingPortada && (
-                            <img src={portadaPreview} alt="Vista previa de la portada" style={{ marginTop: '8px', maxHeight: '120px', borderRadius: '6px', objectFit: 'cover' }} />
+                            <ImagenInstitucional src={portadaPreview} alt="Vista previa de la portada" style={{ marginTop: '8px', maxHeight: '120px', borderRadius: '6px', objectFit: 'cover' }} />
                         )}
                     </div>
                 </div>

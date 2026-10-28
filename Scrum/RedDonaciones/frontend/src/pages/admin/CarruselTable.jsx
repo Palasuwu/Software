@@ -1,3 +1,4 @@
+import ImagenInstitucional from '../../components/ImagenInstitucional'
 // Tabla del carrusel de la landing page en el panel admin. Recibe datos y callbacks por props.
 import React from 'react'
 import ErrorView from '../../components/ErrorView'
@@ -34,7 +35,7 @@ export default function CarruselTable({
                             {imagenes.map((img) => (
                                 <tr key={img.id_imagen}>
                                     <td>
-                                        <img
+                                        <ImagenInstitucional
                                             src={img.url_imagen}
                                             alt={img.alt_text}
                                             className="admin-carrusel-thumb"

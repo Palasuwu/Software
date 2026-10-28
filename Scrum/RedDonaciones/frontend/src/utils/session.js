@@ -26,10 +26,12 @@ export function obtenerTokenSesion() {
 
 export function guardarTokenSesion(token) {
     localStorage.setItem(TOKEN_STORAGE_KEY, token)
+    window.dispatchEvent(new Event('auth:session-changed'))
 }
 
 export function limpiarTokenSesion() {
     localStorage.removeItem(TOKEN_STORAGE_KEY)
+    window.dispatchEvent(new Event('auth:session-changed'))
 }
 
 export function obtenerHeadersSesion() {
@@ -41,4 +43,13 @@ export function obtenerHeadersSesion() {
     }
 
     return headers
+}
+
+export function suscribirSesion(listener) {
+    window.addEventListener('auth:session-changed', listener)
+    window.addEventListener('storage', listener)
+    return () => {
+        window.removeEventListener('auth:session-changed', listener)
+        window.removeEventListener('storage', listener)
+    }
 }

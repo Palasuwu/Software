@@ -1,3 +1,4 @@
+import ImagenInstitucional from '../../components/ImagenInstitucional'
 // Modal de crear campaña (solo lo usa AdminPanel; OrgaPanel tiene su propio
 // modal en pages/orga porque su formulario no incluye organizacion/intermediario).
 import React from 'react'
@@ -117,7 +118,7 @@ export default function CampaignFormModal({
                         {uploadingImage && <span className="form-error-text form-uploading-text">Subiendo imagen...</span>}
                         {campFormErrors.imagen_url && <span className="form-error-text">{campFormErrors.imagen_url}</span>}
                         {imagePreview && !uploadingImage && (
-                            <img src={imagePreview} alt="Vista previa" style={{ marginTop: '8px', maxHeight: '120px', borderRadius: '6px', objectFit: 'cover' }} />
+                            <ImagenInstitucional src={imagePreview} alt="Vista previa" style={{ marginTop: '8px', maxHeight: '120px', borderRadius: '6px', objectFit: 'cover' }} />
                         )}
                     </div>
                 </div>

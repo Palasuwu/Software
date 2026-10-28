@@ -1,3 +1,4 @@
+import { useLiberarPreview } from '../components/ImagenInstitucional'
 // Contenedor del panel de organizacion (intermediario): mantiene el estado
 // y las llamadas a la API. La presentacion vive en pages/orga/ y pages/admin/
 // (piezas compartidas con AdminPanel: SkeletonRows, adminHelpers, icons).
@@ -85,6 +86,8 @@ export default function OrgaPanel() {
   const [aplicandoMasivo, setAplicandoMasivo] = React.useState(false)
   const [omitidasMasivo, setOmitidasMasivo] = React.useState([])
 
+  const sesionImagen = useLiberarPreview(imagePreview)
+
   React.useEffect(() => {
     if (!successMessage) return
 
@@ -101,7 +104,7 @@ export default function OrgaPanel() {
       URL.revokeObjectURL(resultImageObjectUrlRef.current)
       resultImageObjectUrlRef.current = null
     }
-  }, [])
+  }, [sesionImagen])
 
   const loadCampaigns = React.useCallback(async () => {
     setLoadingCampaigns(true)
@@ -336,7 +339,6 @@ export default function OrgaPanel() {
       const result = await apiUpload(file)
       if (formSession !== resultFormSessionRef.current) return
       setResultForm((current) => ({ ...current, imagen_url: result.url }))
-      updateResultImagePreview(result.url)
     } catch (error) {
       if (formSession !== resultFormSessionRef.current) return
       setModalError(error.message || 'No se pudo subir la imagen')

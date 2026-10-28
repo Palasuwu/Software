@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 import re
 import pytest
@@ -46,6 +47,17 @@ def pytest_collection_modifyitems(config, items):
     items[:] = selected
     if deselected:
         config.hook.pytest_deselected(items=deselected)
+
+
+@pytest.fixture
+def reloj_jwt(monkeypatch):
+    """Optativo: ambos relojes JWT permanecen coherentes durante cada caso."""
+    from tests.jwt_clock import controlar_reloj_jwt
+
+    with controlar_reloj_jwt(
+        monkeypatch, datetime(2026, 10, 27, 12, 0, 1, 100000, tzinfo=timezone.utc)
+    ) as reloj:
+        yield reloj
 
 
 @pytest.fixture

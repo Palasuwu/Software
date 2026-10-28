@@ -1,9 +1,13 @@
 import os
 import uuid
+import logging
 from io import BytesIO
 from flask import Blueprint, request, jsonify, send_from_directory
 from PIL import Image
+from werkzeug.utils import safe_join
 from auth_utils import token_required, _obtener_organizacion_actual_intermediario, _organizacion_verificada
+from db.connection import db_cursor, get_db_connection
+from services.archivo_service import nombre_upload_local, referencias_archivo, autorizar_archivo
 
 upload_bp = Blueprint("upload", __name__)
 
@@ -61,4 +65,23 @@ def upload_imagen():
 
 @upload_bp.route("/uploads/<path:filename>", methods=["GET"])
 def serve_upload(filename):
+    ruta = safe_join(UPLOAD_FOLDER, filename)
+    if nombre_upload_local('/uploads/' + filename) != filename or not ruta or not os.path.isfile(ruta):
+        return jsonify({"error": "Archivo no encontrado"}), 404
+    try:
+        with db_cursor(connection_factory=get_db_connection) as (_, cursor):
+            error = autorizar_archivo(cursor, referencias_archivo(cursor, filename))
+            if error:
+                return error
+    except Exception:
+        logging.exception("Error al consultar un archivo local")
+        return jsonify({"error": "No se pudo consultar el archivo"}), 500
     return send_from_directory(UPLOAD_FOLDER, filename)
+
+
+@upload_bp.after_request
+def cache_descarga(response):
+    if request.endpoint == 'upload.serve_upload':
+        response.headers['Cache-Control'] = 'private, no-store'
+        response.vary.add('Authorization')
+    return response
