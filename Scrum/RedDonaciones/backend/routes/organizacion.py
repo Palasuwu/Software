@@ -38,24 +38,24 @@ def normalizar_organizacion_payload(data):
     if len(nombre) < 3:
         errores["nombre"] = "El nombre debe tener al menos 3 caracteres"
     if len(descripcion) < 10:
-        errores["descripcion"] = "La descripcion debe tener al menos 10 caracteres"
+        errores["descripcion"] = "La descripción debe tener al menos 10 caracteres"
     if direccion and len(direccion) < 8:
-        errores["direccion"] = "La direccion debe ser mas especifica"
+        errores["direccion"] = "La dirección debe ser más específica"
     if len(departamento) < 3:
         errores["departamento"] = "El departamento debe tener al menos 3 caracteres"
     if len(municipio) < 3:
         errores["municipio"] = "El municipio debe tener al menos 3 caracteres"
     if zona and (not zona.isdigit() or len(zona) > 2):
-        errores["zona"] = "La zona debe ser un numero valido"
+        errores["zona"] = "La zona debe ser un número válido"
     latitud, longitud, error_coordenadas = validar_coordenadas(data.get("latitud"), data.get("longitud"))
     if error_coordenadas:
         errores["latitud"] = error_coordenadas
     if telefono and (not PHONE_REGEX.match(telefono) or len(re.findall(r"\d", telefono)) < 8):
-        errores["telefono"] = "El telefono debe ser valido"
+        errores["telefono"] = "El teléfono debe ser válido"
     if correo and not EMAIL_REGEX.match(correo):
-        errores["correo"] = "El correo debe ser valido"
+        errores["correo"] = "El correo debe ser válido"
     if estado_verificacion not in ESTADOS_VALIDOS:
-        errores["estado_verificacion"] = "Estado de verificacion no valido"
+        errores["estado_verificacion"] = "Estado de verificación no válido"
     if url_logo and len(url_logo) > 500:
         errores["url_logo"] = "La URL del logo no puede exceder 500 caracteres"
     if imagen_portada and len(imagen_portada) > 500:
@@ -244,7 +244,7 @@ def crear_organizacion():
         conn.commit()
 
         return jsonify({
-            "message": "Organizacion creada",
+            "message": "Organización creada",
             "organizacion": obtener_organizacion(cursor, id_organizacion),
         }), 201
 
@@ -252,9 +252,9 @@ def crear_organizacion():
         if conn:
             conn.rollback()
         if getattr(error, "errno", None) == 1062:
-            return jsonify({"error": "Ya existe una organizacion con ese correo o telefono"}), 409
-        logging.exception("Error al crear organizacion")
-        return jsonify({"error": "No se pudo crear la organizacion"}), 500
+            return jsonify({"error": "Ya existe una organización con ese correo o teléfono"}), 409
+        logging.exception("Error al crear organización")
+        return jsonify({"error": "No se pudo crear la organización"}), 500
     finally:
         if cursor:
             cursor.close()
@@ -277,7 +277,7 @@ def actualizar_organizacion(id_organizacion):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         if not obtener_organizacion(cursor, id_organizacion):
-            return jsonify({"error": "Organizacion no encontrada"}), 404
+            return jsonify({"error": "Organización no encontrada"}), 404
 
         cursor.execute(
             """
@@ -325,7 +325,7 @@ def actualizar_organizacion(id_organizacion):
         conn.commit()
 
         return jsonify({
-            "message": "Organizacion actualizada",
+            "message": "Organización actualizada",
             "organizacion": obtener_organizacion(cursor, id_organizacion),
         }), 200
 
@@ -333,9 +333,9 @@ def actualizar_organizacion(id_organizacion):
         if conn:
             conn.rollback()
         if getattr(error, "errno", None) == 1062:
-            return jsonify({"error": "Ya existe una organizacion con ese correo o telefono"}), 409
-        logging.exception("Error al actualizar organizacion")
-        return jsonify({"error": "No se pudo actualizar la organizacion"}), 500
+            return jsonify({"error": "Ya existe una organización con ese correo o teléfono"}), 409
+        logging.exception("Error al actualizar organización")
+        return jsonify({"error": "No se pudo actualizar la organización"}), 500
     finally:
         if cursor:
             cursor.close()
@@ -354,7 +354,7 @@ def desactivar_organizacion(id_organizacion):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         if not obtener_organizacion(cursor, id_organizacion):
-            return jsonify({"error": "Organizacion no encontrada"}), 404
+            return jsonify({"error": "Organización no encontrada"}), 404
 
         cursor.execute(
             "UPDATE organizacion SET estado_verificacion = 'inactiva' WHERE id_organizacion = %s",
@@ -362,13 +362,13 @@ def desactivar_organizacion(id_organizacion):
         )
         conn.commit()
 
-        return jsonify({"message": "Organizacion desactivada"}), 200
+        return jsonify({"message": "Organización desactivada"}), 200
 
     except Exception:
         if conn:
             conn.rollback()
-        logging.exception("Error al desactivar organizacion")
-        return jsonify({"error": "No se pudo desactivar la organizacion"}), 500
+        logging.exception("Error al desactivar organización")
+        return jsonify({"error": "No se pudo desactivar la organización"}), 500
     finally:
         if cursor:
             cursor.close()
@@ -386,7 +386,7 @@ def archivar_organizacion(id_organizacion):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         if not obtener_organizacion(cursor, id_organizacion):
-            return jsonify({"error": "Organizacion no encontrada"}), 404
+            return jsonify({"error": "Organización no encontrada"}), 404
 
         cursor.execute(
             "UPDATE organizacion SET estado_verificacion = 'archivada' WHERE id_organizacion = %s",
@@ -394,13 +394,13 @@ def archivar_organizacion(id_organizacion):
         )
         conn.commit()
 
-        return jsonify({"message": "Organizacion archivada"}), 200
+        return jsonify({"message": "Organización archivada"}), 200
 
     except Exception:
         if conn:
             conn.rollback()
-        logging.exception("Error al archivar organizacion")
-        return jsonify({"error": "No se pudo archivar la organizacion"}), 500
+        logging.exception("Error al archivar organización")
+        return jsonify({"error": "No se pudo archivar la organización"}), 500
     finally:
         if cursor:
             cursor.close()

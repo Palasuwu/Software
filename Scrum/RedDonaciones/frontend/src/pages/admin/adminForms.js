@@ -86,14 +86,14 @@ export function validateOrgForm(form) {
     const payload = buildOrgPayload(form)
 
     if (payload.nombre.length < 3) errors.nombre = 'Ingresa al menos 3 caracteres'
-    if (payload.descripcion.length < 10) errors.descripcion = 'Ingresa una descripcion mas completa'
-    if (payload.direccion && payload.direccion.length < 8) errors.direccion = 'Ingresa una direccion mas especifica'
+    if (payload.descripcion.length < 10) errors.descripcion = 'Ingresa una descripción más completa'
+    if (payload.direccion && payload.direccion.length < 8) errors.direccion = 'Ingresa una dirección más específica'
     if (payload.departamento.length < 3) errors.departamento = 'Ingresa al menos 3 caracteres'
     if (payload.municipio.length < 3) errors.municipio = 'Ingresa al menos 3 caracteres'
-    if (payload.zona && !/^\d{1,2}$/.test(payload.zona)) errors.zona = 'La zona debe ser un numero valido'
-    if (payload.telefono && (!ORG_PHONE_REGEX.test(payload.telefono) || countDigits(payload.telefono) < 8)) errors.telefono = 'Ingresa un telefono valido'
-    if (payload.correo && !ORG_EMAIL_REGEX.test(payload.correo)) errors.correo = 'Ingresa un correo valido'
-    if (!ORG_STATUSES.includes(payload.estado_verificacion)) errors.estado_verificacion = 'Selecciona un estado valido'
+    if (payload.zona && !/^\d{1,2}$/.test(payload.zona)) errors.zona = 'La zona debe ser un número válido'
+    if (payload.telefono && (!ORG_PHONE_REGEX.test(payload.telefono) || countDigits(payload.telefono) < 8)) errors.telefono = 'Ingresa un teléfono válido'
+    if (payload.correo && !ORG_EMAIL_REGEX.test(payload.correo)) errors.correo = 'Ingresa un correo válido'
+    if (!ORG_STATUSES.includes(payload.estado_verificacion)) errors.estado_verificacion = 'Selecciona un estado válido'
 
     return errors
 }
@@ -118,7 +118,7 @@ export function validateCarruselForm(form) {
     const payload = buildCarruselPayload(form)
 
     if (!payload.url_imagen) errors.url_imagen = 'Sube una imagen'
-    if (payload.alt_text.length < 5) errors.alt_text = 'Ingresa una descripcion mas completa (para accesibilidad)'
+    if (payload.alt_text.length < 5) errors.alt_text = 'Ingresa una descripción más completa (para accesibilidad)'
 
     return errors
 }
@@ -162,13 +162,13 @@ export function validateUserForm(form, mode) {
     if (!form.correo.trim()) {
         errors.correo = 'El correo es obligatorio'
     } else if (!/^\S+@\S+\.\S+$/.test(form.correo.trim())) {
-        errors.correo = 'Ingresa un correo valido'
+        errors.correo = 'Ingresa un correo válido'
     }
 
     if (!form.telefono.trim()) {
-        errors.telefono = 'El telefono es obligatorio'
+        errors.telefono = 'El teléfono es obligatorio'
     } else if (!/^[0-9\-+()\s]{8,20}$/.test(form.telefono.trim())) {
-        errors.telefono = 'Ingresa un telefono valido'
+        errors.telefono = 'Ingresa un teléfono válido'
     }
 
     if (mode === 'create') {
@@ -177,7 +177,7 @@ export function validateUserForm(form, mode) {
         }
 
         if (!['donante', 'intermediario', 'administrador'].includes(form.rol)) {
-            errors.rol = 'Selecciona un rol valido'
+            errors.rol = 'Selecciona un rol válido'
         }
     }
 
@@ -185,7 +185,7 @@ export function validateUserForm(form, mode) {
         if (!form.departamento.trim()) errors.departamento = 'El departamento es obligatorio'
         if (!form.municipio.trim()) errors.municipio = 'El municipio es obligatorio'
         if (!form.zona.trim()) errors.zona = 'La zona es obligatoria'
-        if (!form.direccion_detalle.trim()) errors.direccion_detalle = 'La direccion es obligatoria'
+        if (!form.direccion_detalle.trim()) errors.direccion_detalle = 'La dirección es obligatoria'
     }
 
     if (form.rol === 'intermediario') {

@@ -88,7 +88,7 @@ def verificar_id_token(id_token):
     :raises TokenGoogleInvalido: token ausente, invalido o sin correo verificado.
     """
     if not id_token or not isinstance(id_token, str):
-        raise TokenGoogleInvalido("No se recibio el token de Google")
+        raise TokenGoogleInvalido("No se recibió el token de Google")
 
     _inicializar()
     from firebase_admin import auth as firebase_auth
@@ -98,7 +98,7 @@ def verificar_id_token(id_token):
         decodificado = firebase_auth.verify_id_token(id_token, check_revoked=True)
     except Exception as error:
         logging.warning("ID token de Google rechazado: %s", error)
-        raise TokenGoogleInvalido("El token de Google no es valido o expiro")
+        raise TokenGoogleInvalido("El token de Google no es válido o venció")
 
     correo = (decodificado.get("email") or "").strip().lower()
     if not correo:

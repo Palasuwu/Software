@@ -48,7 +48,7 @@ def test_imagen_se_reduce_y_se_guarda_como_jpg(client, carpeta, monkeypatch, rol
     response = client.post(
         "/upload",
         headers=headers(monkeypatch, rol),
-        data={"file": (imagen(modo="RGBA"), "campana.PNG")},
+        data={"file": (imagen(modo="RGBA"), "campaña.PNG")},
     )
     assert response.status_code == 201
     url = response.get_json()["url"]

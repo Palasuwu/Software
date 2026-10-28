@@ -26,7 +26,7 @@ export default function UserFormFields({ form, errors, mode, organizaciones, org
                 </div>
 
                 <div className="form-field">
-                    <label className="form-label" htmlFor="admin-user-telefono">Telefono</label>
+                    <label className="form-label" htmlFor="admin-user-telefono">Teléfono</label>
                     <input
                         id="admin-user-telefono"
                         className={`form-input ${errors.telefono ? 'form-input-invalid' : ''}`}
@@ -128,7 +128,7 @@ export default function UserFormFields({ form, errors, mode, organizaciones, org
                         </div>
 
                         <div className="form-field">
-                            <label className="form-label" htmlFor="admin-user-direccion">Direccion</label>
+                            <label className="form-label" htmlFor="admin-user-direccion">Dirección</label>
                             <input
                                 id="admin-user-direccion"
                                 className={`form-input ${errors.direccion_detalle ? 'form-input-invalid' : ''}`}

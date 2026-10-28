@@ -803,13 +803,13 @@ export default function AdminPanel({ usuarioSesion }) {
                     await loadUsers()
                     setModal({ type: 'tempPassword', password: response.password_temporal, email: userForm.correo })
                 } else {
-                    setSuccessMessage('Usuario creado con exito')
+                    setSuccessMessage('Usuario creado con éxito')
                     await loadUsers()
                     closeModal()
                 }
             } else {
                 await apiPut(`/api/usuarios/${modal.usuario.id_usuario}`, buildUserPayload(userForm, false))
-                setSuccessMessage('Usuario actualizado con exito')
+                setSuccessMessage('Usuario actualizado con éxito')
                 await loadUsers()
                 closeModal()
             }
@@ -831,7 +831,7 @@ export default function AdminPanel({ usuarioSesion }) {
                 setSuccessMessage('')
                 try {
                     await apiPut(`/api/usuarios/${usuario.id_usuario}/desactivar`, {})
-                    setSuccessMessage('Usuario desactivado con exito')
+                    setSuccessMessage('Usuario desactivado con éxito')
                     await loadUsers()
                 } catch (error) {
                     setModalError(error.message || 'No se pudo desactivar el usuario')
@@ -868,14 +868,14 @@ export default function AdminPanel({ usuarioSesion }) {
         setConfirmModal({
             isOpen: true,
             title: 'Anonimizar Usuario (GDPR)',
-            message: `¿Estás seguro de que deseas anonimizar la cuenta del usuario "${usuario.nombre}"? Se eliminaran su correo y telefono, y su nombre sera cambiado a 'Usuario Anonimizado'. Esta accion cumple con la normativa GDPR y no se puede deshacer.`,
+            message: `¿Estás seguro de que deseas anonimizar la cuenta del usuario "${usuario.nombre}"? Se eliminaran su correo y teléfono, y su nombre sera cambiado a 'Usuario Anonimizado'. Esta accion cumple con la normativa GDPR y no se puede deshacer.`,
             onConfirm: async () => {
                 setIsSubmitting(true)
                 setModalError('')
                 setSuccessMessage('')
                 try {
                     await apiPut(`/api/usuarios/${usuario.id_usuario}/anonimizar`, {})
-                    setSuccessMessage('Usuario anonimizado con exito')
+                    setSuccessMessage('Usuario anonimizado con éxito')
                     await loadUsers()
                 } catch (error) {
                     setModalError(error.message || 'No se pudo anonimizar el usuario')
@@ -896,7 +896,7 @@ export default function AdminPanel({ usuarioSesion }) {
         try {
             await apiDelete(`/api/usuarios/${modal.usuario.id_usuario}`)
             await loadUsers()
-            setSuccessMessage('Usuario eliminado con exito')
+            setSuccessMessage('Usuario eliminado con éxito')
             closeModal()
         } catch (error) {
             setModalError(error.message || 'No se pudo eliminar el usuario')
@@ -918,7 +918,7 @@ export default function AdminPanel({ usuarioSesion }) {
                         : item
                 )))
                 window.dispatchEvent(new Event('admin:campaigns-changed'))
-                setSuccessMessage(`Campana cambiada a "${campaignStatusLabel(nextStatus)}" con exito`)
+                setSuccessMessage(`Campaña cambiada a "${campaignStatusLabel(nextStatus)}" con éxito`)
             } catch (error) {
                 setCampaignsError(error.message || 'No se pudo cambiar el estado de la campaña')
             } finally {
@@ -1026,7 +1026,7 @@ export default function AdminPanel({ usuarioSesion }) {
             return (
                 <AdminModal
                     title="Eliminar usuario"
-                    description="Esta accion no se puede deshacer si el usuario no tiene informacion asociada."
+                    description="Esta accion no se puede deshacer si el usuario no tiene información asociada."
                     onClose={closeModal}
                     footer={(
                         <>

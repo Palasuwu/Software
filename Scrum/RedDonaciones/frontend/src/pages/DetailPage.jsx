@@ -151,7 +151,7 @@ export default function DetailPage() {
 
     const descripcionDonacion = [
       `Entrega agendada por ${form.nombre}`,
-      `Telefono: ${form.telefono}`,
+      `Teléfono: ${form.telefono}`,
       `Hora preferida: ${form.hora}`,
       form.nota ? `Nota: ${form.nota}` : null
     ].filter(Boolean).join(' | ')

@@ -26,7 +26,7 @@ export default function AdminUsersTable({
                 <thead>
                     <tr>
                         <th>Usuario</th>
-                        <th>Telefono</th>
+                        <th>Teléfono</th>
                         <th>Rol</th>
                         <th>Registro</th>
                         <th>Acciones</th>

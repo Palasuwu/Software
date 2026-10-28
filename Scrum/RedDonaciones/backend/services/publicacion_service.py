@@ -59,9 +59,9 @@ def validar_publicacion_payload(
     if require_articulo and not requerido("id_articulo"):
         errors.append("Falta el campo obligatorio: id_articulo")
     if not requerido("titulo"):
-        errors.append("Falta el campo obligatorio: titulo")
+        errors.append("Falta el campo obligatorio: título")
     if not requerido("descripcion"):
-        errors.append("Falta el campo obligatorio: descripcion")
+        errors.append("Falta el campo obligatorio: descripción")
     if not requerido("cantidad_necesaria"):
         errors.append("Falta el campo obligatorio: cantidad_necesaria")
     if not requerido("fecha_publicacion"):
@@ -135,18 +135,18 @@ def validar_publicacion_payload(
         payload["longitud"] = None
     # Validar texto
     if not payload["titulo"]:
-        errors.append( "Falta el campo obligatorio: titulo")
+        errors.append( "Falta el campo obligatorio: título")
     if not payload["descripcion"]:
-        errors.append("Falta el campo obligatorio: descripcion")
+        errors.append("Falta el campo obligatorio: descripción")
     if tiene_ubicacion_propia:
         if not payload["departamento"]:
             errors.append("Falta el campo obligatorio: departamento")
         if not payload["municipio"]:
             errors.append("Falta el campo obligatorio: municipio")
         if payload["zona"] and (not payload["zona"].isdigit() or len(payload["zona"]) > 2):
-            errors.append("zona debe ser un numero valido")
+            errors.append("zona debe ser un número válido")
         if len(payload["direccion_detalle"]) < 8:
-            errors.append("direccion_detalle debe ser mas especifica")
+            errors.append("direccion_detalle debe ser más específica")
     # Validar cantidad
     if not validar_cantidad_necesaria(
         payload["cantidad_necesaria"]
@@ -179,7 +179,7 @@ def validar_publicacion_payload(
     if not validar_estado_publicacion(
         payload["estado"]
     ):
-        errors.append("estado invalido. Usa activa, finalizada o cancelada")
+        errors.append("estado inválido. Usa activa, finalizada o cancelada")
     if errors:
         return False, errors, None
     # Convertir cantidad después de validar

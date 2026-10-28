@@ -61,13 +61,13 @@ describe('Seguimiento de donaciones por el donante', () => {
         })
     })
 
-    it('muestra el estado correcto y la informacion completa en el seguimiento', async () => {
+    it('muestra el estado correcto y la información completa en el seguimiento', async () => {
         apiGet.mockResolvedValue(sampleDonacionDetalle)
 
         const { container } = renderDonationDetail(15)
 
-        expect(await screen.findByText('Detalle de Donacion #15')).toBeInTheDocument()
-        expect(screen.getByText('Campana: Abrigos para el invierno')).toBeInTheDocument()
+        expect(await screen.findByText('Detalle de Donación #15')).toBeInTheDocument()
+        expect(screen.getByText('Campaña: Abrigos para el invierno')).toBeInTheDocument()
         expect(screen.getByText('Fundación Esperanza')).toBeInTheDocument()
         expect(screen.getByText('15:00')).toBeInTheDocument()
 
@@ -76,7 +76,7 @@ describe('Seguimiento de donaciones por el donante', () => {
         expect(badges[0]).toHaveTextContent('En proceso')
     })
 
-    it('bloquea el acceso si la donacion pertenece a otro donante', async () => {
+    it('bloquea el acceso si la donación pertenece a otro donante', async () => {
         apiGet.mockResolvedValue({
             ...sampleDonacionDetalle,
             id_donante: 99
@@ -84,19 +84,19 @@ describe('Seguimiento de donaciones por el donante', () => {
 
         renderDonationDetail(15)
 
-        expect(await screen.findByText('No tienes permisos para ver esta donacion')).toBeInTheDocument()
+        expect(await screen.findByText('No tienes permisos para ver esta donación')).toBeInTheDocument()
     })
 
-    it('muestra vista de error cuando la API de donacion falla', async () => {
-        apiGet.mockRejectedValue(new Error('Error del servidor al obtener donacion'))
+    it('muestra vista de error cuando la API de donación falla', async () => {
+        apiGet.mockRejectedValue(new Error('Error del servidor al obtener donación'))
 
         renderDonationDetail(15)
 
-        expect(await screen.findByText('Error del servidor al obtener donacion')).toBeInTheDocument()
+        expect(await screen.findByText('Error del servidor al obtener donación')).toBeInTheDocument()
     })
 
     it('muestra el listado de donaciones con sus estados en MisDonacionesPage', async () => {
-        apiGet.mockResolvedValue([
+        apiGet.mockResolvedValue({ donaciones: [
             {
                 id_donacion: 1,
                 publicacion_titulo: 'Campaña 1',
@@ -121,7 +121,8 @@ describe('Seguimiento de donaciones por el donante', () => {
                 estado: 'entregada',
                 publicacion_estado: 'finalizada'
             }
-        ])
+        ], page: 1, per_page: 10, total: 2, total_pages: 1,
+            resumen: { total: 2, activas: 1, finalizadas: 1 } })
 
         const { container } = render(
             <MemoryRouter>
@@ -275,7 +276,7 @@ describe('Consistencia del estado de donaciones entre roles', () => {
             })
 
             const { container: containerDetalle, unmount: unmountDetalle } = renderDonationDetail(15)
-            expect(await screen.findByText('Detalle de Donacion #15')).toBeInTheDocument()
+            expect(await screen.findByText('Detalle de Donación #15')).toBeInTheDocument()
 
             const badgeDonante = containerDetalle.querySelector(`.donacion-estado-${key}`)
             expect(badgeDonante).toBeInTheDocument()

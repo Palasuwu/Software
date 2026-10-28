@@ -303,7 +303,7 @@ def test_listar_notificaciones_y_conteo(client, monkeypatch):
             "id_notificacion": 2,
             "id_usuario": 10,
             "tipo": "donacion_registrada",
-            "titulo": "Donacion registrada",
+            "titulo": "Donación registrada",
             "mensaje": "Registrada",
             "enlace": "/donaciones/2",
             "leida": 1,

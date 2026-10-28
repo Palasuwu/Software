@@ -503,3 +503,21 @@
   color: var(--badge-donation-rejected-text);
   border: 1px solid var(--badge-donation-rejected-border);
 }
+.donations-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.donations-pagination p {
+  margin: 0;
+  text-align: center;
+}
+
+.donations-pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

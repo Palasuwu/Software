@@ -73,17 +73,17 @@ export default function DonationHistoryDetailPage() {
         apiGet(`/api/donaciones/${idDonacion}`)
             .then((body) => {
                 if (!body || typeof body !== 'object') {
-                    throw new Error('Respuesta invalida del servidor')
+                    throw new Error('Respuesta inválida del servidor')
                 }
 
                 if (Number(body.id_donante) !== Number(usuario.id_usuario)) {
-                    throw new Error('No tienes permisos para ver esta donacion')
+                    throw new Error('No tienes permisos para ver esta donación')
                 }
 
                 setDetalle(body)
             })
             .catch((err) => {
-                setError(err.message || 'No se pudo cargar el detalle de la donacion')
+                setError(err.message || 'No se pudo cargar el detalle de la donación')
             })
             .finally(() => {
                 setLoading(false)
@@ -96,7 +96,7 @@ export default function DonationHistoryDetailPage() {
     }, [detalle])
 
     if (loading) {
-        return <Spinner message="Cargando detalle de donacion..." />
+        return <Spinner message="Cargando detalle de donación..." />
     }
 
     if (error) {
@@ -104,7 +104,7 @@ export default function DonationHistoryDetailPage() {
     }
 
     if (!detalle) {
-        return <div className="empty-box">No se encontro el detalle de la donacion.</div>
+        return <div className="empty-box">No se encontro el detalle de la donación.</div>
     }
 
     return (
@@ -114,8 +114,8 @@ export default function DonationHistoryDetailPage() {
             </button>
 
             <header className="donations-header-figma">
-                <h1 className="donations-main-title">Detalle de Donacion #{detalle.id_donacion}</h1>
-                <p className="donations-main-subtitle">Campana: {detalle.publicacion_titulo}</p>
+                <h1 className="donations-main-title">Detalle de Donación #{detalle.id_donacion}</h1>
+                <p className="donations-main-subtitle">Campaña: {detalle.publicacion_titulo}</p>
             </header>
 
             {recepcionConfirmada(detalle.donacion_estado) && (
@@ -129,19 +129,19 @@ export default function DonationHistoryDetailPage() {
 
             <div className="stats-grid stats-grid-figma">
                 <article className="stat-card stat-card-figma">
-                    <p className="stat-label stat-label-figma">Estado de tu donacion</p>
+                    <p className="stat-label stat-label-figma">Estado de tu donación</p>
                     <p className="stat-value stat-value-figma">
                         {formatearEstadoDonacion(detalle.donacion_estado)}
                     </p>
                 </article>
 
                 <article className="stat-card stat-card-figma">
-                    <p className="stat-label stat-label-figma">Estado de la campana</p>
+                    <p className="stat-label stat-label-figma">Estado de la campaña</p>
                     <p className="stat-value stat-value-figma">{detalle.publicacion_estado}</p>
                 </article>
 
                 <article className="stat-card stat-card-figma">
-                    <p className="stat-label stat-label-figma">Fecha de donacion</p>
+                    <p className="stat-label stat-label-figma">Fecha de donación</p>
                     <p className="stat-value stat-value-figma">{formatearFecha(detalle.fecha_donacion)}</p>
                 </article>
 
@@ -161,7 +161,7 @@ export default function DonationHistoryDetailPage() {
                     <article className="donation-detail-card-figma donation-detail-summary-figma">
                         <div className="donation-detail-card-head-figma">
                             <div>
-                                <p className="donation-detail-eyebrow-figma">Campana</p>
+                                <p className="donation-detail-eyebrow-figma">Campaña</p>
                                 <h3 className="donation-row-title-figma">Seguimiento del progreso</h3>
                             </div>
                             <div className="donation-detail-badges-figma">
@@ -190,7 +190,7 @@ export default function DonationHistoryDetailPage() {
                             <div className="donation-row-progress-figma">
                                 <div
                                     className="progress-track donation-progress-track-figma"
-                                    aria-label={`Progreso actual de la campana: ${progreso}%`}
+                                    aria-label={`Progreso actual de la campaña: ${progreso}%`}
                                 >
                                     <div className="progress-fill" style={{ width: `${progreso}%` }} />
                                 </div>
@@ -216,10 +216,10 @@ export default function DonationHistoryDetailPage() {
 
                 <div className="donation-detail-section-figma donation-detail-grid-figma">
                     <article className="donation-detail-card-figma">
-                        <p className="donation-detail-eyebrow-figma">Organizacion</p>
+                        <p className="donation-detail-eyebrow-figma">Organización</p>
                         <h3 className="donation-row-title-figma">{detalle.organizacion_nombre}</h3>
                         <div className="donation-detail-stack-figma">
-                            <p>{detalle.organizacion_direccion || 'Direccion no disponible'}</p>
+                            <p>{detalle.organizacion_direccion || 'Dirección no disponible'}</p>
                         </div>
                     </article>
 
@@ -227,9 +227,9 @@ export default function DonationHistoryDetailPage() {
                         <p className="donation-detail-eyebrow-figma">Tu registro</p>
                         <h3 className="donation-row-title-figma">Datos de entrega</h3>
                         <div className="donation-detail-stack-figma">
-                            <p>{detalle.descripcion || 'Sin descripcion'}</p>
+                            <p>{detalle.descripcion || 'Sin descripción'}</p>
                             <p>
-                                Contacto: {detalle.nombre_contacto || 'No disponible'} | {detalle.telefono_contacto || 'Sin telefono'}
+                                Contacto: {detalle.nombre_contacto || 'No disponible'} | {detalle.telefono_contacto || 'Sin teléfono'}
                             </p>
                             {detalle.nota && <p>Nota: {detalle.nota}</p>}
                         </div>
@@ -238,8 +238,8 @@ export default function DonationHistoryDetailPage() {
 
                 <div className="donation-detail-section-figma">
                     <article className="donation-detail-card-figma">
-                        <p className="donation-detail-eyebrow-figma">Articulos</p>
-                        <h3 className="donation-row-title-figma">Articulos de la campana</h3>
+                        <p className="donation-detail-eyebrow-figma">Artículos</p>
+                        <h3 className="donation-row-title-figma">Artículos de la campaña</h3>
                         {Array.isArray(detalle.articulos) && detalle.articulos.length > 0 ? (
                             <div className="donation-items-list-figma">
                                 {detalle.articulos.map((articulo) => (
@@ -257,7 +257,7 @@ export default function DonationHistoryDetailPage() {
                                 ))}
                             </div>
                         ) : (
-                            <p className="donation-detail-empty-figma">No hay articulos asociados en esta campana.</p>
+                            <p className="donation-detail-empty-figma">No hay artículos asociados en esta campaña.</p>
                         )}
                     </article>
                 </div>
@@ -268,7 +268,7 @@ export default function DonationHistoryDetailPage() {
                         className="campaign-button donation-detail-button-figma"
                         onClick={() => navigate(`/detalle/${detalle.id_publicacion}`)}
                     >
-                        Ver detalle de la campana
+                        Ver detalle de la campaña
                     </button>
                 </div>
             </section>

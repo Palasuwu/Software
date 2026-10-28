@@ -92,7 +92,7 @@ def test_token_invalido_es_401(client, monkeypatch):
     from services.firebase_auth import TokenGoogleInvalido
 
     def _rechazar(_token):
-        raise TokenGoogleInvalido("El token de Google no es valido o expiro")
+        raise TokenGoogleInvalido("El token de Google no es válido o venció")
 
     monkeypatch.setattr("routes.auth_google.verificar_id_token", _rechazar)
 

@@ -39,7 +39,7 @@ describe('DonationHistoryDetailPage', () => {
     obtenerUsuarioSesion.mockReturnValue({ id_usuario: 21, rol: 'donante' })
   })
 
-  it('muestra la confirmacion cuando la organizacion recibe la donacion', async () => {
+  it('muestra la confirmación cuando la organización recibe la donación', async () => {
     apiGet.mockResolvedValue(detalle)
     renderDetalle()
 
@@ -49,11 +49,11 @@ describe('DonationHistoryDetailPage', () => {
     expect(screen.getByText('Manos Unidas confirmó que recibió tu donación.')).toBeInTheDocument()
   })
 
-  it('no muestra la confirmacion mientras la donacion sigue pendiente', async () => {
+  it('no muestra la confirmación mientras la donación sigue pendiente', async () => {
     apiGet.mockResolvedValue({ ...detalle, donacion_estado: 'pendiente' })
     renderDetalle()
 
-    await screen.findByText('Detalle de Donacion #9')
+    await screen.findByText('Detalle de Donación #9')
     expect(screen.queryByText('Recepción confirmada')).not.toBeInTheDocument()
   })
 })

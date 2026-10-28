@@ -43,20 +43,20 @@ function validateProfileForm(form, rol) {
     if (!form.correo.trim()) {
         errors.correo = 'El correo es obligatorio'
     } else if (!/^\S+@\S+\.\S+$/.test(form.correo.trim())) {
-        errors.correo = 'Ingresa un correo valido'
+        errors.correo = 'Ingresa un correo válido'
     }
 
     if (!form.telefono.trim()) {
-        errors.telefono = 'El telefono es obligatorio'
+        errors.telefono = 'El teléfono es obligatorio'
     } else if (!/^[0-9\-+()\s]{8,20}$/.test(form.telefono.trim())) {
-        errors.telefono = 'Ingresa un telefono valido'
+        errors.telefono = 'Ingresa un teléfono válido'
     }
 
     if (rol === 'donante') {
         if (!form.departamento.trim()) errors.departamento = 'El departamento es obligatorio'
         if (!form.municipio.trim()) errors.municipio = 'El municipio es obligatorio'
         if (!form.zona.trim()) errors.zona = 'La zona es obligatoria'
-        if (!form.direccion_detalle.trim()) errors.direccion_detalle = 'La direccion es obligatoria'
+        if (!form.direccion_detalle.trim()) errors.direccion_detalle = 'La dirección es obligatoria'
     }
 
     if (rol === 'intermediario') {
@@ -206,7 +206,7 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
             setPerfil(body.usuario)
             setForm(buildProfileForm(body.usuario))
             setIsEditing(false)
-            setSaveSuccess('Perfil actualizado con exito')
+            setSaveSuccess('Perfil actualizado con éxito')
         } catch (fetchError) {
             setSaveError(fetchError.message || 'No se pudo actualizar tu perfil')
         } finally {
@@ -219,7 +219,7 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
         return (
             <div className="fade-in">
                 <div className="error-box">
-                    Debes iniciar sesion para ver tu perfil. <Link to="/login">Ir a login</Link>
+                    Debes iniciar sesión para ver tu perfil. <Link to="/login">Ir a login</Link>
                 </div>
             </div>
         )
@@ -284,7 +284,7 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
                                     </div>
 
                                     <div className="form-field">
-                                        <label className="form-label" htmlFor="profile-telefono">Telefono</label>
+                                        <label className="form-label" htmlFor="profile-telefono">Teléfono</label>
                                         <input
                                             id="profile-telefono"
                                             className={`form-input ${formErrors.telefono ? 'form-input-invalid' : ''}`}
@@ -363,7 +363,7 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
                                         </div>
 
                                         <div className="form-field">
-                                            <label className="form-label" htmlFor="profile-direccion">Direccion</label>
+                                            <label className="form-label" htmlFor="profile-direccion">Dirección</label>
                                             <input
                                                 id="profile-direccion"
                                                 className={`form-input ${formErrors.direccion_detalle ? 'form-input-invalid' : ''}`}
@@ -438,7 +438,7 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
                                     <IconDonation className="nav-icon" />
                                 </div>
                                 <div>
-                                    <p className="profile-info-label">Telefono</p>
+                                    <p className="profile-info-label">Teléfono</p>
                                     <p className="profile-info-value">{perfil?.telefono || 'Sin teléfono registrado'}</p>
                                 </div>
                             </div>
@@ -449,7 +449,7 @@ export default function PerfilPage({ usuarioSesion, onProfileUpdated }) {
                                         <IconLocation className="meta-icon" />
                                     </div>
                                     <div>
-                                        <p className="profile-info-label">Ubicacion</p>
+                                        <p className="profile-info-label">Ubicación</p>
                                         <p className="profile-info-value">
                                             {[perfil?.perfil?.municipio, perfil?.perfil?.departamento].filter(Boolean).join(', ') || 'Sin ubicación registrada'}
                                             <span className="profile-address-detail">

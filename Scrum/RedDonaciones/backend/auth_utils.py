@@ -361,7 +361,7 @@ def intermediario_required(f):
 
         except Exception:
             logging.exception(
-                "Error al consultar la organizacion "
+                "Error al consultar la organización "
                 "actual del intermediario %s",
                 request.usuario_id
             )

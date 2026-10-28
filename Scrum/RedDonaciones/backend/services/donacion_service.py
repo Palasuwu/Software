@@ -345,7 +345,7 @@ def consultar_donaciones_recibidas_db(
 
     if buscar:
         patron = f"%{buscar}%"
-        condiciones.append("(u.nombre LIKE %s OR d.nombre_contacto LIKE %s OR p.titulo LIKE %s)")
+        condiciones.append("(u.nombre LIKE %s OR d.nombre_contacto LIKE %s OR p.título LIKE %s)")
         params.extend([patron, patron, patron])
 
     where_sql = f"WHERE {' AND '.join(condiciones)}" if condiciones else ""

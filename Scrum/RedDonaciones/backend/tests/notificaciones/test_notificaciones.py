@@ -17,7 +17,7 @@ class CursorNotificaciones:
         return [{
             "id_notificacion": 8,
             "tipo": "donacion_registrada",
-            "titulo": "Donacion registrada",
+            "titulo": "Donación registrada",
             "mensaje": "Tu aporte fue registrado.",
             "enlace": "/donaciones/4",
             "leida": 0,
