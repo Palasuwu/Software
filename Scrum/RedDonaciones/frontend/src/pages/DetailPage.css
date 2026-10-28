@@ -506,6 +506,11 @@
   box-shadow: 0 0 0 3px rgba(118, 171, 140, 0.15);
 }
 
+.dp-input--invalid,
+.dp-input--invalid:focus {
+  border-color: var(--danger);
+}
+
 .dp-textarea {
   resize: vertical;
   min-height: 80px;

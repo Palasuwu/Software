@@ -13,6 +13,7 @@ import AdminPanel from './pages/AdminPanel'
 import OrgaPanel from './pages/OrgaPanel'
 import { OlvidePasswordPage, RestablecerPasswordPage } from './pages/PasswordResetPage'
 import ProtectedRoute from './components/ProtectedRoute'
+import { rutaInicioPorRol } from './utils/rutaInicio'
 
 export default function AppRoutes({ usuarioSesion, isAuthenticated, onAuthSuccess }) {
     return (
@@ -21,7 +22,7 @@ export default function AppRoutes({ usuarioSesion, isAuthenticated, onAuthSucces
             <Route path="/detalle/:id" element={<DetailPage />} />
             <Route
                 path="/login"
-                element={isAuthenticated ? <Navigate to="/perfil" replace /> : <AuthPage onAuthSuccess={onAuthSuccess} defaultMode="login" />}
+                element={isAuthenticated ? <Navigate to={rutaInicioPorRol(usuarioSesion?.rol)} replace /> : <AuthPage onAuthSuccess={onAuthSuccess} defaultMode="login" />}
             />
             <Route
                 path="/signup"

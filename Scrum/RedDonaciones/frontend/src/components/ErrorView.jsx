@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function ErrorView({ message, onRetry }) {
+export default function ErrorView({ message, onRetry, actionLabel, onAction }) {
   return (
     <div className="error-view">
       <div className="error-view-icon">
@@ -14,6 +14,11 @@ export default function ErrorView({ message, onRetry }) {
       {onRetry && (
         <button type="button" className="error-view-retry" onClick={onRetry}>
           Intentar de nuevo
+        </button>
+      )}
+      {onAction && (
+        <button type="button" className="error-view-retry" onClick={onAction}>
+          {actionLabel}
         </button>
       )}
     </div>

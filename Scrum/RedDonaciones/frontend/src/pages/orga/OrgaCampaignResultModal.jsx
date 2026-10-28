@@ -1,24 +1,30 @@
 import ImagenInstitucional from '../../components/ImagenInstitucional'
 import React from 'react'
+import useCerrarConEscape from '../../utils/useCerrarConEscape'
 
 export default function OrgaCampaignResultModal({ publicacion, form, onChange, onImageChange, imagePreview, uploadingImage, onSubmit, onClose, saving, error }) {
+    useCerrarConEscape(onClose)
+
     return (
         <div className="admin-modal-backdrop">
-            <section className="admin-modal">
+            <section className="admin-modal" role="dialog" aria-modal="true" aria-labelledby="orga-resultado-modal-title">
                 <header className="admin-modal-header">
                     <div>
                         <p className="page-kicker">Campaña finalizada</p>
-                        <h2>Publicar resultados</h2>
+                        <h2 id="orga-resultado-modal-title">Publicar resultados</h2>
                         <p>{publicacion.titulo}</p>
                     </div>
+                    <button type="button" className="admin-modal-close" onClick={onClose} aria-label="Cerrar modal">
+                        x
+                    </button>
                 </header>
                 <div className="admin-modal-body">
                     {error && <div className="error-box">{error}</div>}
                     <form onSubmit={onSubmit}>
                         <div className="form-grid">
                             <div className="form-field form-field-full">
-                                <label className="form-label">Resumen de los resultados</label>
-                                <textarea
+                                <label className="form-label" htmlFor="orga-resultado-resumen">Resumen de los resultados</label>
+                                <textarea id="orga-resultado-resumen"
                                     className="form-textarea"
                                     name="resumen"
                                     value={form.resumen}
@@ -29,8 +35,8 @@ export default function OrgaCampaignResultModal({ publicacion, form, onChange, o
                                 />
                             </div>
                             <div className="form-field">
-                                <label className="form-label">Personas beneficiadas (opcional)</label>
-                                <input
+                                <label className="form-label" htmlFor="orga-resultado-personas-beneficiadas">Personas beneficiadas (opcional)</label>
+                                <input id="orga-resultado-personas-beneficiadas"
                                     className="form-input"
                                     type="number"
                                     min="0"

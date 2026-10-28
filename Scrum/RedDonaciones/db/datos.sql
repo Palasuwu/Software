@@ -28,8 +28,8 @@ VALUES (
 -- DONANTE
 INSERT IGNORE INTO donante (id_usuario, departamento, municipio, zona, direccion_detalle)
 VALUES
-    (1, 'Antioquia', 'Medellin', 'Urbana', 'Calle 10 #20-30'),
-    (4, 'Guatemala', 'Ciudad de Guatemala', 'Zona 10', '12 calle 11-40, zona 10');
+    (1, 'Antioquia', 'Medellin', '1', 'Calle 10 #20-30'),
+    (4, 'Guatemala', 'Ciudad de Guatemala', '10', '12 calle 11-40, zona 10');
 
 -- INTERMEDIARIO
 INSERT IGNORE INTO intermediario (id_usuario, id_organizacion, cargo)

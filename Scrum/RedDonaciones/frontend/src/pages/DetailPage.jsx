@@ -46,6 +46,8 @@ export default function DetailPage() {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [noDisponible, setNoDisponible] = useState(false)
+  const [camposInvalidos, setCamposInvalidos] = useState({})
   const [submitError, setSubmitError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
@@ -67,7 +69,16 @@ export default function DetailPage() {
         return body
       })
       .then(res => { setData(res); setLoading(false) })
-      .catch(err => { setError('Error cargando detalle'); setLoading(false) })
+      .catch(err => {
+        // 404: la campaña se canceló o el enlace ya no existe; se explica en vez de un error genérico.
+        if (err?.status === 404) {
+          setNoDisponible(true)
+          setError('Esta campaña ya no está disponible. Puede que se haya cancelado o que el enlace sea antiguo.')
+        } else {
+          setError('Error cargando detalle')
+        }
+        setLoading(false)
+      })
   }, [id])
 
   useEffect(() => {
@@ -106,6 +117,7 @@ export default function DetailPage() {
   const handleChange = (e) => {
     const { name, type, value, checked } = e.target
     setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }))
+    setCamposInvalidos(c => (c[name] ? { ...c, [name]: false } : c))
   }
 
   const adjustQty = (delta) =>
@@ -140,6 +152,17 @@ export default function DetailPage() {
     const cantidadDonada = Number(form.cantidad)
     if (!Number.isInteger(cantidadDonada) || cantidadDonada <= 0) {
       setSubmitError('La cantidad a donar debe ser un entero mayor a 0')
+      return
+    }
+    const faltantes = [
+      ['nombre', 'nombre'],
+      ['telefono', 'teléfono'],
+      ['fecha', 'fecha de entrega'],
+      ['hora', 'hora preferida']
+    ].filter(([campo]) => !String(form[campo]).trim())
+    if (faltantes.length > 0) {
+      setCamposInvalidos(Object.fromEntries(faltantes.map(([campo]) => [campo, true])))
+      setSubmitError(`Falta completar: ${faltantes.map(([, etiqueta]) => etiqueta).join(', ')}`)
       return
     }
     if (!form.compromisoEntrega) {
@@ -179,7 +202,11 @@ export default function DetailPage() {
   }
 
   if (loading) return <Spinner message="Cargando detalle..." />
-  if (error) return <ErrorView message={error} />
+  if (error) {
+    return noDisponible
+      ? <ErrorView message={error} actionLabel="Ver otras campañas" onAction={() => navigate('/home')} />
+      : <ErrorView message={error} />
+  }
 
   const pct = info && info.cantidad_necesaria > 0
     ? Math.min(100, Math.round((info.cantidad_recibida / info.cantidad_necesaria) * 100))
@@ -430,9 +457,11 @@ export default function DetailPage() {
                   <div className="dp-form-group">
                     <div className="dp-form-group-title">Contacto</div>
                     <div className="dp-field">
-                      <label className="dp-label">Nombre completo</label>
+                      <label className="dp-label" htmlFor="dp-nombre">Nombre completo</label>
                       <input
-                        className="dp-input"
+                        id="dp-nombre"
+                        className={`dp-input${camposInvalidos.nombre ? ' dp-input--invalid' : ''}`}
+                        aria-invalid={camposInvalidos.nombre ? 'true' : undefined}
                         name="nombre"
                         placeholder="Tu nombre"
                         value={form.nombre}
@@ -441,9 +470,11 @@ export default function DetailPage() {
                       />
                     </div>
                     <div className="dp-field">
-                      <label className="dp-label">Teléfono</label>
+                      <label className="dp-label" htmlFor="dp-telefono">Teléfono</label>
                       <input
-                        className="dp-input"
+                        id="dp-telefono"
+                        className={`dp-input${camposInvalidos.telefono ? ' dp-input--invalid' : ''}`}
+                        aria-invalid={camposInvalidos.telefono ? 'true' : undefined}
                         name="telefono"
                         placeholder="5555-0000"
                         value={form.telefono}
@@ -457,9 +488,10 @@ export default function DetailPage() {
                   <div className="dp-form-group">
                     <div className="dp-form-group-title">Cantidad a donar</div>
                     <div className="dp-qty-control">
-                      <button type="button" className="dp-qty-btn" onClick={() => adjustQty(-1)}>−</button>
+                      <button type="button" className="dp-qty-btn" aria-label="Restar uno" onClick={() => adjustQty(-1)}>−</button>
                       <input
                         className="dp-qty-input"
+                        aria-label="Cantidad a donar"
                         type="number"
                         name="cantidad"
                         min="1"
@@ -467,7 +499,7 @@ export default function DetailPage() {
                         onChange={handleChange}
                         required
                       />
-                      <button type="button" className="dp-qty-btn" onClick={() => adjustQty(1)}>+</button>
+                      <button type="button" className="dp-qty-btn" aria-label="Sumar uno" onClick={() => adjustQty(1)}>+</button>
                     </div>
                   </div>
 
@@ -476,9 +508,11 @@ export default function DetailPage() {
                     <div className="dp-form-group-title">Fecha y hora</div>
                     <div className="dp-row">
                       <div className="dp-field">
-                        <label className="dp-label">Fecha de entrega</label>
+                        <label className="dp-label" htmlFor="dp-fecha">Fecha de entrega</label>
                         <input
-                          className="dp-input"
+                          id="dp-fecha"
+                          className={`dp-input${camposInvalidos.fecha ? ' dp-input--invalid' : ''}`}
+                          aria-invalid={camposInvalidos.fecha ? 'true' : undefined}
                           type="date"
                           name="fecha"
                           value={form.fecha}
@@ -487,8 +521,16 @@ export default function DetailPage() {
                         />
                       </div>
                       <div className="dp-field">
-                        <label className="dp-label">Hora preferida</label>
-                        <select className="dp-input" name="hora" value={form.hora} onChange={handleChange} required>
+                        <label className="dp-label" htmlFor="dp-hora">Hora preferida</label>
+                        <select
+                          id="dp-hora"
+                          className={`dp-input${camposInvalidos.hora ? ' dp-input--invalid' : ''}`}
+                          aria-invalid={camposInvalidos.hora ? 'true' : undefined}
+                          name="hora"
+                          value={form.hora}
+                          onChange={handleChange}
+                          required
+                        >
                           <option value="">Selecciona</option>
                           <option value="08:00">08:00</option>
                           <option value="09:00">09:00</option>
@@ -505,8 +547,9 @@ export default function DetailPage() {
 
                   {/* Nota */}
                   <div className="dp-field">
-                    <label className="dp-label">Nota adicional <span className="dp-optional">(opcional)</span></label>
+                    <label className="dp-label" htmlFor="dp-nota">Nota adicional <span className="dp-optional">(opcional)</span></label>
                     <textarea
+                      id="dp-nota"
                       className="dp-input dp-textarea"
                       name="nota"
                       placeholder="Ej: llevaré 3 bolsas, necesito ayuda para bajarlas..."

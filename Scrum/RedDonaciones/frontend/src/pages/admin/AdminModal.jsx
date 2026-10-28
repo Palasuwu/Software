@@ -2,8 +2,11 @@
 // cuerpo con children, footer opcional. AdminPanel y OrgaPanel deciden que
 // contenido renderizar adentro.
 import React from 'react'
+import useCerrarConEscape from '../../utils/useCerrarConEscape'
 
 export default function AdminModal({ title, description, children, footer, onClose, sizeClass = '' }) {
+    useCerrarConEscape(onClose)
+
     return (
         <div className="admin-modal-backdrop" role="presentation" onMouseDown={onClose}>
             <section

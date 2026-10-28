@@ -158,10 +158,12 @@ export default function OrgaPanel() {
     }
   }, [])
 
+  // Los intermediarios se cargan desde el inicio para que el contador del encabezado no muestre 0.
   React.useEffect(() => {
     loadCampaigns()
     loadArticulos()
-  }, [loadCampaigns, loadArticulos])
+    loadIntermediarios()
+  }, [loadCampaigns, loadArticulos, loadIntermediarios])
 
   React.useEffect(() => {
     if (activeTab === 'intermediarios') {

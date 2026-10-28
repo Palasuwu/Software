@@ -47,8 +47,8 @@ export default function OrgFormModal({
             <form id="org-form" onSubmit={onSubmit} noValidate>
                 <div className="form-grid">
                     <div className="form-field">
-                        <label className="form-label">Nombre</label>
-                        <input
+                        <label className="form-label" htmlFor="org-nombre">Nombre</label>
+                        <input id="org-nombre"
                             className={`form-input ${orgFormErrors.nombre ? 'form-input-invalid' : ''}`}
                             name="nombre"
                             value={orgForm.nombre}
@@ -58,8 +58,8 @@ export default function OrgFormModal({
                     </div>
 
                     <div className="form-field">
-                        <label className="form-label">Descripción</label>
-                        <textarea
+                        <label className="form-label" htmlFor="org-descripcion">Descripción</label>
+                        <textarea id="org-descripcion"
                             className={`form-textarea ${orgFormErrors.descripcion ? 'form-input-invalid' : ''}`}
                             name="descripcion"
                             value={orgForm.descripcion}
@@ -73,8 +73,8 @@ export default function OrgFormModal({
                     <CoordinatesFields form={orgForm} errors={orgFormErrors} onChange={onChange} disabled={isSubmitting} />
 
                     <div className="form-field">
-                        <label className="form-label">Teléfono</label>
-                        <input
+                        <label className="form-label" htmlFor="org-telefono">Teléfono</label>
+                        <input id="org-telefono"
                             className={`form-input ${orgFormErrors.telefono ? 'form-input-invalid' : ''}`}
                             name="telefono"
                             value={orgForm.telefono}
@@ -84,8 +84,8 @@ export default function OrgFormModal({
                     </div>
 
                     <div className="form-field">
-                        <label className="form-label">Correo</label>
-                        <input
+                        <label className="form-label" htmlFor="org-correo">Correo</label>
+                        <input id="org-correo"
                             className={`form-input ${orgFormErrors.correo ? 'form-input-invalid' : ''}`}
                             name="correo"
                             value={orgForm.correo}
@@ -95,8 +95,8 @@ export default function OrgFormModal({
                     </div>
 
                     <div className="form-field">
-                        <label className="form-label">Estado</label>
-                        <select
+                        <label className="form-label" htmlFor="org-estado-verificacion">Estado</label>
+                        <select id="org-estado-verificacion"
                             className="form-select"
                             name="estado_verificacion"
                             value={orgForm.estado_verificacion}
@@ -111,8 +111,8 @@ export default function OrgFormModal({
                     </div>
 
                     <div className="form-field">
-                        <label className="form-label">Logo (opcional)</label>
-                        <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={onLogoChange} disabled={uploadingLogo} className="form-input form-file-input" />
+                        <label className="form-label" htmlFor="org-logo">Logo (opcional)</label>
+                        <input id="org-logo" type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={onLogoChange} disabled={uploadingLogo} className="form-input form-file-input" />
                         {uploadingLogo && <span className="form-error-text form-uploading-text">Subiendo logo...</span>}
                         {logoPreview && !uploadingLogo && (
                             <ImagenInstitucional src={logoPreview} alt="Vista previa del logo" style={{ marginTop: '8px', maxHeight: '80px', borderRadius: '999px', objectFit: 'cover' }} />
@@ -120,8 +120,8 @@ export default function OrgFormModal({
                     </div>
 
                     <div className="form-field">
-                        <label className="form-label">Portada (opcional)</label>
-                        <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={onPortadaChange} disabled={uploadingPortada} className="form-input form-file-input" />
+                        <label className="form-label" htmlFor="org-portada">Portada (opcional)</label>
+                        <input id="org-portada" type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={onPortadaChange} disabled={uploadingPortada} className="form-input form-file-input" />
                         {uploadingPortada && <span className="form-error-text form-uploading-text">Subiendo portada...</span>}
                         {portadaPreview && !uploadingPortada && (
                             <ImagenInstitucional src={portadaPreview} alt="Vista previa de la portada" style={{ marginTop: '8px', maxHeight: '120px', borderRadius: '6px', objectFit: 'cover' }} />

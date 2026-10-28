@@ -172,7 +172,7 @@ describe("AuthPage - LoginForm", () => {
      * - Se invoque correctamente el callback
      * - Se almacene la sesión
      * - Se guarde el token
-     * - Se redirija al perfil
+     * - Se redirija al inicio (el donante llega a las campañas)
      * -------------------------------------------------------------------------
      */
     it("guarda la sesión y redirige correctamente después de un login exitoso", async () => {
@@ -211,8 +211,8 @@ describe("AuthPage - LoginForm", () => {
                         }
                     />
                     <Route
-                        path="/perfil"
-                        element={<div>Perfil page</div>}
+                        path="/home"
+                        element={<div>Inicio page</div>}
                     />
                 </Routes>
             </MemoryRouter>
@@ -251,7 +251,7 @@ describe("AuthPage - LoginForm", () => {
         ).toBeTruthy();
 
         expect(
-            await screen.findByText("Perfil page")
+            await screen.findByText("Inicio page")
         ).toBeInTheDocument();
 
     });

@@ -42,8 +42,8 @@ export default function CarruselFormModal({
             <form id="carrusel-form" onSubmit={onSubmit}>
                 <div className="form-grid">
                     <div className="form-field">
-                        <label className="form-label">Imagen</label>
-                        <input
+                        <label className="form-label" htmlFor="carrusel-imagen">Imagen</label>
+                        <input id="carrusel-imagen"
                             type="file"
                             accept="image/jpeg,image/png,image/gif,image/webp"
                             onChange={onImageChange}
@@ -58,8 +58,8 @@ export default function CarruselFormModal({
                     </div>
 
                     <div className="form-field">
-                        <label className="form-label">Texto alternativo</label>
-                        <input
+                        <label className="form-label" htmlFor="carrusel-alt-text">Texto alternativo</label>
+                        <input id="carrusel-alt-text"
                             className={`form-input ${errors.alt_text ? 'form-input-invalid' : ''}`}
                             name="alt_text"
                             value={form.alt_text}
@@ -70,8 +70,8 @@ export default function CarruselFormModal({
                     </div>
 
                     <div className="form-field">
-                        <label className="form-label">Orden</label>
-                        <input
+                        <label className="form-label" htmlFor="carrusel-orden">Orden</label>
+                        <input id="carrusel-orden"
                             type="number"
                             className="form-input"
                             name="orden"

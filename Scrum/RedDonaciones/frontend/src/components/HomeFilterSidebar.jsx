@@ -102,6 +102,7 @@ export default function HomeFilterSidebar({
             <IconSearch className="search-icon" />
             <input
               type="text"
+              aria-label="Buscar campañas"
               placeholder="Buscar campañas..."
               value={query}
               onChange={(e) => onQueryChange(e.target.value)}

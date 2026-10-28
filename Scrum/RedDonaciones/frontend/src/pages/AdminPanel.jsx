@@ -814,6 +814,11 @@ export default function AdminPanel({ usuarioSesion }) {
                 closeModal()
             }
         } catch (error) {
+            // Si el backend dice qué campo rechazó, se marca ese campo igual que en el formulario de organización.
+            const fieldErrors = error.body?.campos
+            if (fieldErrors && typeof fieldErrors === 'object') {
+                setFormErrors(fieldErrors)
+            }
             setModalError(error.message || 'No se pudo guardar el usuario')
         } finally {
             setIsSubmitting(false)
@@ -1234,6 +1239,7 @@ export default function AdminPanel({ usuarioSesion }) {
 
                                 <select
                                     className="form-select admin-bulk-bar-select"
+                                    aria-label="Nuevo estado de las donaciones seleccionadas"
                                     value={estadoMasivo}
                                     onChange={(e) => setEstadoMasivo(e.target.value)}
                                     disabled={aplicandoMasivo}

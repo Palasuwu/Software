@@ -62,6 +62,7 @@ export default function AdminCampaignsTable({
                                     <td>
                                         <select
                                             className={`form-select admin-select-status campaign-select-status ${statusClass}`}
+                                            aria-label={`Estado de ${publicacion.titulo}`}
                                             value={publicacion.estado}
                                             onChange={(e) => onStatusChange(publicacion, e.target.value)}
                                             disabled={isSaving}

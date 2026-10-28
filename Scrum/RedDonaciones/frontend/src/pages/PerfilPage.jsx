@@ -55,8 +55,11 @@ function validateProfileForm(form, rol) {
     if (rol === 'donante') {
         if (!form.departamento.trim()) errors.departamento = 'El departamento es obligatorio'
         if (!form.municipio.trim()) errors.municipio = 'El municipio es obligatorio'
+        // Mismas reglas que el backend, para que el error salga junto al campo y no arriba de la página.
         if (!form.zona.trim()) errors.zona = 'La zona es obligatoria'
+        else if (!/^\d{1,2}$/.test(form.zona.trim())) errors.zona = 'La zona debe ser un número, por ejemplo 10'
         if (!form.direccion_detalle.trim()) errors.direccion_detalle = 'La dirección es obligatoria'
+        else if (form.direccion_detalle.trim().length < 8) errors.direccion_detalle = 'La dirección debe ser más específica'
     }
 
     if (rol === 'intermediario') {

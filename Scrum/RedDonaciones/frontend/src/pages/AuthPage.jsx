@@ -5,6 +5,7 @@ import logoMark from '../assets/LogoOwnerMark.svg'
 import BotonGoogle from '../components/BotonGoogle'
 import RegistroGoogle from '../components/RegistroGoogle'
 import './AuthPage.css'
+import { rutaInicioPorRol } from '../utils/rutaInicio'
 
 const INITIAL_LOGIN = { correo: '', password: '' }
 const INITIAL_REGISTER = {
@@ -154,7 +155,7 @@ function LoginForm({ onAuthSuccess, onRequiereRegistro }) {
             guardarTokenSesion(body.token)
             guardarUsuarioSesion(body.usuario)
             if (typeof onAuthSuccess === 'function') onAuthSuccess(body.usuario)
-            navigate('/perfil', { state: { flash: 'Sesión iniciada con éxito' } })
+            navigate(rutaInicioPorRol(body.usuario.rol), { state: { flash: 'Sesión iniciada con éxito' } })
         } catch (err) {
             setApiError(err.message || 'No se pudo iniciar sesión')
         } finally {

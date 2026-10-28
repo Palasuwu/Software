@@ -1,9 +1,9 @@
 import ImagenInstitucional from '../../components/ImagenInstitucional'
 // Modal de crear/editar publicacion del panel de organizacion.
-// No reusa components/admin/AdminModal a proposito: el modal original de este
-// panel no tiene boton de cerrar ("x"), a diferencia de AdminModal que
-// siempre lo incluye. Reusarlo agregaria un boton que hoy no existe.
+// No reusa AdminModal porque el formulario lleva sus propios botones en el pie;
+// el encabezado sí tiene el mismo botón de cerrar y también cierra con Escape.
 import React from 'react'
+import useCerrarConEscape from '../../utils/useCerrarConEscape'
 import CampaignLocationFields from '../../components/CampaignLocationFields'
 
 export default function OrgaCampaignFormModal({
@@ -21,13 +21,18 @@ export default function OrgaCampaignFormModal({
     isSubmitting,
     modalError
 }) {
+    useCerrarConEscape(onClose)
+
     return (
         <div className="admin-modal-backdrop">
-            <section className="admin-modal">
+            <section className="admin-modal" role="dialog" aria-modal="true" aria-labelledby="orga-camp-modal-title">
                 <header className="admin-modal-header">
-                    <h2>
+                    <h2 id="orga-camp-modal-title">
                         {isCreate ? 'Nueva publicación' : 'Editar publicación'}
                     </h2>
+                    <button type="button" className="admin-modal-close" onClick={onClose} aria-label="Cerrar modal">
+                        x
+                    </button>
                 </header>
 
                 <div className="admin-modal-body">
@@ -41,9 +46,9 @@ export default function OrgaCampaignFormModal({
                         <div className="form-grid">
 
                             <div className="form-field">
-                                <label className="form-label">Título</label>
+                                <label className="form-label" htmlFor="orga-camp-titulo">Título</label>
 
-                                <input
+                                <input id="orga-camp-titulo"
                                     className="form-input"
                                     name="titulo"
                                     value={campForm.titulo}
@@ -52,9 +57,9 @@ export default function OrgaCampaignFormModal({
                             </div>
 
                             <div className="form-field">
-                                <label className="form-label">Descripción</label>
+                                <label className="form-label" htmlFor="orga-camp-descripcion">Descripción</label>
 
-                                <textarea
+                                <textarea id="orga-camp-descripcion"
                                     className="form-textarea"
                                     name="descripcion"
                                     value={campForm.descripcion}
@@ -63,9 +68,9 @@ export default function OrgaCampaignFormModal({
                             </div>
 
                             <div className="form-field">
-                                <label className="form-label">Cantidad necesaria</label>
+                                <label className="form-label" htmlFor="orga-camp-cantidad-necesaria">Cantidad necesaria</label>
 
-                                <input
+                                <input id="orga-camp-cantidad-necesaria"
                                     type="number"
                                     className="form-input"
                                     name="cantidad_necesaria"
@@ -75,9 +80,9 @@ export default function OrgaCampaignFormModal({
                             </div>
 
                             <div className="form-field">
-                                <label className="form-label">Artículo</label>
+                                <label className="form-label" htmlFor="orga-camp-id-articulo">Artículo</label>
 
-                                <select
+                                <select id="orga-camp-id-articulo"
                                     className="form-select"
                                     name="id_articulo"
                                     value={campForm.id_articulo}
@@ -99,11 +104,11 @@ export default function OrgaCampaignFormModal({
                             <CampaignLocationFields form={campForm} errors={campFormErrors} onChange={onChange} organizacion={organizacion} disabled={isSubmitting} />
 
                             <div className="form-field">
-                                <label className="form-label">
+                                <label className="form-label" htmlFor="orga-camp-fecha-publicacion">
                                     Fecha publicación
                                 </label>
 
-                                <input
+                                <input id="orga-camp-fecha-publicacion"
                                     type="date"
                                     className="form-input"
                                     name="fecha_publicacion"
@@ -113,11 +118,11 @@ export default function OrgaCampaignFormModal({
                             </div>
 
                             <div className="form-field">
-                                <label className="form-label">
+                                <label className="form-label" htmlFor="orga-camp-fecha-limite">
                                     Fecha límite
                                 </label>
 
-                                <input
+                                <input id="orga-camp-fecha-limite"
                                     type="date"
                                     className="form-input"
                                     name="fecha_limite"
@@ -127,9 +132,9 @@ export default function OrgaCampaignFormModal({
                             </div>
 
                             <div className="form-field">
-                                <label className="form-label">Imagen (opcional)</label>
+                                <label className="form-label" htmlFor="orga-camp-imagen">Imagen (opcional)</label>
 
-                                <input
+                                <input id="orga-camp-imagen"
                                     type="file"
                                     accept="image/jpeg,image/png,image/gif,image/webp"
                                     className="form-input form-file-input"
