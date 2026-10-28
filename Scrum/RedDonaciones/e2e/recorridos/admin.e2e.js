@@ -59,11 +59,8 @@ test.describe('Administrador', () => {
             await modal.locator('#admin-user-direccion').fill('Calzada San Juan 12-30')
             await modal.getByRole('button', { name: 'Guardar usuario' }).click()
 
-            // El nombre con números lo rechaza el backend; el formulario debería decir cuál campo.
-            await expect(modal.getByText(/Datos invalidos|letras/)).toBeVisible()
-            if (!(await modal.getByText(/solo debe contener letras/).isVisible())) {
-                h.observar(testInfo, 'Admin: nuevo usuario', 'Si el backend rechaza un campo (p. ej. nombre con números), el modal solo dice "Datos invalidos" sin indicar cuál campo corregir', 3)
-            }
+            // El nombre con números lo rechaza el backend y el error sale junto a ese campo.
+            await expect(modal.getByText('El nombre solo debe contener letras y espacios')).toBeVisible()
         })
 
         await test.step('Crear usuario', async () => {

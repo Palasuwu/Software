@@ -82,7 +82,7 @@ test.describe('Donante', () => {
             await expect(page.locator('#login-password')).toBeFocused()
             await page.keyboard.type(h.PASSWORD_DEMO)
             await page.keyboard.press('Enter')
-            await expect(page).toHaveURL(/\/perfil/)
+            await expect(page).toHaveURL(/\/home/)
         })
 
         const textos = await page.goto('/login').then(() => page.locator('body').innerText()).catch(() => '')
@@ -93,10 +93,7 @@ test.describe('Donante', () => {
 
     test('buscar campaña, encontrar dónde entregar y donar', async ({ page }, testInfo) => {
         await h.iniciarSesion(page, 'donante')
-        const destino = await page.url()
-        if (/\/perfil/.test(destino)) {
-            h.observar(testInfo, 'Inicio de sesión', 'Después de iniciar sesión el donante llega a su perfil y no a las campañas, que es lo que más usa', 1)
-        }
+        await expect(page).toHaveURL(/\/home/)
 
         await test.step('Inicio: búsqueda y filtros', async () => {
             await h.navegacion(page).getByRole('link', { name: 'Inicio', exact: true }).click()
@@ -141,39 +138,35 @@ test.describe('Donante', () => {
 
         await test.step('Formulario de donación: validaciones', async () => {
             const formulario = page.locator('form').filter({ has: page.locator('.dp-submit') })
-            await expect(formulario.locator('input[name=nombre]')).not.toHaveValue('')
+            await expect(formulario.getByLabel('Nombre completo')).not.toHaveValue('')
+
+            // Sin fecha ni hora el mensaje dice qué falta y marca esos campos.
+            await h.tocar(formulario.locator('.dp-submit'), testInfo, 'Formulario de donación')
+            await expect(page.locator('.dp-error')).toHaveText('Falta completar: fecha de entrega, hora preferida')
+            await expect(formulario.getByLabel('Fecha de entrega')).toHaveAttribute('aria-invalid', 'true')
+            await expect(formulario.getByLabel('Hora preferida')).toHaveAttribute('aria-invalid', 'true')
+
+            const fecha = new Date()
+            fecha.setDate(fecha.getDate() + 7)
+            await formulario.getByLabel('Fecha de entrega').fill(fecha.toISOString().slice(0, 10))
+            await formulario.getByLabel('Hora preferida').selectOption('10:00')
+            await expect(formulario.getByLabel('Fecha de entrega')).not.toHaveAttribute('aria-invalid', 'true')
 
             await h.tocar(formulario.locator('.dp-submit'), testInfo, 'Formulario de donación')
             await expect(page.locator('.dp-error')).toContainText('compromiso')
-
-            await h.tocar(formulario.locator('.dp-commitment'), testInfo, 'Formulario de donación')
-            await h.tocar(formulario.locator('.dp-submit'), testInfo, 'Formulario de donación')
-            await expect(page.locator('.dp-error')).toBeVisible()
-            const mensaje = await page.locator('.dp-error').innerText()
-            if (!/fecha|hora/i.test(mensaje)) {
-                h.observar(testInfo, 'Formulario de donación', `Sin fecha ni hora el mensaje es "${mensaje}" y no señala qué campo falta`, 2)
-            }
-
-            if (!(await formulario.getByLabel('Fecha de entrega').count())) {
-                h.observar(testInfo, 'Formulario de donación', 'Las etiquetas (Nombre, Teléfono, Fecha, Hora, Nota) no están asociadas a sus campos; los botones − y + no tienen nombre accesible', 2)
-            }
         })
 
         await test.step('Formulario de donación: registrar', async () => {
             const formulario = page.locator('form').filter({ has: page.locator('.dp-submit') })
             const empezo = Date.now()
-            await h.tocar(formulario.locator('.dp-qty-btn').last(), testInfo, 'Formulario de donación')
-            await expect(formulario.locator('input[name=cantidad]')).toHaveValue('2')
-
-            const fecha = new Date()
-            fecha.setDate(fecha.getDate() + 7)
-            await formulario.locator('input[name=fecha]').fill(fecha.toISOString().slice(0, 10))
-            await formulario.locator('select[name=hora]').selectOption('10:00')
-            await formulario.locator('textarea[name=nota]').fill(`Recorrido ${testInfo.project.name}`)
+            await h.tocar(formulario.getByRole('button', { name: 'Sumar uno' }), testInfo, 'Formulario de donación')
+            await expect(formulario.getByLabel('Cantidad a donar')).toHaveValue('2')
+            await formulario.getByLabel(/Nota adicional/).fill(`Recorrido ${testInfo.project.name}`)
+            await h.tocar(formulario.locator('.dp-commitment'), testInfo, 'Formulario de donación')
             await h.tocar(formulario.locator('.dp-submit'), testInfo, 'Formulario de donación')
 
             await expect(page.getByText('Donación registrada')).toBeVisible()
-            h.medir(testInfo, 'Registrar donación (desde llenar fecha hasta la confirmación)', Date.now() - empezo)
+            h.medir(testInfo, 'Registrar donación (desde la cantidad hasta la confirmación)', Date.now() - empezo)
             await expect(page).toHaveURL(/\/donaciones$/, { timeout: 10_000 })
         })
     })
@@ -214,9 +207,9 @@ test.describe('Donante', () => {
             await page.getByRole('button', { name: 'Guardar cambios' }).click()
 
             // Los datos de ejemplo traen zonas como "Zona 10", que el backend ya no acepta.
-            await expect(page.getByText(/Perfil actualizado|La zona debe ser/)).toBeVisible()
-            if (await page.getByText('La zona debe ser un numero valido').isVisible()) {
-                h.observar(testInfo, 'Perfil (edición)', 'Guardar el perfil sin cambios falla con "La zona debe ser un numero valido": el mensaje sale arriba de la página, lejos del campo, y el campo no se marca', 2)
+            await expect(page.getByText(/Perfil actualizado|La zona debe ser/).first()).toBeVisible()
+            if (await page.getByText(/La zona debe ser/).first().isVisible()) {
+                h.observar(testInfo, 'Perfil (edición)', 'Guardar el perfil sin cambios falla porque la zona guardada no es un número', 2)
                 const zona = await page.locator('#profile-zona').inputValue()
                 await page.locator('#profile-zona').fill(zona.replace(/\D/g, '') || '1')
                 await page.getByRole('button', { name: 'Guardar cambios' }).click()
@@ -249,10 +242,9 @@ test.describe('Donante', () => {
 
         await test.step('Campaña cancelada (enlace directo)', async () => {
             await page.goto('/detalle/1')
-            await h.esperarCarga(page)
-            if (await page.getByText('Error cargando detalle').isVisible()) {
-                h.observar(testInfo, 'Detalle de campaña', 'Una campaña cancelada (o un enlace viejo) muestra solo "Error cargando detalle", sin explicar qué pasó ni ofrecer volver a las campañas', 2)
-            }
+            await expect(page.getByText(/ya no está disponible/)).toBeVisible()
+            await page.getByRole('button', { name: 'Ver otras campañas' }).click()
+            await expect(page).toHaveURL(/\/home/)
         })
 
         await test.step('Cerrar sesión', async () => {
